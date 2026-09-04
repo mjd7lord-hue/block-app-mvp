@@ -1283,13 +1283,32 @@ function pendingRequestCount(){return getIncomingRequests().filter(function(item
 function setRequestTab(tab){state.requestTab=tab;render()}
 function respondToRequest(id,status){
   var item=getIncomingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;
+  if(item.real){
+    apiRequest('/api/requests/'+item.backendId+'/respond',{method:'POST',body:{status:status==='accepted'?'ACCEPTED':'DECLINED'}})
+      .then(function(data){
+        item.status=status;
+        if(status==='accepted'&&data.project)getProjects(state.role||'worker').unshift(mapBackendProjectToItem(data.project));
+        render();toast(status==='accepted'?'درخواست تأیید و به کارهای شما اضافه شد':'درخواست رد شد');
+      })
+      .catch(function(e){toast(e.message||'خطا در پاسخ به درخواست')});
+    return;
+  }
   if(item.type==='agreement'&&item.adId){respondToAgreementRequest(item,status);return}
   item.status=status;
   if(status==='accepted')getProjects(state.role||'worker').unshift({title:item.title,who:item.from,stage:'agreed',rating:0,direction:'incoming'});
   getNotifications().unshift({title:status==='accepted'?'درخواست تأیید شد':'درخواست رد شد',sub:item.title+' · '+item.from,time:'همین حالا',day:'امروز',read:false,icon:status==='accepted'?'check':'alert',type:'project',target:'requestsCenter',action:'دیدن درخواست‌ها'});
   render();toast(status==='accepted'?'درخواست تأیید و به کارهای شما اضافه شد':'درخواست رد شد');
 }
-function cancelOutgoingRequest(id){var item=getOutgoingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;item.status='declined';render();toast('درخواست ارسالی لغو شد')}
+function cancelOutgoingRequest(id){
+  var item=getOutgoingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;
+  if(item.real){
+    apiRequest('/api/requests/'+item.backendId,{method:'DELETE'})
+      .then(function(){item.status='declined';render();toast('درخواست ارسالی لغو شد')})
+      .catch(function(e){toast(e.message||'لغو درخواست ناموفق بود')});
+    return;
+  }
+  item.status='declined';render();toast('درخواست ارسالی لغو شد');
+}
 
 var QUICK_ACTIONS={
   engineer:[['calendar','تقویم بازدیدها','calendar'],['plus','ثبت آگهی هدفمند','newRequest']],
@@ -1524,19 +1543,36 @@ function openMaterialDiscovery(){
   state.exploreFilters={skills:[],experience:'all',availability:'all',range:'15',resultType:'store',verified:true,rating:'all'};
   go('explore');setTimeout(function(){toast('فروشگاه‌های نزدیک و تأییدشده نمایش داده شدند')},80);
 }
-function publishAd(){
+function publishAd(btn){
   var missing=adMissingForStep(0);
   if(missing.length){missing.forEach(function(key){state.adWarnings[key]=true});state.adStep=0;render();toast(state.adDraft.type==='consult'?'عنوان، توضیحات و پاسخ‌دهندگان را کامل کنید':state.adDraft.type==='work'?'مخاطبان را انتخاب و اطلاعات تخصصی پروفایل را کامل کنید':'نیروی موردنظر، توضیحات و محل پروژه را کامل کنید');return}
-  var d=state.adDraft,config=activeAdConfig(),roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
+  var d=state.adDraft,roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
   var title=(d.title||adFixedTitle(d.type)).trim(),city=d.type==='consult'?d.range:d.type==='work'?(profile.city||profile.province||d.range):d.city.trim(),skills=d.categories.slice();
-  var audience=adAudienceCount();
-  var availabilityLabel=d.type==='consult'?'پاسخ در چت بلوک':d.type==='work'?'آمادهٔ همکاری':(d.startTime||'با هماهنگی');
-  var item={id:'ad-'+Date.now(),isAd:true,title:title,sub:d.description||config.exploreSub,icon:config.icon,city:city,province:d.type==='work'?(profile.province||''):(d.province||''),role:roles[0],ownerRole:state.role||'worker',targetRoles:roles,profile:profile,x:34,y:42,skills:skills,categories:skills,category:skills.join('، '),description:d.description||'',attachment:d.type==='consult'?(d.attachment||null):null,budget:d.type==='consult'?'':(d.budget||'توافقی'),range:d.range,startTime:d.type==='consult'?'':d.startTime,contact:'چت بلوک؛ نمایش شماره طبق تنظیم حریم خصوصی آگهی‌دهنده',experienceYears:1,experienceLabel:profile.experience||'آگهی تازه',availability:d.type==='consult'||d.type==='work'?'flexible':d.startTime==='فوری'?'now':d.startTime==='امروز'?'today':'week',availabilityLabel:availabilityLabel,distance:2.3,resultType:'opportunity',resultLabel:config.shortLabel,verified:profile.verified,rating:null,tone:config.tone,featured:true,isFresh:true,adType:d.type,status:'active',agreement:null};
-  EXPLORE_ITEMS.unshift(item);
-  getProjects(state.role||'worker').push({title:title,who:'منتظر پاسخ مخاطبان',personId:null,stage:'proposed',rating:0,direction:'outgoing'});
-  getNotifications().unshift({title:'آگهی منتشر شد',sub:'برای '+audience+' کاربر مرتبط در محدودهٔ '+d.range+' اعلان ارسال شد',time:'همین حالا',day:'امروز',read:false,icon:'bell',type:'project',target:'adPublished',action:'مشاهدهٔ نتیجه'});
-  state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
-  state.page='adPublished';render();
+  var roleProfileId=getActiveRoleProfileId();
+  if(!roleProfileId){toast('پروفایل نقش شما یافت نشد؛ لطفاً دوباره وارد شوید');return}
+  var stopLoading=setButtonLoading(btn,'در حال انتشار...');
+  apiRequest('/api/ads',{method:'POST',body:{
+    type:d.type.toUpperCase(),
+    roleProfileId:roleProfileId,
+    targetRoles:roles.map(toBackendRole),
+    title:title,
+    description:d.description||'',
+    categories:skills,
+    city:d.type==='work'?(profile.city||null):(city||null),
+    province:d.type==='work'?(profile.province||null):(d.province||null),
+    range:d.range,
+    startTime:d.type==='consult'?null:d.startTime,
+    attachmentUrl:d.type==='consult'?(d.attachment||null):null
+  }})
+    .then(function(data){
+      var audience=adAudienceCount();
+      var item=mapBackendAdToItem(data.ad);
+      EXPLORE_ITEMS.unshift(item);
+      getNotifications().unshift({title:'آگهی منتشر شد',sub:'برای '+audience+' کاربر مرتبط در محدودهٔ '+d.range+' اعلان ارسال شد',time:'همین حالا',day:'امروز',read:false,icon:'bell',type:'project',target:'adPublished',action:'مشاهدهٔ نتیجه'});
+      state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
+      state.page='adPublished';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'انتشار آگهی ناموفق بود')});
 }
 function handleAdAttachment(input){
   var file=input.files&&input.files[0];if(!file)return;
@@ -1561,6 +1597,15 @@ function agreementForAd(ad){return ad&&ad.agreement||null}
 function requestAdAgreement(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad||ad.status==='matched')return;
   if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است');return}
+  if(ad.real){
+    apiRequest('/api/ads/'+ad.backendId+'/agreement-requests',{method:'POST',body:{}})
+      .then(function(){
+        ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا'};
+        render();toast('تأیید شما ثبت شد؛ منتظر تأیید طرف مقابل باشید');
+      })
+      .catch(function(e){toast(e.message||'ثبت درخواست ناموفق بود')});
+    return;
+  }
   ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا',viewerName:displayNameFor(state.role||'worker'),ownerName:(ad.profile&&ad.profile.name)||'ثبت‌کنندهٔ آگهی'};
   var request={id:'agree-'+ad.id,type:'agreement',adId:ad.id,title:'تأیید همکاری · '+ad.title,from:displayNameFor(state.role||'worker'),detail:'پس از تأیید شما، آگهی از اکسپلور خارج و همکاری برای هر دو طرف به پروژه‌ها اضافه می‌شود.',status:'pending'};
   getIncomingRequests().unshift(request);
@@ -1632,6 +1677,16 @@ var PROJECT_SEED={
 function getProjects(role){if(!state.projects[role])state.projects[role]=cloneData(PROJECT_SEED[role]||[]);return state.projects[role]}
 function advanceStage(idx){
   var list=getProjects(state.role);var p=list[idx];
+  if(p.real){
+    apiRequest('/api/projects/'+p.backendId+'/advance',{method:'PATCH'})
+      .then(function(data){
+        p.stage=String(data.project.stage||p.stage).toLowerCase();
+        render();
+        if(p.stage==='done'&&!p.rating)setTimeout(function(){openRatingSheet(idx)},250);
+      })
+      .catch(function(e){toast(e.message||'خطا در پیشبرد پروژه')});
+    return;
+  }
   var i=STAGE_ORDER.indexOf(p.stage);
   if(i<STAGE_ORDER.length-1){p.stage=STAGE_ORDER[i+1];render();
     if(p.stage==='done'&&!p.rating)setTimeout(function(){openRatingSheet(idx)},250);
@@ -1690,6 +1745,15 @@ function submitRating(){
   var list=getProjects(state.role);
   var p=list[state.ratingIndex];
   var value=state.ratingDraft.value||5,comment=(state.ratingDraft.comment||'').trim();
+  if(p.real){
+    apiRequest('/api/projects/'+p.backendId+'/rating',{method:'POST',body:{value:value,comment:comment||undefined}})
+      .then(function(){
+        p.rating=value;p.reviewComment=comment;
+        closeSheet();render();toast('امتیاز و نظر شما ثبت شد');
+      })
+      .catch(function(e){toast(e.message||'ثبت امتیاز ناموفق بود')});
+    return;
+  }
   p.rating=value;
   p.reviewComment=comment;
   var target=p.personId&&PEOPLE_SEED[p.personId];
@@ -2246,7 +2310,7 @@ function toggleBlock(id){
 }
 
 
-function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render()}
+function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render();syncRealData(page)}
 function back(){state.page=state.stack.pop()||'splash';render()}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
@@ -2461,6 +2525,92 @@ var OTP_INPUT_HTML=(function(){
   var one='<input maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="otpAdvance(this)" onkeydown="otpBackspace(event,this)" onpaste="otpPaste(event,this)">';
   return one+one+one+one;
 })();
+
+/* ---------- real ads/requests/projects: session + mapping helpers ---------- */
+function getSessionUser(){
+  try{return JSON.parse(localStorage.getItem('block_user')||'null')}catch(e){return null}
+}
+function getActiveRoleProfileId(){
+  var user=getSessionUser();if(!user||!user.roleProfiles)return null;
+  var backendRole=toBackendRole(state.role);
+  var match=user.roleProfiles.find(function(rp){return rp.role===backendRole});
+  return match?match.id:null;
+}
+function personName(person){
+  if(!person)return'کاربر بلوک';
+  return [person.firstName,person.lastName].filter(Boolean).join(' ')||'کاربر بلوک';
+}
+function mapBackendAdToItem(ad){
+  var type=(ad.type||'WORK').toLowerCase();
+  var config=AD_CONFIG[type]||AD_CONFIG.work;
+  var snapshot=ad.authorSnapshot||{};
+  var role=(snapshot.role||'').toLowerCase();
+  return{
+    id:ad.id,real:true,backendId:ad.id,isAd:true,
+    title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
+    city:ad.city||'',province:ad.province||'',
+    role:role,ownerRole:role,
+    targetRoles:(ad.targetRoles||[]).map(function(r){return String(r).toLowerCase()}),
+    profile:{name:personName(snapshot),role:role,roleLabel:AD_ROLE_LABELS[role]||'',province:snapshot.workProvince||'',city:snapshot.workCity||'',verified:!!snapshot.verified},
+    x:34,y:42,
+    skills:ad.categories||[],categories:ad.categories||[],category:(ad.categories||[]).join('، '),
+    description:ad.description||'',attachment:ad.attachmentUrl||null,
+    budget:ad.rateDescriptor||'توافقی',range:ad.range||'',startTime:ad.startTime||'',
+    contact:'چت بلوک',
+    experienceYears:1,experienceLabel:'',availability:'flexible',availabilityLabel:ad.startTime||'با هماهنگی',
+    distance:null,resultType:'opportunity',resultLabel:config.shortLabel,
+    verified:!!snapshot.verified,rating:null,tone:config.tone,
+    featured:false,isFresh:(Date.now()-new Date(ad.createdAt).getTime())<24*3600*1000,
+    adType:type,status:ad.status==='ACTIVE'?'active':'matched',agreement:null
+  };
+}
+function mapBackendRequestToIncoming(r){
+  return{id:'real-'+r.id,real:true,backendId:r.id,type:'agreement',adId:r.adId,title:'تأیید همکاری · '+(r.ad?r.ad.title:''),from:personName(r.fromUser),detail:r.detail||'',status:String(r.status).toLowerCase()};
+}
+function mapBackendRequestToOutgoing(r,role){
+  return{id:'real-'+r.id,real:true,backendId:r.id,role:role,type:'agreement',title:'تأیید همکاری · '+(r.ad?r.ad.title:''),to:personName(r.toUser),detail:r.detail||'',status:String(r.status).toLowerCase()};
+}
+function mapBackendProjectToItem(project){
+  var me=getSessionUser();
+  var isPartyA=!!(me&&project.partyA&&project.partyA.id===me.id);
+  var other=isPartyA?project.partyB:project.partyA;
+  return{real:true,backendId:project.id,adId:project.adId,title:project.title,who:personName(other),personId:null,stage:String(project.stage||'AGREED').toLowerCase(),rating:0,direction:'mutual',bothParties:true,startDate:project.startDate,startNote:project.startNote};
+}
+function mergeReal(list,items){
+  for(var i=list.length-1;i>=0;i--){if(list[i].real)list.splice(i,1)}
+  items.forEach(function(item){list.unshift(item)});
+}
+function loadRealAds(){
+  var qs='';
+  if(state.role)qs='?targetRole='+encodeURIComponent(toBackendRole(state.role));
+  apiRequest('/api/ads'+qs)
+    .then(function(data){mergeReal(EXPLORE_ITEMS,(data.ads||[]).map(mapBackendAdToItem));render()})
+    .catch(function(e){console.error('loadRealAds failed',e)});
+}
+function loadRealRequests(){
+  var role=state.role||'worker';
+  Promise.all([apiRequest('/api/requests/incoming'),apiRequest('/api/requests/outgoing')])
+    .then(function(results){
+      var incoming=(results[0].requests||[]).filter(function(r){return r.status==='PENDING'}).map(mapBackendRequestToIncoming);
+      var outgoing=(results[1].requests||[]).map(function(r){return mapBackendRequestToOutgoing(r,role)});
+      mergeReal(getIncomingRequests(),incoming);
+      state.outgoingRequests=state.outgoingRequests.filter(function(item){return!item.real}).concat(outgoing);
+      render();
+    })
+    .catch(function(e){console.error('loadRealRequests failed',e)});
+}
+function loadRealProjects(){
+  var role=state.role||'worker';
+  apiRequest('/api/projects')
+    .then(function(data){mergeReal(getProjects(role),(data.projects||[]).map(mapBackendProjectToItem));render()})
+    .catch(function(e){console.error('loadRealProjects failed',e)});
+}
+function syncRealData(page){
+  if(!getSessionUser())return;
+  if(page==='explore')loadRealAds();
+  if(page==='requestsCenter')loadRealRequests();
+  if(page==='myProjects')loadRealProjects();
+}
 
 /* ---------- role select ---------- */
 function pickRole(k){state.role=k;render()}
@@ -3643,7 +3793,7 @@ createAd:function(){
   }else{
     content='<div class="ad-step-copy"><span>مرحله ۲ از ۲</span><h2>مرور و انتشار</h2><p>اطلاعات زیر در اکسپلور نمایش داده می‌شود و برای مخاطبان انتخاب‌شده اعلان می‌رود.</p></div>'+renderAdReview();
   }
-  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd()':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
+  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd(this)':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
 },
 
 adDetail:function(){
