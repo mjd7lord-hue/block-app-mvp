@@ -2335,7 +2335,16 @@ function toggleLegalConsent(){state.legalConsent=!state.legalConsent;state.legal
 function isLegalCurrent(){return !!state.legalAcceptedAt&&state.acceptedLegalVersion===LEGAL_VERSION}
 function legalAcceptanceText(){return isLegalCurrent()?'پذیرفته‌شده · نسخهٔ '+esc(state.acceptedLegalVersion):'نیازمند پذیرش نسخهٔ فعلی'}
 function acceptCurrentLegal(){state.legalConsent=true;state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;render();toast('پذیرش نسخهٔ فعلی قوانین ثبت شد')}
-function completeLogin(){closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render()}
+function completeLogin(){
+  var code=readOtpCode();
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:state.loginPhone,code:code}})
+    .then(function(data){
+      saveSession(data.token,data.user);
+      closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
+    })
+    .catch(function(e){toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
+}
 function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=value==='large'?'17.5px':value==='larger'?'19px':'16px';try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
@@ -2349,11 +2358,47 @@ function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;cl
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
 function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
+function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
-function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است');return}var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
+function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
+
+/* ---------- block backend integration ---------- */
+var API_BASE=window.BLOCK_API_BASE||'http://localhost:5000';
+function apiRequest(path,options){
+  options=options||{};
+  var headers=Object.assign({'Content-Type':'application/json'},options.headers||{});
+  var token=localStorage.getItem('block_token');
+  if(token)headers.Authorization='Bearer '+token;
+  return fetch(API_BASE+path,{
+    method:options.method||'GET',
+    headers:headers,
+    body:options.body?JSON.stringify(options.body):undefined
+  }).then(function(res){
+    return res.json().catch(function(){return{}}).then(function(data){
+      if(!res.ok){var err=new Error(data.message||'خطای سرور');err.status=res.status;err.data=data;throw err}
+      return data;
+    });
+  });
+}
+function saveSession(token,user){
+  localStorage.setItem('block_token',token);
+  localStorage.setItem('block_user',JSON.stringify(user));
+}
+function clearSession(){
+  localStorage.removeItem('block_token');
+  localStorage.removeItem('block_user');
+}
+function normalizePhone(value){return String(value||'').replace(/[^\d]/g,'').trim()}
+var ROLE_TO_BACKEND={engineer:'ENGINEER',contractor:'CONTRACTOR',company:'COMPANY',specialist:'SPECIALIST',worker:'WORKER',machinery:'MACHINERY',store:'STORE',materialsSupplier:'MATERIALS_SUPPLIER',general:'GENERAL'};
+function toBackendRole(role){return ROLE_TO_BACKEND[role]||String(role||'').toUpperCase()}
+function readOtpCode(){
+  var inputs=document.querySelectorAll('.otp-row input');
+  var code='';
+  for(var i=0;i<inputs.length;i++)code+=(inputs[i].value||'').trim();
+  return code;
+}
 
 /* ---------- role select ---------- */
 function pickRole(k){state.role=k;render()}
@@ -2367,9 +2412,22 @@ function startRegistration(){if(!state.role)return;state.otpStage='phone';go('ph
 function submitPhoneStage(){
   if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید');return}
   if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است');return}
-  state.otpStage='code';render();
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
+    .then(function(){state.otpStage='code';render();toast('کد تأیید ارسال شد')})
+    .catch(function(e){toast(e.message||'ارسال کد ناموفق بود')});
 }
-function confirmSignupOtp(){if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';go('pathChoice')}
+function confirmSignupOtp(){
+  if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}
+  var code=readOtpCode();
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone),code:code,role:toBackendRole(state.role)}})
+    .then(function(data){
+      saveSession(data.token,data.user);
+      state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
+      go('pathChoice');
+    })
+    .catch(function(e){toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
+}
 function choosePathQuick(){state.values.quickName='';state.values.quickCity='';go('quickSetup')}
 function choosePathFull(){state.step=0;state.editMode=false;state.collections={};state.stepWarnings={};go('regStep')}
 function submitQuickSetup(){
@@ -3687,7 +3745,16 @@ settings:function(){
 };
 
 function openLoginSheet(){
-  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="closeSheet();openOtpSheet()">دریافت کد ورود</button>')
+  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone()">دریافت کد ورود</button>')
+}
+function submitLoginPhone(){
+  var input=document.getElementById('loginPhone');
+  var phone=normalizePhone(input?input.value:'');
+  if(!phone){toast('شماره موبایل را وارد کنید');return}
+  state.loginPhone=phone;
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:phone}})
+    .then(function(){closeSheet();openOtpSheet()})
+    .catch(function(e){toast(e.message||'ارسال کد ناموفق بود')});
 }
 function openOtpSheet(){
   setTimeout(function(){
