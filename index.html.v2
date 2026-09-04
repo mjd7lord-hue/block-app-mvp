@@ -201,6 +201,8 @@ p{color:var(--muted);margin:0}
 .otp-row{display:flex;gap:8px;direction:ltr;margin-bottom:16px}
 .otp-row input{width:100%;height:52px;text-align:center;font-size:1rem;border:1px solid var(--line);border-radius:13px;background:var(--surface2);color:var(--ink);outline:0}
 .otp-row input:focus{border-color:var(--accent)}
+.otp-resend{display:block;margin-top:8px}
+.otp-resend:disabled{opacity:.5;cursor:default}
 
 .state{text-align:center;padding:40px 16px 10px}
 .state-symbol{width:80px;height:80px;margin:0 auto 18px;border-radius:26px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
@@ -2335,15 +2337,25 @@ function toggleLegalConsent(){state.legalConsent=!state.legalConsent;state.legal
 function isLegalCurrent(){return !!state.legalAcceptedAt&&state.acceptedLegalVersion===LEGAL_VERSION}
 function legalAcceptanceText(){return isLegalCurrent()?'پذیرفته‌شده · نسخهٔ '+esc(state.acceptedLegalVersion):'نیازمند پذیرش نسخهٔ فعلی'}
 function acceptCurrentLegal(){state.legalConsent=true;state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;render();toast('پذیرش نسخهٔ فعلی قوانین ثبت شد')}
-function completeLogin(){
+function completeLogin(btn){
   var code=readOtpCode();
   if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  var stopLoading=setButtonLoading(btn,'در حال بررسی...');
   apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:state.loginPhone,code:code}})
     .then(function(data){
       saveSession(data.token,data.user);
       closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
     })
-    .catch(function(e){toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='ROLE_REQUIRED'){
+        closeSheet();
+        toast('این شماره ثبت‌نام نشده؛ لطفاً ابتدا نقش خود را انتخاب کنید');
+        state.stack=[];go('roleSelect');
+        return;
+      }
+      toast(e.message||'کد نامعتبر یا منقضی‌شده است');
+    });
 }
 function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=value==='large'?'17.5px':value==='larger'?'19px':'16px';try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
@@ -2399,6 +2411,56 @@ function readOtpCode(){
   for(var i=0;i<inputs.length;i++)code+=(inputs[i].value||'').trim();
   return code;
 }
+function otpAdvance(el){
+  if(el.value.length>=1){
+    var next=el.nextElementSibling;
+    while(next&&next.tagName!=='INPUT')next=next.nextElementSibling;
+    if(next)next.focus();else el.blur();
+  }
+}
+function otpBackspace(e,el){
+  if(e.key==='Backspace'&&!el.value){
+    var prev=el.previousElementSibling;
+    while(prev&&prev.tagName!=='INPUT')prev=prev.previousElementSibling;
+    if(prev)prev.focus();
+  }
+}
+function otpPaste(e,el){
+  var text=((e.clipboardData||window.clipboardData).getData('text')||'').replace(/[^\d]/g,'');
+  if(!text)return;
+  e.preventDefault();
+  var inputs=el.parentElement.querySelectorAll('input');
+  for(var i=0;i<inputs.length&&i<text.length;i++)inputs[i].value=text[i];
+  var last=inputs[Math.min(text.length,inputs.length)-1];
+  if(last)last.focus();
+}
+var otpCountdownTimer=null;
+function formatMMSS(totalSeconds){var m=Math.floor(totalSeconds/60),s=totalSeconds%60;return m+':'+(s<10?'0':'')+s}
+function startOtpCountdown(seconds){
+  state.otpResendAvailableAt=Date.now()+seconds*1000;
+  if(otpCountdownTimer)clearInterval(otpCountdownTimer);
+  updateOtpCountdownUI();
+  otpCountdownTimer=setInterval(updateOtpCountdownUI,1000);
+}
+function updateOtpCountdownUI(){
+  var remaining=Math.max(0,Math.ceil((state.otpResendAvailableAt-Date.now())/1000));
+  var els=document.querySelectorAll('.otp-resend');
+  for(var i=0;i<els.length;i++){
+    els[i].disabled=remaining>0;
+    els[i].textContent=remaining>0?('ارسال مجدد کد ('+formatMMSS(remaining)+')'):'ارسال مجدد کد';
+  }
+  if(remaining<=0&&otpCountdownTimer){clearInterval(otpCountdownTimer);otpCountdownTimer=null}
+}
+function setButtonLoading(el,loadingText){
+  if(!el)return function(){};
+  var original=el.textContent;
+  el.disabled=true;el.textContent=loadingText;
+  return function(){el.disabled=false;el.textContent=original};
+}
+var OTP_INPUT_HTML=(function(){
+  var one='<input maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="otpAdvance(this)" onkeydown="otpBackspace(event,this)" onpaste="otpPaste(event,this)">';
+  return one+one+one+one;
+})();
 
 /* ---------- role select ---------- */
 function pickRole(k){state.role=k;render()}
@@ -2409,24 +2471,39 @@ function continueFromRoleSelect(){
 }
 function pickContractorType(type){state.role=type;startRegistration()}
 function startRegistration(){if(!state.role)return;state.otpStage='phone';go('phoneVerify')}
-function submitPhoneStage(){
+function submitPhoneStage(btn){
   if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید');return}
   if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است');return}
+  var stopLoading=setButtonLoading(btn,'در حال ارسال...');
   apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
-    .then(function(){state.otpStage='code';render();toast('کد تأیید ارسال شد')})
-    .catch(function(e){toast(e.message||'ارسال کد ناموفق بود')});
+    .then(function(data){state.otpStage='code';render();toast('کد تأیید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){state.otpStage='code';render();startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود');
+    });
 }
-function confirmSignupOtp(){
+function resendSignupOtp(){
+  if(state.otpResendAvailableAt&&Date.now()<state.otpResendAvailableAt)return;
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
+    .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود');
+    });
+}
+function confirmSignupOtp(btn){
   if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}
   var code=readOtpCode();
   if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  var stopLoading=setButtonLoading(btn,'در حال بررسی...');
   apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone),code:code,role:toBackendRole(state.role)}})
     .then(function(data){
       saveSession(data.token,data.user);
       state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
       go('pathChoice');
     })
-    .catch(function(e){toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
+    .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
 }
 function choosePathQuick(){state.values.quickName='';state.values.quickCity='';go('quickSetup')}
 function choosePathFull(){state.step=0;state.editMode=false;state.collections={};state.stepWarnings={};go('regStep')}
@@ -3171,9 +3248,9 @@ phoneVerify:function(){
   +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px"><div class="cicon">'+icon('shield',18)+'</div><div><b style="font-size:.66rem">چرا شماره موبایل لازم است؟</b><p style="font-size:.55rem;margin-top:2px">برای امنیت حساب و اعتماد طرف مقابل، هویت هر کاربر یا کسب‌وکار در بلوک با یک شمارهٔ تأییدشده گره می‌خورد.</p></div></div></div>'
   +(stage==='phone'
     ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',this.value)" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
-    :'<div class="field"><label>کد تأیید</label><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
+    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
   +'</div>'
-  +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage()':'confirmSignupOtp()')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
+  +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage(this)':'confirmSignupOtp(this)')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
 },
 
 legalGate:function(){
@@ -3745,20 +3822,35 @@ settings:function(){
 };
 
 function openLoginSheet(){
-  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone()">دریافت کد ورود</button>')
+  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button>')
 }
-function submitLoginPhone(){
+function submitLoginPhone(btn){
   var input=document.getElementById('loginPhone');
   var phone=normalizePhone(input?input.value:'');
   if(!phone){toast('شماره موبایل را وارد کنید');return}
   state.loginPhone=phone;
+  var stopLoading=setButtonLoading(btn,'در حال ارسال...');
   apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:phone}})
-    .then(function(){closeSheet();openOtpSheet()})
-    .catch(function(e){toast(e.message||'ارسال کد ناموفق بود')});
+    .then(function(data){closeSheet();openOtpSheet(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود');
+    });
 }
-function openOtpSheet(){
+function resendLoginOtp(){
+  if(state.otpResendAvailableAt&&Date.now()<state.otpResendAvailableAt)return;
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:state.loginPhone}})
+    .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود');
+    });
+}
+function openOtpSheet(seconds){
   setTimeout(function(){
-    openSheet('<h3>کد تأیید را وارد کنید</h3><p>کد ۴ رقمی به شماره شما پیامک شد.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="completeLogin()">تأیید و ورود</button>')
+    openSheet('<h3>کد تأیید را وارد کنید</h3><p>کد ۴ رقمی به شماره شما پیامک شد.</p><div class="otp-row">'+OTP_INPUT_HTML+'</div><button class="legal-link otp-resend" onclick="resendLoginOtp()">ارسال مجدد کد</button><button class="btn-primary" onclick="completeLogin(this)">تأیید و ورود</button>');
+    startOtpCountdown(seconds||120);
   },200)
 }
 
