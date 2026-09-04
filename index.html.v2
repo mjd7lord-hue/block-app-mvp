@@ -2466,13 +2466,20 @@ function clearSession(){
   localStorage.removeItem('block_token');
   localStorage.removeItem('block_user');
 }
-function normalizePhone(value){return String(value||'').replace(/[^\d]/g,'').trim()}
+var PERSIAN_DIGITS='۰۱۲۳۴۵۶۷۸۹',ARABIC_INDIC_DIGITS='٠١٢٣٤٥٦٧٨٩';
+function toEnglishDigits(value){
+  return String(value||'').replace(/[۰-۹٠-٩]/g,function(ch){
+    var p=PERSIAN_DIGITS.indexOf(ch);if(p!==-1)return String(p);
+    var a=ARABIC_INDIC_DIGITS.indexOf(ch);return a!==-1?String(a):ch;
+  });
+}
+function normalizePhone(value){return toEnglishDigits(value).replace(/[^\d]/g,'').trim()}
 var ROLE_TO_BACKEND={engineer:'ENGINEER',contractor:'CONTRACTOR',company:'COMPANY',specialist:'SPECIALIST',worker:'WORKER',machinery:'MACHINERY',store:'STORE',materialsSupplier:'MATERIALS_SUPPLIER',general:'GENERAL'};
 function toBackendRole(role){return ROLE_TO_BACKEND[role]||String(role||'').toUpperCase()}
 function readOtpCode(){
   var inputs=document.querySelectorAll('.otp-row input');
   var code='';
-  for(var i=0;i<inputs.length;i++)code+=(inputs[i].value||'').trim();
+  for(var i=0;i<inputs.length;i++)code+=toEnglishDigits((inputs[i].value||'').trim());
   return code;
 }
 function otpAdvance(el){
@@ -2651,7 +2658,8 @@ function confirmSignupOtp(btn){
     .then(function(data){
       saveSession(data.token,data.user);
       state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
-      go('pathChoice');
+      if(data.isNewUser){go('pathChoice')}
+      else{state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();toast('خوش برگشتید')}
     })
     .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
 }
