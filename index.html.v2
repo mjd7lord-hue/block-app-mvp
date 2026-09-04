@@ -3822,7 +3822,7 @@ settings:function(){
 };
 
 function openLoginSheet(){
-  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button>')
+  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button><p style="font-size:.58rem;text-align:center;margin-top:14px">حساب ندارید؟ <button class="legal-link" onclick="closeSheet();go(\'roleSelect\')">ثبت‌نام را شروع کنید</button></p>')
 }
 function submitLoginPhone(btn){
   var input=document.getElementById('loginPhone');
