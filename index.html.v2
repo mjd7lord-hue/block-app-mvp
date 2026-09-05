@@ -1798,6 +1798,16 @@ function renderGuarantorSheet(){
 }
 function saveGuarantor(){
   if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید');return}
+  if(getSessionUser()&&!state.guarantorDraft.phone){toast('شماره تماس معرف را وارد کنید');return}
+  if(getSessionUser()){
+    apiRequest('/api/guarantors',{method:'POST',body:{name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,phoneNumber:state.guarantorDraft.phone}})
+      .then(function(data){
+        getGuarantors(state.role).unshift(mapBackendGuarantor(data.guarantor));
+        closeSheet();render();toast('درخواست برای معرف ارسال شد');
+      })
+      .catch(function(e){toast(e.message||'ثبت معرف ناموفق بود')});
+    return;
+  }
   var list=getGuarantors(state.role);
   list.push({name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,status:'pending'});
   closeSheet();render();toast('درخواست برای معرف ارسال شد');
@@ -2676,6 +2686,34 @@ function syncRealData(page){
   if(page==='myProjects')loadRealProjects();
   if(page==='notifications'||page==='home')loadRealNotifications();
   if(page==='messages')loadRealConversations();
+  if(page==='guarantor'){loadGuarantors();loadGuarantorRequests()}
+}
+
+/* ---------- guarantor/vouching -> real backend ---------- */
+function mapBackendGuarantor(g){
+  return{real:true,backendId:g.id,name:g.name,relation:g.relation||'',status:String(g.status).toLowerCase()};
+}
+function loadGuarantors(){
+  var role=state.role||'worker';
+  apiRequest('/api/guarantors')
+    .then(function(data){mergeReal(getGuarantors(role),(data.guarantors||[]).map(mapBackendGuarantor));render()})
+    .catch(function(e){console.error('loadGuarantors failed',e)});
+}
+function loadGuarantorRequests(){
+  apiRequest('/api/guarantors/pending')
+    .then(function(data){
+      state.guarantorRequests=(data.requests||[]).map(function(r){return{backendId:r.id,requesterName:personName(r.user),relation:r.relation||''}});
+      render();
+    })
+    .catch(function(e){console.error('loadGuarantorRequests failed',e)});
+}
+function respondGuarantorRequest(id,status){
+  apiRequest('/api/guarantors/'+id+'/respond',{method:'POST',body:{status:status}})
+    .then(function(){
+      state.guarantorRequests=(state.guarantorRequests||[]).filter(function(r){return r.backendId!==id});
+      render();toast(status==='CONFIRMED'?'تأیید شما ثبت شد':'درخواست رد شد');
+    })
+    .catch(function(e){toast(e.message||'ثبت پاسخ ناموفق بود')});
 }
 
 /* ---------- chat: conversations/messages -> real backend ---------- */
@@ -3834,9 +3872,14 @@ portfolio:function(){
 guarantor:function(){
   var role=state.role||'worker';
   var list=getGuarantors(role);
-  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':g.status==='declined'?'رد شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var incoming=state.guarantorRequests||[];
+  var incomingSection=incoming.length?('<div class="sec-head"><b>درخواست تأیید برای شما</b></div>'+incoming.map(function(r){
+    return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(r.requesterName)+'</b><span>شما را به‌عنوان «'+esc(r.relation||'آشنا')+'» معرفی کرده است</span></div></div><div class="request-actions" style="margin-bottom:10px"><button class="accept" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'CONFIRMED\')">'+icon('check',12)+' تأیید</button><button class="decline" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'DECLINED\')">رد</button></div>';
+  }).join('')):'';
   return topbar('اعتبار و قیم')
   +'<div class="page"><div class="card" style="margin-bottom:14px"><b style="font-size:.66rem">معرف یا قیم چیست؟</b><p style="font-size:.55rem;margin-top:4px;line-height:1.7">فردی که شما را می‌شناسد و اعتبار شما را نزد بلوک تأیید می‌کند. هرچه معرف بیشتری داشته باشید، اعتماد کارفرماها به شما بیشتر می‌شود.</p></div>'
+  +incomingSection
   +'<div class="sec-head"><b>معرف‌های شما</b></div>'+rows
   +'<button class="btn-secondary" style="margin-top:6px" onclick="openGuarantorSheet()">'+icon('plus',14)+' افزودن معرف</button></div>';
 },
