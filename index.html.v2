@@ -1943,11 +1943,33 @@ function sendChatText(){
 }
 function handleChatPhoto(input){
   var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'IMAGE',attachmentUrl:data.url}})})
+      .then(function(res){c.messages.push(mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()})
+      .catch(function(e){toast(e.message||'ارسال تصویر ناموفق بود')});
+    return;
+  }
   var reader=new FileReader();
-  reader.onload=function(e){var c=activeConversation();c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
+  reader.onload=function(e){c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
   reader.readAsDataURL(f);
 }
-function handleChatDocument(input){var f=input.files&&input.files[0];if(!f)return;var c=activeConversation();c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render()}
+function handleChatDocument(input){
+  var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'FILE',attachmentUrl:data.url}})})
+      .then(function(res){
+        var mapped=mapBackendMessage(res.message);mapped.file=f.name;mapped.fileSize=Math.max(1,Math.round(f.size/1024))+' کیلوبایت';
+        c.messages.push(mapped);c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+      })
+      .catch(function(e){toast(e.message||'ارسال فایل ناموفق بود')});
+    return;
+  }
+  c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+}
 function voiceDuration(seconds){seconds=Math.max(1,Math.round(seconds||1));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
 async function toggleVoiceRecording(){
   if(state.voiceRecording){if(state.voiceRecorder&&state.voiceRecorder.state!=='inactive')state.voiceRecorder.stop();return}
@@ -1957,9 +1979,22 @@ async function toggleVoiceRecording(){
     var recorder=new MediaRecorder(state.voiceStream);state.voiceRecorder=recorder;state.voiceStartedAt=Date.now();state.voiceRecording=true;
     recorder.ondataavailable=function(event){if(event.data&&event.data.size)state.voiceChunks.push(event.data)};
     recorder.onstop=function(){
-      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),url=URL.createObjectURL(blob),c=activeConversation();
-      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';
-      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];render();toast('پیام صوتی ارسال شد');
+      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),c=activeConversation();
+      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];
+      if(c.real){
+        var file=new File([blob],'voice.webm',{type:blob.type||'audio/webm'});
+        uploadFileToBackend(file)
+          .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'VOICE',attachmentUrl:data.url}})})
+          .then(function(res){
+            var mapped=mapBackendMessage(res.message);mapped.duration=voiceDuration(duration);
+            c.messages.push(mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
+          })
+          .catch(function(e){toast(e.message||'ارسال پیام صوتی ناموفق بود')});
+        render();
+        return;
+      }
+      var url=URL.createObjectURL(blob);
+      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
     };
     recorder.start();render();toast('ضبط شروع شد؛ برای ارسال دوباره میکروفن را لمس کنید');
   }catch(error){state.permissionPrefs.microphone='denied';render();toast('برای پیام صوتی، دسترسی میکروفن را فعال کنید')}
@@ -2500,6 +2535,21 @@ function apiRequest(path,options){
     });
   });
 }
+function uploadFileToBackend(file){
+  var form=new FormData();
+  form.append('file',file);
+  var token=localStorage.getItem('block_token');
+  return fetch(API_BASE+'/api/uploads',{
+    method:'POST',
+    headers:token?{Authorization:'Bearer '+token}:{},
+    body:form
+  }).then(function(res){
+    return res.json().catch(function(){return{}}).then(function(data){
+      if(!res.ok){var err=new Error(data.message||'آپلود ناموفق بود');err.status=res.status;err.data=data;throw err}
+      return data;
+    });
+  });
+}
 function saveSession(token,user){
   localStorage.setItem('block_token',token);
   localStorage.setItem('block_user',JSON.stringify(user));
@@ -2808,6 +2858,7 @@ function buildUserPayload(){
   if(v.birthDate){var iso=jalaliObjToISO(v.birthDate);if(iso)payload.birthDate=iso}
   if(v.birthProvince!==undefined)payload.birthProvince=v.birthProvince;
   if(v.birthCountry!==undefined)payload.birthCountry=v.birthCountry;
+  if(v.profilePhoto&&/^https?:\/\//.test(v.profilePhoto))payload.avatarUrl=v.profilePhoto;
   return payload;
 }
 function buildRoleProfileDataBlob(){
@@ -3047,6 +3098,11 @@ function handlePhotoField(input,key){
   var reader=new FileReader();
   reader.onload=function(e){state.values[key]=e.target.result;render()};
   reader.readAsDataURL(f);
+  if(getSessionUser()){
+    uploadFileToBackend(f)
+      .then(function(data){state.values[key]=data.url;render()})
+      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود')});
+  }
 }
 
 function renderStepControls(controls){
