@@ -229,7 +229,8 @@ p{color:var(--muted);margin:0}
 .sendbtn{width:40px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
 .sendbtn svg{width:17px;height:17px}
 
-.toast{position:absolute;right:18px;left:18px;bottom:84px;background:var(--ink);color:var(--bg);border-radius:13px;padding:11px 14px;font-size:.62rem;font-weight:700;text-align:center;z-index:60;opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none}
+.toast{position:absolute;right:18px;left:18px;bottom:84px;background:var(--tone-blue);color:var(--on-accent);border-radius:13px;padding:11px 14px;font-size:.62rem;font-weight:700;text-align:center;z-index:60;opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none}
+.toast.warning{background:var(--accent2);color:var(--on-warm)}
 .toast.show{opacity:1;transform:translateY(0)}
 
 .quick-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 4px}
@@ -1290,7 +1291,7 @@ function respondToRequest(id,status){
         if(status==='accepted'&&data.project)getProjects(state.role||'worker').unshift(mapBackendProjectToItem(data.project));
         render();toast(status==='accepted'?'درخواست تأیید و به کارهای شما اضافه شد':'درخواست رد شد');
       })
-      .catch(function(e){toast(e.message||'خطا در پاسخ به درخواست')});
+      .catch(function(e){toast(e.message||'خطا در پاسخ به درخواست','warning')});
     return;
   }
   if(item.type==='agreement'&&item.adId){respondToAgreementRequest(item,status);return}
@@ -1304,7 +1305,7 @@ function cancelOutgoingRequest(id){
   if(item.real){
     apiRequest('/api/requests/'+item.backendId,{method:'DELETE'})
       .then(function(){item.status='declined';render();toast('درخواست ارسالی لغو شد')})
-      .catch(function(e){toast(e.message||'لغو درخواست ناموفق بود')});
+      .catch(function(e){toast(e.message||'لغو درخواست ناموفق بود','warning')});
     return;
   }
   item.status='declined';render();toast('درخواست ارسالی لغو شد');
@@ -1348,7 +1349,7 @@ function getMachineCalendar(idx){
 function cycleMachineDay(machineIdx,dayIdx){
   var machine=(state.collections.machines||[])[machineIdx];if(!machine)return;
   var day=getMachineCalendar(machineIdx)[dayIdx];if(!day)return;
-  if(day.status==='booked'){toast('این روز قبلاً رزرو شده است');return}
+  if(day.status==='booked'){toast('این روز قبلاً رزرو شده است','warning');return}
   var order=['available','off'];
   day.status=order[(order.indexOf(day.status)+1)%order.length];
   render();
@@ -1380,10 +1381,10 @@ function getOrders(){if(!state.calendar._orders)state.calendar._orders=cloneData
 function availabilityDayLabel(index,day){return (DAY_NAMES[index]||'روز')+' '+day.date+' مرداد'}
 function openAvailabilityDaySheet(idx){
   var data=getCalendar(state.role||'worker');
-  if(!data||!data.days){toast('تقویم در دسترس نیست؛ صفحه را دوباره باز کنید');return}
+  if(!data||!data.days){toast('تقویم در دسترس نیست؛ صفحه را دوباره باز کنید','warning');return}
   var day=data.days[idx];
   if(!day)return;
-  if(day.status==='booked'){toast('این روز قبلاً رزرو شده و قابل تغییر نیست');return}
+  if(day.status==='booked'){toast('این روز قبلاً رزرو شده و قابل تغییر نیست','warning');return}
   state.availabilityDraft={index:idx,status:day.status,time:day.time||'تمام روز'};
   var choices=[['صبح','صبح'],['عصر','عصر'],['تمام روز','تمام روز'],['off','در دسترس نیستم']];
   var html='<h3>برنامهٔ '+esc(availabilityDayLabel(idx,day))+'</h3><p>زمانی را انتخاب کنید که واقعاً امکان هماهنگی و شروع کار دارید.</p><div class="availability-sheet-grid">'+choices.map(function(choice){var active=choice[0]==='off'?state.availabilityDraft.status==='off':state.availabilityDraft.status==='available'&&state.availabilityDraft.time===choice[0];return '<button class="'+(active?'active':'')+'" onclick="saveAvailabilityDay('+idx+',\''+choice[0]+'\')">'+choice[1]+'</button>'}).join('')+'</div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>';
@@ -1426,7 +1427,7 @@ function renderBookingSheet(){
 }
 function saveBookingSheet(){
   var list=getCalendar(state.role||'worker');
-  if(!state.draftBooking.title){toast('عنوان را وارد کنید');return}
+  if(!state.draftBooking.title){toast('عنوان را وارد کنید','warning');return}
   if(state.draftBookingIndex>-1)list[state.draftBookingIndex]=state.draftBooking;else list.push(state.draftBooking);
   closeSheet();render();
 }
@@ -1436,7 +1437,7 @@ function setProjectField(k,v){state.projectDraft[k]=v}
 function setProjectCategory(v){state.projectDraft.category=v;render()}
 function setProjectProvince(v){state.projectDraft.province=v;state.projectDraft.city='';render()}
 function submitProject(){
-  if(!state.projectDraft.title){toast('لطفاً عنوان را وارد کنید');return}
+  if(!state.projectDraft.title){toast('لطفاً عنوان را وارد کنید','warning');return}
   var who=state.projectTarget?PEOPLE_SEED[state.projectTarget].name:'در انتظار پیشنهاد';
   getProjects(state.role).push({title:state.projectDraft.title,who:who,personId:state.projectTarget||null,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('project',state.projectDraft.title,who,state.projectDraft.category||'درخواست پروژه');
@@ -1464,7 +1465,7 @@ function setAdProvince(value){state.adDraft.province=value;state.adDraft.city=''
 function chooseAdRole(role){
   var values=state.adDraft.targetRoles||(state.adDraft.targetRoles=[]),index=values.indexOf(role);
   if(index>-1)values.splice(index,1);
-  else if(values.length>=3){toast('حداکثر سه گزینه می‌توانید انتخاب کنید');return}
+  else if(values.length>=3){toast('حداکثر سه گزینه می‌توانید انتخاب کنید','warning');return}
   else values.push(role);
   state.adDraft.targetRole=values[0]||'';
   state.adWarnings.targetRole=false;
@@ -1549,7 +1550,7 @@ function publishAd(btn){
   var d=state.adDraft,roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
   var title=(d.title||adFixedTitle(d.type)).trim(),city=d.type==='consult'?d.range:d.type==='work'?(profile.city||profile.province||d.range):d.city.trim(),skills=d.categories.slice();
   var roleProfileId=getActiveRoleProfileId();
-  if(!roleProfileId){toast('پروفایل نقش شما یافت نشد؛ لطفاً دوباره وارد شوید');return}
+  if(!roleProfileId){toast('پروفایل نقش شما یافت نشد؛ لطفاً دوباره وارد شوید','warning');return}
   var stopLoading=setButtonLoading(btn,'در حال انتشار...');
   apiRequest('/api/ads',{method:'POST',body:{
     type:d.type.toUpperCase(),
@@ -1572,7 +1573,7 @@ function publishAd(btn){
       state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
       state.page='adPublished';render();
     })
-    .catch(function(e){stopLoading();toast(e.message||'انتشار آگهی ناموفق بود')});
+    .catch(function(e){stopLoading();toast(e.message||'انتشار آگهی ناموفق بود','warning')});
 }
 function handleAdAttachment(input){
   var file=input.files&&input.files[0];if(!file)return;
@@ -1597,7 +1598,7 @@ function startAdChat(id){
         state.adChatId=id;state.currentConversationId=conv.id;go('chat');
         if(!conv.messagesLoaded)loadConversationMessages(conv);
       })
-      .catch(function(e){toast(e.message||'شروع گفت‌وگو ناموفق بود')});
+      .catch(function(e){toast(e.message||'شروع گفت‌وگو ناموفق بود','warning')});
     return;
   }
   var conversation=getConversations().find(function(c){return c.adId===id});
@@ -1608,14 +1609,14 @@ function startAdChat(id){
 function agreementForAd(ad){return ad&&ad.agreement||null}
 function requestAdAgreement(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad||ad.status==='matched')return;
-  if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است');return}
+  if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است','warning');return}
   if(ad.real){
     apiRequest('/api/ads/'+ad.backendId+'/agreement-requests',{method:'POST',body:{}})
       .then(function(){
         ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا'};
         render();toast('تأیید شما ثبت شد؛ منتظر تأیید طرف مقابل باشید');
       })
-      .catch(function(e){toast(e.message||'ثبت درخواست ناموفق بود')});
+      .catch(function(e){toast(e.message||'ثبت درخواست ناموفق بود','warning')});
     return;
   }
   ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا',viewerName:displayNameFor(state.role||'worker'),ownerName:(ad.profile&&ad.profile.name)||'ثبت‌کنندهٔ آگهی'};
@@ -1665,7 +1666,7 @@ function openStartCoordinationSheet(idx){
   openSheet(html);
 }
 function saveStartCoordination(){
-  if(!state.startCoordinationDraft.date){toast('زمان پیشنهادی را وارد کنید');return}
+  if(!state.startCoordinationDraft.date){toast('زمان پیشنهادی را وارد کنید','warning');return}
   var p=getProjects(state.role)[state.startCoordinationIndex];
   p.startDate=state.startCoordinationDraft.date;
   p.startNote=state.startCoordinationDraft.note;
@@ -1696,7 +1697,7 @@ function advanceStage(idx){
         render();
         if(p.stage==='done'&&!p.rating)setTimeout(function(){openRatingSheet(idx)},250);
       })
-      .catch(function(e){toast(e.message||'خطا در پیشبرد پروژه')});
+      .catch(function(e){toast(e.message||'خطا در پیشبرد پروژه','warning')});
     return;
   }
   var i=STAGE_ORDER.indexOf(p.stage);
@@ -1763,7 +1764,7 @@ function submitRating(){
         p.rating=value;p.reviewComment=comment;
         closeSheet();render();toast('امتیاز و نظر شما ثبت شد');
       })
-      .catch(function(e){toast(e.message||'ثبت امتیاز ناموفق بود')});
+      .catch(function(e){toast(e.message||'ثبت امتیاز ناموفق بود','warning')});
     return;
   }
   p.rating=value;
@@ -1797,15 +1798,15 @@ function renderGuarantorSheet(){
   openSheet(html);
 }
 function saveGuarantor(){
-  if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید');return}
-  if(getSessionUser()&&!state.guarantorDraft.phone){toast('شماره تماس معرف را وارد کنید');return}
+  if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید','warning');return}
+  if(getSessionUser()&&!state.guarantorDraft.phone){toast('شماره تماس معرف را وارد کنید','warning');return}
   if(getSessionUser()){
     apiRequest('/api/guarantors',{method:'POST',body:{name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,phoneNumber:state.guarantorDraft.phone}})
       .then(function(data){
         getGuarantors(state.role).unshift(mapBackendGuarantor(data.guarantor));
         closeSheet();render();toast('درخواست برای معرف ارسال شد');
       })
-      .catch(function(e){toast(e.message||'ثبت معرف ناموفق بود')});
+      .catch(function(e){toast(e.message||'ثبت معرف ناموفق بود','warning')});
     return;
   }
   var list=getGuarantors(state.role);
@@ -1866,7 +1867,7 @@ function renderPortfolioSheet(){
   openSheet(html);
 }
 function savePortfolio(){
-  if(!state.portfolioDraft.title){toast('عنوان را وارد کنید');return}
+  if(!state.portfolioDraft.title){toast('عنوان را وارد کنید','warning');return}
   getPortfolio(state.role).push(state.portfolioDraft);
   state.portfolioSetupCompleted=true;state.dashboardSetupDismissed=false;
   closeSheet();render();toast('نمونه‌کار ذخیره شد');
@@ -1935,7 +1936,7 @@ function sendChatText(){
         c.lastMessage=v;c.time='اکنون';c.archived=false;
         render();
       })
-      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود')});
+      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود','warning')});
     return;
   }
   c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
@@ -1948,7 +1949,7 @@ function handleChatPhoto(input){
     uploadFileToBackend(f)
       .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'IMAGE',attachmentUrl:data.url}})})
       .then(function(res){c.messages.push(mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()})
-      .catch(function(e){toast(e.message||'ارسال تصویر ناموفق بود')});
+      .catch(function(e){toast(e.message||'ارسال تصویر ناموفق بود','warning')});
     return;
   }
   var reader=new FileReader();
@@ -1965,7 +1966,7 @@ function handleChatDocument(input){
         var mapped=mapBackendMessage(res.message);mapped.file=f.name;mapped.fileSize=Math.max(1,Math.round(f.size/1024))+' کیلوبایت';
         c.messages.push(mapped);c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
       })
-      .catch(function(e){toast(e.message||'ارسال فایل ناموفق بود')});
+      .catch(function(e){toast(e.message||'ارسال فایل ناموفق بود','warning')});
     return;
   }
   c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
@@ -1973,7 +1974,7 @@ function handleChatDocument(input){
 function voiceDuration(seconds){seconds=Math.max(1,Math.round(seconds||1));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
 async function toggleVoiceRecording(){
   if(state.voiceRecording){if(state.voiceRecorder&&state.voiceRecorder.state!=='inactive')state.voiceRecorder.stop();return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){toast('ضبط صدا در این دستگاه پشتیبانی نمی‌شود');return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){toast('ضبط صدا در این دستگاه پشتیبانی نمی‌شود','warning');return}
   try{
     state.voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});state.permissionPrefs.microphone='granted';state.voiceChunks=[];
     var recorder=new MediaRecorder(state.voiceStream);state.voiceRecorder=recorder;state.voiceStartedAt=Date.now();state.voiceRecording=true;
@@ -1989,7 +1990,7 @@ async function toggleVoiceRecording(){
             var mapped=mapBackendMessage(res.message);mapped.duration=voiceDuration(duration);
             c.messages.push(mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
           })
-          .catch(function(e){toast(e.message||'ارسال پیام صوتی ناموفق بود')});
+          .catch(function(e){toast(e.message||'ارسال پیام صوتی ناموفق بود','warning')});
         render();
         return;
       }
@@ -2007,7 +2008,7 @@ function renderPhoneShareSheet(){
   openSheet(html);
 }
 function openPhoneShareSheet(){state.phoneShareDraft={phone:chatPhoneNumber(),hours:'فقط با هماهنگی قبلی در چت'};renderPhoneShareSheet()}
-function requestPhoneShare(){var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
+function requestPhoneShare(){var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است','warning');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
 function confirmPhoneShare(){var c=activeConversation();c.phoneShare={status:'shared',phone:state.phoneShareDraft.phone||chatPhoneNumber(),hours:state.phoneShareDraft.hours||'فقط با هماهنگی قبلی در چت'};c.messages.push({type:'system',text:'شماره تماس با اجازهٔ صاحب شماره در همین گفتگو نمایش داده شد. تماس فقط در بازهٔ تعیین‌شده انجام شود.'});closeSheet();render();toast('شماره فقط در همین گفتگو نمایش داده شد')}
 function revokePhoneShare(){var c=activeConversation();if(!c.phoneShare)return;c.phoneShare.status='hidden';c.phoneShare.phone='';c.messages.push({type:'system',text:'نمایش شماره تماس توسط صاحب شماره متوقف شد.'});render();toast('نمایش شماره متوقف شد')}
 function approveRequestedPhoneShare(){openPhoneShareSheet()}
@@ -2289,7 +2290,7 @@ function confirmBookingRequest(personId,slotIdx){
   var p=PEOPLE_SEED[personId],slot=p.slots[slotIdx];
   var requestLabel=p.requestKind==='service'?'درخواست خدمت':'درخواست رزرو';
   var title=requestLabel+' · '+slot,projects=getProjects(state.role);
-  if(projects.some(function(project){return project.title===title&&project.who===p.name})){closeSheet();toast('این درخواست قبلاً ارسال شده است');return}
+  if(projects.some(function(project){return project.title===title&&project.who===p.name})){closeSheet();toast('این درخواست قبلاً ارسال شده است','warning');return}
   projects.push({title:title,who:p.name,personId:personId,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('calendar',title,p.name,state.bookingRequestDraft.note||'در انتظار پاسخ');
   getNotifications().unshift({title:'درخواست هماهنگی ارسال شد',sub:p.name+' · '+slot,time:'همین حالا',day:'امروز',read:false,icon:'calendar',type:'project',target:'myProjects',action:'پیگیری درخواست'});
@@ -2346,8 +2347,8 @@ function selectDeliverySlot(personId,prodIdx,slotIdx){state.orderDraft.slotIdx=s
 function confirmDeliveryOrder(personId,prodIdx){
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx],draft=state.orderDraft,days=deliveryCalendarDays(personId);
   if(!draft.qty){toast(prod.qtyLabel||'مقدار را وارد کنید');return}
-  if(prod.needsLocation&&!draft.location){toast('محل تحویل را وارد کنید');return}
-  if(draft.slotIdx===null||draft.slotIdx===undefined){toast('یک ساعت تحویل را انتخاب کنید');return}
+  if(prod.needsLocation&&!draft.location){toast('محل تحویل را وارد کنید','warning');return}
+  if(draft.slotIdx===null||draft.slotIdx===undefined){toast('یک ساعت تحویل را انتخاب کنید','warning');return}
   var day=days[draft.dayIdx],slot=day.slots[draft.slotIdx];
   slot.status='booked';
   var title='سفارش '+prod.name+' · '+draft.qty+(draft.location?' · '+draft.location:'')+' · '+day.label+' '+slot.time;
@@ -2377,7 +2378,7 @@ function renderReportSheet(){
   openSheet(html);
 }
 function submitReport(){
-  if(!state.reportDraft.reason){toast('لطفاً دلیل گزارش را انتخاب کنید');return}
+  if(!state.reportDraft.reason){toast('لطفاً دلیل گزارش را انتخاب کنید','warning');return}
   closeSheet();toast('گزارش شما ثبت شد و بررسی می‌شود');
 }
 function toggleBlock(id){
@@ -2389,7 +2390,7 @@ function toggleBlock(id){
 
 function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render();syncRealData(page)}
 function back(){state.page=state.stack.pop()||'splash';render()}
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
+function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('warning',type==='warning');t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
 function closeSheet(){var s=document.getElementById('sheet');document.getElementById('backdrop').classList.remove('show');s.classList.remove('show');s.setAttribute('aria-hidden','true');s.inert=true}
 function setMode(m){state.mode=m;document.getElementById('phone').setAttribute('data-mode',m);document.getElementById('modeBtn').innerHTML=icon(m==='dark'?'moon':'sun',13);try{localStorage.setItem('block-mode',m)}catch(e){}render()}
@@ -2466,7 +2467,7 @@ function renderProfileSetupNudge(role){
 }
 function dismissProfileSetup(){state.dashboardSetupDismissed=true;render();toast('از بخش «من» هر زمان خواستید ادامه دهید')}
 function saveProfilePhoto(){
-  if(!state.values.profilePhoto){toast('ابتدا یک عکس انتخاب کنید');return}
+  if(!state.values.profilePhoto){toast('ابتدا یک عکس انتخاب کنید','warning');return}
   state.dashboardSetupDismissed=false;state.stack=[];state.page='home';render();toast('عکس پروفایل ذخیره شد');
 }
 
@@ -2480,11 +2481,12 @@ function legalAcceptanceText(){return isLegalCurrent()?'پذیرفته‌شده 
 function acceptCurrentLegal(){state.legalConsent=true;state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;render();toast('پذیرش نسخهٔ فعلی قوانین ثبت شد')}
 function completeLogin(btn){
   var code=readOtpCode();
-  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید','warning');return}
   var stopLoading=setButtonLoading(btn,'در حال بررسی...');
   apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:state.loginPhone,code:code}})
     .then(function(data){
       saveSession(data.token,data.user);
+      hydrateStateFromUser(data.user);
       closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
     })
     .catch(function(e){
@@ -2495,10 +2497,10 @@ function completeLogin(btn){
         state.stack=[];go('roleSelect');
         return;
       }
-      toast(e.message||'کد نامعتبر یا منقضی‌شده است');
+      toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning');
     });
 }
-function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
+function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=value==='large'?'17.5px':value==='larger'?'19px':'16px';try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
 function toggleReduceMotion(){state.reduceMotion=!state.reduceMotion;document.getElementById('phone').setAttribute('data-reduce-motion',state.reduceMotion?'true':'false');render()}
@@ -2506,15 +2508,15 @@ function toggleHelp(index){state.helpOpen=state.helpOpen===index?-1:index;render
 function switchAccountRole(role){if(!roleSchemas[role])return;state.role=role;render();toast('نقش فعال به «'+roleSchemas[role].label+'» تغییر کرد')}
 function openSupportChat(){var support=findConversation('block-support');if(support){openConversation('block-support');return}toast('گفت‌وگوی پشتیبانی در دسترس است')}
 function openChangePhoneSheet(){state.phoneChangeDraft='';openSheet('<h3>تغییر شماره موبایل</h3><p>برای حفظ امنیت حساب، شمارهٔ جدید باید با کد یک‌بارمصرف تأیید شود.</p><div class="field"><label>شمارهٔ جدید</label><input id="newPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx" oninput="state.phoneChangeDraft=this.value"></div><button class="btn-primary" onclick="savePhoneChange()">ارسال کد تأیید</button>')}
-function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
+function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید','warning');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
 function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;closeSheet();render();toast('شمارهٔ جدید تأیید و ذخیره شد')}
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
-function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
+function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
 function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
-function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
+function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید','warning');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است','warning');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
 
 /* ---------- block backend integration ---------- */
@@ -2763,7 +2765,7 @@ function respondGuarantorRequest(id,status){
       state.guarantorRequests=(state.guarantorRequests||[]).filter(function(r){return r.backendId!==id});
       render();toast(status==='CONFIRMED'?'تأیید شما ثبت شد':'درخواست رد شد');
     })
-    .catch(function(e){toast(e.message||'ثبت پاسخ ناموفق بود')});
+    .catch(function(e){toast(e.message||'ثبت پاسخ ناموفق بود','warning')});
 }
 
 /* ---------- chat: conversations/messages -> real backend ---------- */
@@ -2923,6 +2925,70 @@ function syncProfileToBackend(markComplete){
     .then(function(data){if(data&&data.user)saveSession(localStorage.getItem('block_token'),data.user)});
 }
 
+/* ---------- restore state.values/state.collections/state.role from a fetched account (login/boot) ---------- */
+function backendRoleToFrontend(role){
+  var found=Object.keys(ROLE_TO_BACKEND).find(function(k){return ROLE_TO_BACKEND[k]===role});
+  return found||String(role||'').toLowerCase();
+}
+function genderToFrontend(g){return g==='MALE'?'مرد':g==='FEMALE'?'زن':undefined}
+function gregorianToJalali(gy,gm,gd){
+  function div(a,b){return Math.trunc(a/b)}
+  var g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
+  var jy=(gy<=1600)?0:979;
+  gy-=(gy<=1600)?621:1600;
+  var gy2=(gm>2)?(gy+1):gy;
+  var days=(365*gy)+(div((gy2+3),4))-(div((gy2+99),100))+(div((gy2+399),400))-80+gd+g_d_m[gm-1];
+  jy+=33*div(days,12053);
+  days%=12053;
+  jy+=4*div(days,1461);
+  days%=1461;
+  if(days>365){jy+=div((days-1),365);days=(days-1)%365}
+  var jm=(days<186)?1+div(days,31):7+div((days-186),30);
+  var jd=1+((days<186)?(days%31):((days-186)%30));
+  return[jy,jm,jd];
+}
+function isoToJalaliObj(iso){
+  if(!iso)return undefined;
+  var d=new Date(iso);
+  var g=gregorianToJalali(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());
+  return{day:String(g[2]),month:PERSIAN_MONTHS[g[1]-1]||'',year:String(g[0])};
+}
+function hydrateStateFromUser(user){
+  if(!user)return;
+  var roleProfile=(user.roleProfiles||[])[0];
+  if(!roleProfile)return;
+  var role=backendRoleToFrontend(roleProfile.role);
+  state.role=role;
+  state.profileComplete=!!roleProfile.profileComplete;
+  var v=state.values;
+  if(user.firstName)v.firstName=user.firstName;
+  if(user.lastName)v.lastName=user.lastName;
+  var gender=genderToFrontend(user.gender);if(gender)v.gender=gender;
+  var jalaliBirth=isoToJalaliObj(user.birthDate);if(jalaliBirth)v.birthDate=jalaliBirth;
+  if(user.birthProvince)v.birthProvince=user.birthProvince;
+  if(user.birthCountry)v.birthCountry=user.birthCountry;
+  if(user.avatarUrl)v.profilePhoto=user.avatarUrl;
+  if(roleProfile.workProvince)v.workProvince=roleProfile.workProvince;
+  if(roleProfile.workCity)v.workCity=roleProfile.workCity;
+  if(roleProfile.travelReady!==undefined)v.travelReady=roleProfile.travelReady;
+  var schema=roleSchemas[role]||{},collections=schema.collections||{};
+  var data=Object.assign({},roleProfile.data||{});
+  Object.keys(collections).forEach(function(colKey){
+    if(!CATALOG_COLLECTION_TYPES[colKey]&&data[colKey]!==undefined){
+      state.collections[colKey]=data[colKey];
+      delete data[colKey];
+    }
+  });
+  Object.assign(v,data);
+  var CATALOG_TYPE_TO_COLLECTION={SKILL:'skills',SERVICE:'services',MACHINE:'machines',MATERIAL:'materials'};
+  (roleProfile.catalogItems||[]).forEach(function(item){
+    var colKey=CATALOG_TYPE_TO_COLLECTION[item.type];
+    if(!colKey)return;
+    if(!state.collections[colKey])state.collections[colKey]=[];
+    state.collections[colKey].push(item.data&&Object.keys(item.data).length?item.data:{name:item.name});
+  });
+}
+
 /* ---------- role select ---------- */
 function pickRole(k){state.role=k;render()}
 function continueFromRoleSelect(){
@@ -2933,15 +2999,15 @@ function continueFromRoleSelect(){
 function pickContractorType(type){state.role=type;startRegistration()}
 function startRegistration(){if(!state.role)return;state.otpStage='phone';go('phoneVerify')}
 function submitPhoneStage(btn){
-  if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید');return}
-  if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است');return}
+  if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید','warning');return}
+  if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است','warning');return}
   var stopLoading=setButtonLoading(btn,'در حال ارسال...');
   apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
     .then(function(data){state.otpStage='code';render();toast('کد تأیید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
     .catch(function(e){
       stopLoading();
       if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){state.otpStage='code';render();startOtpCountdown(e.data.retryAfterSeconds)}
-      toast(e.message||'ارسال کد ناموفق بود');
+      toast(e.message||'ارسال کد ناموفق بود','warning');
     });
 }
 function resendSignupOtp(){
@@ -2950,27 +3016,28 @@ function resendSignupOtp(){
     .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
     .catch(function(e){
       if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
-      toast(e.message||'ارسال کد ناموفق بود');
+      toast(e.message||'ارسال کد ناموفق بود','warning');
     });
 }
 function confirmSignupOtp(btn){
   if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}
   var code=readOtpCode();
-  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید');return}
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید','warning');return}
   var stopLoading=setButtonLoading(btn,'در حال بررسی...');
   apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone),code:code,role:toBackendRole(state.role)}})
     .then(function(data){
       saveSession(data.token,data.user);
+      hydrateStateFromUser(data.user);
       state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
       if(data.isNewUser){go('pathChoice')}
       else{state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();toast('خوش برگشتید')}
     })
-    .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است')});
+    .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning')});
 }
 function choosePathQuick(){state.values.quickName='';state.values.quickCity='';go('quickSetup')}
 function choosePathFull(){state.step=0;state.editMode=false;state.collections={};state.stepWarnings={};go('regStep')}
 function submitQuickSetup(btn){
-  if(!state.values.quickName){toast('نام خود را وارد کنید');return}
+  if(!state.values.quickName){toast('نام خود را وارد کنید','warning');return}
   var parts=state.values.quickName.trim().split(/\s+/);
   state.values.firstName=state.values.firstName||parts[0];
   state.values.lastName=state.values.lastName||(parts.slice(1).join(' ')||parts[0]);
@@ -2982,7 +3049,7 @@ function submitQuickSetup(btn){
       state.step=0;state.collections={};
       state.stack=[];state.page='setupDone';render();
     })
-    .catch(function(e){stopLoading();toast(e.message||'ذخیره پروفایل ناموفق بود')});
+    .catch(function(e){stopLoading();toast(e.message||'ذخیره پروفایل ناموفق بود','warning')});
 }
 function startFullProfile(){state.step=0;state.editMode=false;state.stepWarnings={};go('regStep')}
 var PERSIAN_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
@@ -3101,7 +3168,7 @@ function handlePhotoField(input,key){
   if(getSessionUser()){
     uploadFileToBackend(f)
       .then(function(data){state.values[key]=data.url;render()})
-      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود')});
+      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود','warning')});
   }
 }
 
@@ -3339,7 +3406,7 @@ function finishSetup(btn){
       stopLoading();
       state.profileComplete=true;state.stack=[];state.page='setupDone';render();
     })
-    .catch(function(e){stopLoading();toast(e.message||'ثبت پروفایل ناموفق بود')});
+    .catch(function(e){stopLoading();toast(e.message||'ثبت پروفایل ناموفق بود','warning')});
 }
 
 /* ---------- static content helpers ---------- */
@@ -3495,7 +3562,7 @@ function openJobOpportunity(id){state.viewingJobId=id;go('jobDetail')}
 function currentJobOpportunity(){return JOB_OPPORTUNITIES.find(function(job){return job.id===state.viewingJobId})||JOB_OPPORTUNITIES[0]}
 function sendJobInterest(id){
   var job=JOB_OPPORTUNITIES.find(function(item){return item.id===id});if(!job)return;
-  if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است');return}
+  if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است','warning');return}
   state.jobInterestIds.push(id);
   getProjects(state.role||'worker').push({title:job.title,who:job.employer,personId:job.person||null,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('job',job.title,job.employer,job.pay+' · '+job.start);
@@ -3665,7 +3732,8 @@ function renderExploreEmpty(){
 function renderAdProgress(){return '<div class="ad-progress">'+[0,1].map(function(index){return '<i class="'+(state.adStep>=index?'done':'')+'"></i>'}).join('')+'</div>'}
 function renderAdAudienceChoices(){
   var config=activeAdConfig(),selected=state.adDraft.targetRoles||[];
-  return '<div class="audience-grid">'+config.roles.map(function(role){var schema=roleSchemas[role],active=selected.indexOf(role)>-1;return '<button aria-pressed="'+(active?'true':'false')+'" class="audience-choice'+(active?' active':'')+'" onclick="chooseAdRole(\''+role+'\')"><i>'+icon(mapIcon(schema.icon),15)+'</i><span>'+esc(AD_ROLE_LABELS[role])+'</span><em>'+(active?'انتخاب شد':'')+'</em></button>'}).join('')+'</div><div class="audience-limit"><span>حداکثر سه گزینه انتخاب کنید</span><strong>'+selected.length+' از ۳</strong></div>';
+  var availableRoles=config.roles.filter(function(role){return!MVP_HIDE_BUSINESS_ROLES||BUSINESS_ROLES.indexOf(role)===-1});
+  return '<div class="audience-grid">'+availableRoles.map(function(role){var schema=roleSchemas[role],active=selected.indexOf(role)>-1;return '<button aria-pressed="'+(active?'true':'false')+'" class="audience-choice'+(active?' active':'')+'" onclick="chooseAdRole(\''+role+'\')"><i>'+icon(mapIcon(schema.icon),15)+'</i><span>'+esc(AD_ROLE_LABELS[role])+'</span><em>'+(active?'انتخاب شد':'')+'</em></button>'}).join('')+'</div><div class="audience-limit"><span>حداکثر سه گزینه انتخاب کنید</span><strong>'+selected.length+' از ۳</strong></div>';
 }
 function renderAdProfileNotice(){
   var categories=profileAdCategories(),warning=state.adWarnings.category;
@@ -4315,7 +4383,7 @@ function openLoginSheet(){
 function submitLoginPhone(btn){
   var input=document.getElementById('loginPhone');
   var phone=normalizePhone(input?input.value:'');
-  if(!phone){toast('شماره موبایل را وارد کنید');return}
+  if(!phone){toast('شماره موبایل را وارد کنید','warning');return}
   state.loginPhone=phone;
   var stopLoading=setButtonLoading(btn,'در حال ارسال...');
   apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:phone}})
@@ -4323,7 +4391,7 @@ function submitLoginPhone(btn){
     .catch(function(e){
       stopLoading();
       if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
-      toast(e.message||'ارسال کد ناموفق بود');
+      toast(e.message||'ارسال کد ناموفق بود','warning');
     });
 }
 function resendLoginOtp(){
@@ -4332,7 +4400,7 @@ function resendLoginOtp(){
     .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
     .catch(function(e){
       if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
-      toast(e.message||'ارسال کد ناموفق بود');
+      toast(e.message||'ارسال کد ناموفق بود','warning');
     });
 }
 function openOtpSheet(seconds){
@@ -4418,6 +4486,7 @@ function showDebugError(text,file,line,col){
   }
 }
 restoreStateSnapshot();
+if(getSessionUser()&&!(state.values&&state.values.firstName))hydrateStateFromUser(getSessionUser());
 var savedMode='dark',savedTextSize='large',savedHighContrast=true;
 try{savedMode=localStorage.getItem('block-mode')||'dark';savedTextSize=localStorage.getItem('block-text-size')||'large';savedHighContrast=(localStorage.getItem('block-high-contrast')||'true')!=='false'}catch(e){}
 state.textSize=savedTextSize;state.highContrast=savedHighContrast;
