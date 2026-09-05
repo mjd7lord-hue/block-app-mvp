@@ -1588,6 +1588,18 @@ function openAdDetail(id){state.viewingAdId=id;go('adDetail')}
 function currentAdDetail(){return EXPLORE_ITEMS.find(function(item){return item.id===state.viewingAdId})||state.lastPublishedAd}
 function startAdChat(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
+  if(ad.real){
+    apiRequest('/api/conversations',{method:'POST',body:{otherUserId:ad.authorUserId,adId:ad.backendId}})
+      .then(function(data){
+        var conv=mapBackendConversation(data.conversation);
+        var existing=findConversation(conv.id);
+        if(!existing)getConversations().unshift(conv);else conv=existing;
+        state.adChatId=id;state.currentConversationId=conv.id;go('chat');
+        if(!conv.messagesLoaded)loadConversationMessages(conv);
+      })
+      .catch(function(e){toast(e.message||'شروع گفت‌وگو ناموفق بود')});
+    return;
+  }
   var conversation=getConversations().find(function(c){return c.adId===id});
   if(!conversation){var profile=ad.profile||{},conversationId='conversation-'+id;conversation={id:conversationId,adId:id,personId:ad.person||null,name:profile.name||ad.title,initials:profile.initials||'ب',verified:!!profile.verified,online:true,type:'project',unread:0,pinned:false,muted:false,archived:false,time:'اکنون',lastMessage:'گفت‌وگو دربارهٔ این آگهی شروع شد',context:{icon:ad.icon||'building',label:ad.adType==='consult'?'پرسش تخصصی':ad.adType==='work'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:ad.title,meta:(ad.city||'')+(ad.range?' · '+ad.range:''),adId:id},messages:[{type:'system',text:'این گفت‌وگو دربارهٔ «'+ad.title+'» ایجاد شد. جزئیات آگهی در بالای صفحه در دسترس است.'}]};getConversations().unshift(conversation)}
   state.adChatId=id;state.currentConversationId=conversation.id;go('chat');
@@ -1890,7 +1902,10 @@ function filteredConversations(){
   }).sort(function(a,b){return Number(!!b.pinned)-Number(!!a.pinned)});
 }
 function markAllMessagesRead(){getConversations().forEach(function(c){c.unread=0});render();toast('همهٔ پیام‌ها خوانده شد')}
-function openConversation(id){var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat')}
+function openConversation(id){
+  var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat');
+  if(c.real&&!c.messagesLoaded)loadConversationMessages(c);
+}
 function openConversationForPerson(personId){
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
   var person=PEOPLE_SEED[personId];if(!person)return;
@@ -1901,7 +1916,19 @@ function activeConversation(){return findConversation(state.currentConversationI
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
   var v=(el.value||'').trim();if(!v)return;
-  var c=activeConversation();c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
+  var c=activeConversation();
+  if(c.real){
+    el.value='';
+    apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{text:v}})
+      .then(function(data){
+        c.messages.push(mapBackendMessage(data.message));
+        c.lastMessage=v;c.time='اکنون';c.archived=false;
+        render();
+      })
+      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود')});
+    return;
+  }
+  c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
   el.value='';render();
 }
 function handleChatPhoto(input){
@@ -2558,7 +2585,7 @@ function mapBackendAdToItem(ad){
   var snapshot=ad.authorSnapshot||{};
   var role=(snapshot.role||'').toLowerCase();
   return{
-    id:ad.id,real:true,backendId:ad.id,isAd:true,
+    id:ad.id,real:true,backendId:ad.id,authorUserId:ad.authorUserId,isAd:true,
     title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
     city:ad.city||'',province:ad.province||'',
     role:role,ownerRole:role,
@@ -2648,6 +2675,62 @@ function syncRealData(page){
   if(page==='requestsCenter')loadRealRequests();
   if(page==='myProjects')loadRealProjects();
   if(page==='notifications'||page==='home')loadRealNotifications();
+  if(page==='messages')loadRealConversations();
+}
+
+/* ---------- chat: conversations/messages -> real backend ---------- */
+function mapBackendConversationSummary(c){
+  var last=c.lastMessage;
+  return{
+    id:c.id,real:true,backendId:c.id,personId:null,
+    name:personName(c.otherUser),initials:(personName(c.otherUser)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:c.unreadCount||0,pinned:false,muted:false,archived:false,
+    time:last?timeAgoFa(last.createdAt):'',
+    lastMessage:last?(last.type==='TEXT'?(last.text||''):'پیوست ارسال شد'):'',
+    context:c.ad?{icon:'briefcase',label:c.ad.type==='CONSULT'?'پرسش تخصصی':c.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:c.ad.title,meta:'',adId:c.ad.id}:undefined,
+    adId:c.adId,otherUserId:c.otherUser&&c.otherUser.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendConversation(conv){
+  var me=getSessionUser();
+  var other=conv.participantA&&me&&conv.participantA.id===me.id?conv.participantB:conv.participantA;
+  return{
+    id:conv.id,real:true,backendId:conv.id,personId:null,
+    name:personName(other),initials:(personName(other)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:0,pinned:false,muted:false,archived:false,
+    time:'اکنون',lastMessage:'',
+    context:conv.ad?{icon:'briefcase',label:conv.ad.type==='CONSULT'?'پرسش تخصصی':conv.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:conv.ad.title,meta:'',adId:conv.ad.id}:undefined,
+    adId:conv.adId,otherUserId:other&&other.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendMessage(m){
+  var me=getSessionUser();
+  var mine=!!(me&&m.senderId===me.id);
+  var time=new Date(m.createdAt).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  if(m.type==='SYSTEM')return{type:'system',text:m.text||''};
+  if(m.type==='IMAGE')return{mine:mine,time:time,status:'ارسال شد',image:m.attachmentUrl};
+  if(m.type==='FILE')return{mine:mine,time:time,status:'ارسال شد',file:'فایل پیوست',fileSize:''};
+  if(m.type==='VOICE')return{mine:mine,time:time,status:'ارسال شد',audioUrl:m.attachmentUrl,duration:''};
+  return{mine:mine,time:time,status:'ارسال شد',text:m.text||''};
+}
+function loadRealConversations(){
+  apiRequest('/api/conversations')
+    .then(function(data){mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));render()})
+    .catch(function(e){console.error('loadRealConversations failed',e)});
+}
+function loadConversationMessages(c){
+  apiRequest('/api/conversations/'+c.backendId+'/messages')
+    .then(function(data){
+      c.messages=(data.messages||[]).map(mapBackendMessage);
+      c.messagesLoaded=true;
+      render();
+    })
+    .catch(function(e){console.error('loadConversationMessages failed',e)});
+  apiRequest('/api/conversations/'+c.backendId+'/read',{method:'PATCH'}).catch(function(){});
 }
 
 /* ---------- profile setup (quickSetup/regStep) -> real backend sync ---------- */
