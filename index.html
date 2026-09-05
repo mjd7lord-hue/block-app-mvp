@@ -113,6 +113,9 @@ p{color:var(--muted);margin:0}
 .textarea{height:80px;padding-top:10px;resize:none}
 .input:focus,.textarea:focus{border-color:var(--accent)}
 .input::placeholder,.textarea::placeholder{color:var(--muted)}
+@media (max-width:480px){
+  .input,.textarea,.search input,.price-edit-input{font-size:16px}
+}
 
 .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .choice{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;cursor:pointer;text-align:right;position:relative}
@@ -2582,6 +2585,7 @@ function otpAdvance(el){
     while(next&&next.tagName!=='INPUT')next=next.nextElementSibling;
     if(next)next.focus();else el.blur();
   }
+  maybeAutoSubmitOtp(el);
 }
 function otpBackspace(e,el){
   if(e.key==='Backspace'&&!el.value){
@@ -2598,6 +2602,13 @@ function otpPaste(e,el){
   for(var i=0;i<inputs.length&&i<text.length;i++)inputs[i].value=text[i];
   var last=inputs[Math.min(text.length,inputs.length)-1];
   if(last)last.focus();
+  maybeAutoSubmitOtp(el);
+}
+function maybeAutoSubmitOtp(el){
+  if(readOtpCode().length<4)return;
+  var container=(el.closest&&(el.closest('#sheet')||el.closest('.page')))||document;
+  var btn=container.querySelector('button.btn-primary');
+  if(btn&&!btn.disabled)btn.click();
 }
 var otpCountdownTimer=null;
 function formatMMSS(totalSeconds){var m=Math.floor(totalSeconds/60),s=totalSeconds%60;return m+':'+(s<10?'0':'')+s}
@@ -4440,16 +4451,20 @@ function render(){
   var activeId=active&&active.id?active.id:null;
   var selStart=active&&typeof active.selectionStart==='number'?active.selectionStart:null;
   var selEnd=active&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
+  var prevScroller=view.querySelector('.page');
+  var prevScrollTop=prevScroller?prevScroller.scrollTop:0;
   var page=PAGES[state.page]||PAGES.unavailable;
   view.innerHTML=page()+renderNetworkBanner();
   saveStateSnapshot();
+  var scroller=view.querySelector('.page');
+  var phone=document.getElementById('phone');
   if(pageChanged){
-    var scroller=view.querySelector('.page');
-    var phone=document.getElementById('phone');
     if(scroller)scroller.scrollTop=0;
     if(phone)phone.scrollTop=0;
     requestAnimationFrame(function(){if(scroller)scroller.scrollTop=0;if(phone)phone.scrollTop=0});
     state.lastRenderedPage=state.page;
+  }else if(scroller){
+    scroller.scrollTop=prevScrollTop;
   }
   if(activeId){
     var el=document.getElementById(activeId);
