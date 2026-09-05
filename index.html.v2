@@ -5,6 +5,8 @@
 
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>بلوک — اکوسیستم صنعت ساختمان</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -49,15 +51,14 @@ body{display:flex;align-items:center;justify-content:center;padding:26px 10px}
 
 .icon{stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:block;flex:none}
 .hexlogo{width:52px;height:52px;position:relative;flex:none}
+.hexlogo img{width:100%;height:100%;object-fit:contain;display:block}
 .hexlogo-pulse{animation:hexPulse 1.4s ease-in-out infinite}
 @keyframes hexPulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(.88);opacity:.7}}
 .trust-card-brand{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;padding-top:12px;border-top:1px dashed var(--line-strong)}
 .trust-card-brand span{font-size:.46rem;color:var(--muted);font-weight:700}
 .trust-card-brand strong{color:var(--accent);font-weight:900}
 .hexlogo-mini{width:14px;height:14px;position:relative;flex:none;display:block}
-.hexlogo-mini b{position:absolute;inset:0;background:var(--accent);clip-path:polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%)}
-.hexlogo i{position:absolute;inset:0;background:var(--surface);border:1px solid var(--accent);clip-path:polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%)}
-.hexlogo i:after{content:"";position:absolute;inset:8px;background:var(--accent);clip-path:polygon(50% 0,95% 25%,95% 75%,50% 100%,5% 75%,5% 25%)}
+.hexlogo-mini img{width:100%;height:100%;object-fit:contain;display:block}
 
 .page{flex:1;overflow:auto;padding:18px 20px 110px;animation:pageIn .32s cubic-bezier(.22,1,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -2263,7 +2264,7 @@ function renderPublicTrustCard(person,personId){
     var safe=String(skill).replace(/'/g,"\\'");
     return canRequest?'<span class="skill-tap" onclick="openTargetedProject(\''+personId+'\',\''+safe+'\')">'+esc(skill)+'<i>‹</i></span>':'<span>'+esc(skill)+'</span>';
   }).join('');
-  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+esc(person.initials||'ب')+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p></div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div><div class="trust-tier"><b>'+trustTier(score)+'</b><span>براساس سابقهٔ واقعی در بلوک</span></div><div class="trust-facts"><div class="trust-fact"><span>'+(org?'قدمت مجموعه':'سن')+'</span><b>'+esc(person.age||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>'+(org?'محل ثبت':'محل تولد')+'</span><b>'+esc(person.birthPlace||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>سابقهٔ کلی</span><b>'+esc(person.experience||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>محدودهٔ فعالیت</span><b>'+esc(person.activityRange||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>پروژهٔ تکمیل‌شده در بلوک</span><b>'+esc(person.completed||0)+' پروژه</b></div>'+(person.phone?'<div class="trust-fact"><span>شمارهٔ تماس</span><b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b></div>':'')+'</div>'+(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی'+(canRequest?'<em>برای درخواست لمس کنید</em>':'')+'</div><div class="trust-skills">'+skillChips+'</div>':'')+(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>هنوز نظری برای این حساب ثبت نشده است.</p></div>')+actionButton+'<div class="trust-card-brand"><i class="hexlogo-mini"><b></b></i><span>صادرشده و تأییدشده در <strong>بلوک</strong></span></div></section>';
+  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+esc(person.initials||'ب')+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p></div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div><div class="trust-tier"><b>'+trustTier(score)+'</b><span>براساس سابقهٔ واقعی در بلوک</span></div><div class="trust-facts"><div class="trust-fact"><span>'+(org?'قدمت مجموعه':'سن')+'</span><b>'+esc(person.age||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>'+(org?'محل ثبت':'محل تولد')+'</span><b>'+esc(person.birthPlace||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>سابقهٔ کلی</span><b>'+esc(person.experience||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>محدودهٔ فعالیت</span><b>'+esc(person.activityRange||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>پروژهٔ تکمیل‌شده در بلوک</span><b>'+esc(person.completed||0)+' پروژه</b></div>'+(person.phone?'<div class="trust-fact"><span>شمارهٔ تماس</span><b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b></div>':'')+'</div>'+(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی'+(canRequest?'<em>برای درخواست لمس کنید</em>':'')+'</div><div class="trust-skills">'+skillChips+'</div>':'')+(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>هنوز نظری برای این حساب ثبت نشده است.</p></div>')+actionButton+'<div class="trust-card-brand"><i class="hexlogo-mini"><img src="assets/logo.png" alt=""></i><span>صادرشده و تأییدشده در <strong>بلوک</strong></span></div></section>';
 }
 function openTrustCard(id){state.trustPersonId=id;go('trustCard')}
 function openAdTrustCard(){state.trustPersonId='ad';go('trustCard')}
@@ -3790,7 +3791,7 @@ var PAGES={
 splash:function(){
   return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:50px 26px 26px">'
   +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">'
-  +'<div class="hexlogo"><i></i></div>'
+  +'<div class="hexlogo"><img src="assets/logo.png" alt="بلوک"></div>'
   +'<h1 style="font-size:1.8rem">بلوک</h1>'
   +'<p style="font-size:.68rem">اکوسیستم هوشمند صنعت ساختمان — کارگر، مهندس، پیمانکار و تأمین‌کننده در یک شبکهٔ امن</p>'
   +'<div class="trust-row" style="margin-top:6px"><span>هویت واقعی</span><span>تصمیم دقیق</span><span>ارتباط امن</span></div>'
@@ -3955,7 +3956,7 @@ requestsCenter:function(){
   return topbar('درخواست‌ها','تأیید، رد و پیگیری در یک صفحه')+'<div class="page"><div class="request-tabs"><button class="'+(tab==='incoming'?'active':'')+'" onclick="setRequestTab(\'incoming\')">دریافتی‌ها'+(pendingRequestCount()?' · '+pendingRequestCount():'')+'</button><button class="'+(tab==='outgoing'?'active':'')+'" onclick="setRequestTab(\'outgoing\')">ارسالی‌ها · '+outgoing.length+'</button></div><div class="chat-safety">'+icon('info',14)+'<span>پیش از تأیید، دستمزد، زمان شروع، محل کار و شرایط ایمنی را در چت بلوک هماهنگ کنید.</span></div>'+(items.length?items.map(function(item){return renderRequestCard(item,tab)}).join(''):'<div class="empty-inbox"><i>'+icon('check',23)+'</i><b>همه‌چیز مرتب است</b><p>'+empty+'</p></div>')+'</div>';
 },
 
-loading:function(){return '<div class="page no-nav"><div class="system-state" style="padding-bottom:15px"><div class="hexlogo hexlogo-pulse" style="margin:0 auto 14px"><i></i></div><h2>'+esc(state.loadingLabel||'در حال بارگذاری')+'</h2><p>چند لحظه صبر کنید؛ اطلاعات مناسب حساب شما آماده می‌شود.</p></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card" style="height:58px"></div></div>'},
+loading:function(){return '<div class="page no-nav"><div class="system-state" style="padding-bottom:15px"><div class="hexlogo hexlogo-pulse" style="margin:0 auto 14px"><img src="assets/logo.png" alt=""></div><h2>'+esc(state.loadingLabel||'در حال بارگذاری')+'</h2><p>چند لحظه صبر کنید؛ اطلاعات مناسب حساب شما آماده می‌شود.</p></div><div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card" style="height:58px"></div></div>'},
 
 offline:function(){return '<div class="page no-nav"><div class="system-state"><div class="system-state-art warning">'+icon('alert',31)+'</div><h2>اتصال اینترنت قطع است</h2><p>صفحه‌های ذخیره‌شده و اطلاعات پروفایل در دسترس‌اند؛ ارسال پیام، درخواست و دریافت اطلاعات تازه بعد از اتصال انجام می‌شود.</p><button class="btn-primary" onclick="retryConnection()">بررسی دوبارهٔ اتصال</button><div style="height:8px"></div><button class="btn-secondary" onclick="back()">ادامه با اطلاعات ذخیره‌شده</button></div></div>'},
 
