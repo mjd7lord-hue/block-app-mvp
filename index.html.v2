@@ -2518,13 +2518,13 @@ function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
 
 /* ---------- block backend integration ---------- */
-var API_BASE=window.BLOCK_API_BASE||'http://localhost:5000';
+var API_BASE=window.BLOCK_API_BASE||'https://block-backend-v9t9.onrender.com';
 function apiRequest(path,options){
   options=options||{};
   var headers=Object.assign({'Content-Type':'application/json'},options.headers||{});
   var token=localStorage.getItem('block_token');
   if(token)headers.Authorization='Bearer '+token;
-  return fetch(API_BASE+path,{
+  return fetch(API_BASE.replace(/\/+$/,'')+path,{
     method:options.method||'GET',
     headers:headers,
     body:options.body?JSON.stringify(options.body):undefined
@@ -2539,7 +2539,7 @@ function uploadFileToBackend(file){
   var form=new FormData();
   form.append('file',file);
   var token=localStorage.getItem('block_token');
-  return fetch(API_BASE+'/api/uploads',{
+  return fetch(API_BASE.replace(/\/+$/,'')+'/api/uploads',{
     method:'POST',
     headers:token?{Authorization:'Bearer '+token}:{},
     body:form
