@@ -1801,9 +1801,14 @@ var NOTIF_SEED=[
 function getNotifications(){if(!state.notifications)state.notifications=cloneData(NOTIF_SEED);return state.notifications}
 function unreadNotifCount(){return getNotifications().filter(function(n){return !n.read}).length}
 function setNotificationFilter(value){state.notificationFilter=value;render()}
-function markAllNotificationsRead(){getNotifications().forEach(function(n){n.read=true});render();toast('همهٔ اعلان‌ها خوانده شد')}
+function markAllNotificationsRead(){
+  getNotifications().forEach(function(n){n.read=true});
+  render();toast('همهٔ اعلان‌ها خوانده شد');
+  if(getSessionUser())apiRequest('/api/notifications/read-all',{method:'PATCH'}).catch(function(){});
+}
 function openNotification(idx){
   var item=getNotifications()[idx];if(!item)return;item.read=true;
+  if(item.real)apiRequest('/api/notifications/'+item.backendId+'/read',{method:'PATCH'}).catch(function(){});
   if(item.conversationId){openConversation(item.conversationId);return}
   if(item.target){go(item.target);return}
   render();toast('جزئیات اعلان نمایش داده شد');
@@ -2612,11 +2617,37 @@ function loadRealProjects(){
     .then(function(data){mergeReal(getProjects(role),(data.projects||[]).map(mapBackendProjectToItem));render()})
     .catch(function(e){console.error('loadRealProjects failed',e)});
 }
+var NOTIF_ICONS={PROJECT:'building',MESSAGE:'message',PROFILE:'star',ACCOUNT:'user',SYSTEM:'bell'};
+function timeAgoFa(iso){
+  var diff=Math.max(0,Date.now()-new Date(iso).getTime());
+  var mins=Math.floor(diff/60000);
+  if(mins<1)return'همین حالا';
+  if(mins<60)return mins+' دقیقه پیش';
+  var hours=Math.floor(mins/60);
+  if(hours<24)return hours+' ساعت پیش';
+  var days=Math.floor(hours/24);
+  return days+' روز پیش';
+}
+function mapBackendNotification(n){
+  var recent=(Date.now()-new Date(n.createdAt).getTime())<24*3600*1000;
+  return{
+    real:true,backendId:n.id,
+    title:n.title,sub:n.body||'',time:timeAgoFa(n.createdAt),day:recent?'امروز':'قبل‌تر',
+    read:n.read,icon:NOTIF_ICONS[n.type]||'bell',type:String(n.type).toLowerCase(),
+    target:n.targetType||null
+  };
+}
+function loadRealNotifications(){
+  apiRequest('/api/notifications')
+    .then(function(data){mergeReal(getNotifications(),(data.notifications||[]).map(mapBackendNotification));render()})
+    .catch(function(e){console.error('loadRealNotifications failed',e)});
+}
 function syncRealData(page){
   if(!getSessionUser())return;
   if(page==='explore')loadRealAds();
   if(page==='requestsCenter')loadRealRequests();
   if(page==='myProjects')loadRealProjects();
+  if(page==='notifications'||page==='home')loadRealNotifications();
 }
 
 /* ---------- profile setup (quickSetup/regStep) -> real backend sync ---------- */
