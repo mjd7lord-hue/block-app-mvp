@@ -201,6 +201,8 @@ p{color:var(--muted);margin:0}
 .otp-row{display:flex;gap:8px;direction:ltr;margin-bottom:16px}
 .otp-row input{width:100%;height:52px;text-align:center;font-size:1rem;border:1px solid var(--line);border-radius:13px;background:var(--surface2);color:var(--ink);outline:0}
 .otp-row input:focus{border-color:var(--accent)}
+.otp-resend{display:block;margin-top:8px}
+.otp-resend:disabled{opacity:.5;cursor:default}
 
 .state{text-align:center;padding:40px 16px 10px}
 .state-symbol{width:80px;height:80px;margin:0 auto 18px;border-radius:26px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
@@ -227,7 +229,8 @@ p{color:var(--muted);margin:0}
 .sendbtn{width:40px;border:0;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
 .sendbtn svg{width:17px;height:17px}
 
-.toast{position:absolute;right:18px;left:18px;bottom:84px;background:var(--ink);color:var(--bg);border-radius:13px;padding:11px 14px;font-size:.62rem;font-weight:700;text-align:center;z-index:60;opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none}
+.toast{position:absolute;right:18px;left:18px;bottom:84px;background:var(--tone-blue);color:var(--on-accent);border-radius:13px;padding:11px 14px;font-size:.62rem;font-weight:700;text-align:center;z-index:60;opacity:0;transform:translateY(12px);transition:.22s;pointer-events:none}
+.toast.warning{background:var(--accent2);color:var(--on-warm)}
 .toast.show{opacity:1;transform:translateY(0)}
 
 .quick-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 4px}
@@ -674,7 +677,7 @@ const roleSchemas={
 };
 
 const roleDeepSchemas={
-  engineer:{primaryCollection:"services",collections:{services:{label:"خدمات و صلاحیت‌ها",singular:"خدمت مهندسی",addLabel:"افزودن خدمت یا صلاحیت",icon:"calculator",imageLabel:"تصویر پروانه یا نمونه پروژه",titleKey:"service",summaryKeys:["field","grade","experience"],fields:[{key:"service",label:"نوع خدمت",options:["طراحی","نظارت","محاسبات","اجرا","متره و برآورد","مدیریت پروژه"]},{key:"field",label:"رشته تخصصی",options:["عمران","معماری","برق","مکانیک","نقشه‌برداری","شهرسازی"]},{key:"grade",label:"پایه یا صلاحیت",placeholder:"مثلاً پایه 2 نظارت"},{key:"experience",label:"سابقه مرتبط",placeholder:"مثلاً 8 سال"},{key:"rate",label:"نحوه محاسبه تعرفه",placeholder:"ساعتی، متری یا پروژه‌ای"}],seeds:[{service:"نظارت سازه",field:"عمران",grade:"پایه 2",experience:"8 سال",rate:"پروژه‌ای"},{service:"طراحی و محاسبات",field:"عمران",grade:"پایه 2",experience:"12 پروژه",rate:"متری"}]}},steps:[{title:"هویت حرفه‌ای",desc:"اطلاعات پایه مهندس و نحوه فعالیت ثبت می‌شود.",fields:["نام و نام خانوادگی|نام واقعی","رشته دانشگاهی|عمران، معماری، برق و...","نوع فعالیت|شخصی، دفتر مهندسی یا شرکت مشاور","شماره تماس کاری|09xx xxx xxxx|ltr"]},{title:"پروانه و عضویت",desc:"اعتبار حرفه‌ای و صلاحیت قانونی را تکمیل کنید.",fields:["شماره عضویت نظام مهندسی|شماره عضویت|ltr","پایه پروانه|پایه 1، 2 یا 3","شماره پروانه اشتغال|شماره پروانه|ltr","تاریخ اعتبار پروانه|تاریخ پایان اعتبار|ltr"]},{title:"حوزه‌های اصلی",desc:"حوزه‌هایی را که واقعاً در آن‌ها فعالیت دارید انتخاب کنید.",options:["ساختمان مسکونی","تجاری و اداری","صنعتی","سازه فلزی","سازه بتنی","بازسازی و مقاوم‌سازی"]},{title:"خدمات قابل ارائه",desc:"هر خدمت، صلاحیت و تعرفه را جداگانه به پروفایل اضافه کنید.",collection:"services"},{title:"سابقه و دسترسی",desc:"سوابق و شرایط همکاری حرفه‌ای را مشخص کنید.",fields:["تعداد پروژه تکمیل‌شده|تعداد پروژه|ltr","محدوده فعالیت|شهرها و استان‌ها","امکان بازدید حضوری|روزها و ساعت‌های قابل رزرو","نوع همکاری|مشاوره، پروژه‌ای یا تمام‌وقت"]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل مهندس",desc:"اطلاعات پیش از ساخت پروفایل عمومی بررسی می‌شوند.",review:true}]},
+  engineer:{primaryCollection:"services",collections:{services:{label:"خدمات و صلاحیت‌ها",singular:"خدمت مهندسی",addLabel:"افزودن خدمت یا صلاحیت",icon:"calculator",imageLabel:"تصویر پروانه یا نمونه پروژه",titleKey:"service",summaryKeys:["grade","experience"],fields:[{key:"service",label:"نوع خدمت",options:["طراحی","نظارت","محاسبات","اجرا","متره و برآورد","مدیریت پروژه"]},{key:"grade",label:"پایه یا صلاحیت",options:["پایه 1","پایه 2","پایه 3","بدون پایهٔ رسمی"],optional:true},{key:"experience",label:"سابقه مرتبط با همین خدمت",options:["کمتر از 2 سال","2 تا 5 سال","5 تا 10 سال","بیش از 10 سال"]},{key:"rate",label:"نحوه محاسبه تعرفه",placeholder:"ساعتی، متری یا پروژه‌ای"}],seeds:[{service:"نظارت سازه",grade:"پایه 2",experience:"5 تا 10 سال",rate:"پروژه‌ای"},{service:"طراحی و محاسبات",grade:"پایه 2",experience:"بیش از 10 سال",rate:"متری"}]}},steps:[{title:"هویت حرفه‌ای",desc:"اطلاعات پایه مهندس و نحوه فعالیت ثبت می‌شود.",fields:["نام و نام خانوادگی|نام واقعی","رشته دانشگاهی|عمران، معماری، برق و...","نوع فعالیت|شخصی، دفتر مهندسی یا شرکت مشاور","شماره تماس کاری|09xx xxx xxxx|ltr"]},{title:"پروانه و عضویت",desc:"اعتبار حرفه‌ای و صلاحیت قانونی را تکمیل کنید.",fields:["شماره عضویت نظام مهندسی|شماره عضویت|ltr","پایه پروانه|پایه 1، 2 یا 3","شماره پروانه اشتغال|شماره پروانه|ltr","تاریخ اعتبار پروانه|تاریخ پایان اعتبار|ltr"]},{title:"حوزه‌های اصلی",desc:"حوزه‌هایی را که واقعاً در آن‌ها فعالیت دارید انتخاب کنید.",options:["ساختمان مسکونی","تجاری و اداری","صنعتی","سازه فلزی","سازه بتنی","بازسازی و مقاوم‌سازی"]},{title:"خدمات قابل ارائه",desc:"هر خدمت، صلاحیت و تعرفه را جداگانه به پروفایل اضافه کنید.",collection:"services"},{title:"سابقه و دسترسی",desc:"سوابق و شرایط همکاری حرفه‌ای را مشخص کنید.",fields:["تعداد پروژه تکمیل‌شده|تعداد پروژه|ltr","محدوده فعالیت|شهرها و استان‌ها","امکان بازدید حضوری|روزها و ساعت‌های قابل رزرو","نوع همکاری|مشاوره، پروژه‌ای یا تمام‌وقت"]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل مهندس",desc:"اطلاعات پیش از ساخت پروفایل عمومی بررسی می‌شوند.",review:true}]},
   machinery:{primaryCollection:"machines",collections:{machines:{label:"ناوگان ماشین‌آلات",singular:"ماشین",addLabel:"افزودن ماشین جدید",icon:"loader",imageLabel:"عکس واقعی همین ماشین",titleKey:"type",summaryKeys:["brandModel","activity","capacity"],fields:[{key:"type",label:"نوع ماشین",options:["لودر","بابکت","غلطک","بیل مکانیکی","جرثقیل","گریدر","بولدوزر","میکسر بتن","پمپ بتن","کامیون یا کمپرسی","سایر"]},{key:"brandModel",label:"برند و مدل",placeholder:"مثلاً Komatsu WA470"},{key:"year",label:"سال ساخت",placeholder:"مثلاً 2022",ltr:true},{key:"activity",label:"حوزه فعالیت",options:["خاک‌برداری","گودبرداری","راه‌سازی","محوطه‌سازی","حمل‌ونقل","بتن‌ریزی","بالابری","تخریب"]},{key:"capacity",label:"ظرفیت یا تناژ",placeholder:"مثلاً 10 تن"},{key:"operator",label:"اپراتور",options:["همراه اپراتور","بدون اپراتور","هر دو حالت"]},{key:"rate",label:"نرخ پایه",placeholder:"ساعتی، شیفتی یا روزانه"},{key:"status",label:"وضعیت فعلی",options:["آماده‌به‌کار","رزرو شده","در سرویس","غیرفعال"]}],seeds:[{type:"لودر",brandModel:"Komatsu WA470",year:"2021",activity:"خاک‌برداری",capacity:"باکت 4.2m³",operator:"همراه اپراتور",rate:"14,000,000 / شیفت",status:"آماده‌به‌کار"},{type:"بابکت",brandModel:"Bobcat S650",year:"2022",activity:"محوطه‌سازی",capacity:"1.2 تن",operator:"هر دو حالت",rate:"7,500,000 / روز",status:"آماده‌به‌کار"},{type:"غلطک",brandModel:"Hamm 3412",year:"2020",activity:"راه‌سازی",capacity:"12 تن",operator:"همراه اپراتور",rate:"11,000,000 / شیفت",status:"رزرو شده"}]}},steps:[{title:"هویت مالک یا مجموعه",desc:"حساب مالک، اپراتور یا شرکت ماشین‌آلات را مشخص کنید.",fields:["نام مالک یا مجموعه|نام شخص یا شرکت","نوع فعالیت|مالک، اپراتور یا شرکت اجاره","شناسه ملی یا کد ملی|شناسه معتبر|ltr","شماره تماس رزرو|09xx xxx xxxx|ltr"]},{title:"اندازه ناوگان",desc:"تعداد و ساختار کلی ناوگان برای ادامه مسیر پرسیده می‌شود.",fields:["چند ماشین دارید؟|تعداد کل ماشین‌آلات|ltr","چند اپراتور فعال دارید؟|تعداد اپراتورها|ltr","پایگاه اصلی ناوگان|شهر یا محل پارکینگ","امکان اعزام بین‌شهری|بله، خیر یا با هماهنگی"]},{title:"حوزه‌های فعالیت",desc:"نوع پروژه‌هایی که ناوگان شما پوشش می‌دهد انتخاب کنید.",options:["خاک‌برداری","گودبرداری","راه‌سازی","محوطه‌سازی","حمل‌ونقل","بتن‌ریزی","بالابری","تخریب"]},{title:"ثبت جداگانه ماشین‌ها",desc:"لودر، بابکت، غلطک و هر دستگاه دیگر با عکس و مشخصات مستقل ثبت می‌شود.",collection:"machines"},{title:"مدارک و شرایط اجاره",desc:"شرایط ایمنی، بیمه و رزرو ناوگان را تکمیل کنید.",fields:["وضعیت بیمه ماشین‌آلات|نوع و تاریخ اعتبار","معاینه فنی|تاریخ آخرین بررسی","حداقل زمان رزرو|ساعتی، شیفتی یا روزانه","محدوده خدمت|شهرها و شعاع اعزام"]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل ناوگان",desc:"تعداد دستگاه‌ها و جزئیات عمومی قبل از انتشار بررسی می‌شوند.",review:true}]},
   store:{primaryCollection:"materials",collections:{materials:{label:"کالاها و مصالح",singular:"مصالح",addLabel:"افزودن مصالح جدید",icon:"material",imageLabel:"عکس محصول یا بسته‌بندی",titleKey:"name",summaryKeys:["category","brand","stock"],fields:[{key:"category",label:"دسته مصالح",options:["سیمان و گچ","آهن و فولاد","آجر و بلوک","سنگ و سرامیک","شن و ماسه","تأسیسات","ابزار و یراق","عایق و شیمی ساختمان"]},{key:"name",label:"نام دقیق کالا",placeholder:"مثلاً سیمان تیپ 2"},{key:"brand",label:"برند یا کارخانه",placeholder:"مثلاً سیمان تهران"},{key:"unit",label:"واحد فروش",options:["عدد","پاکت","کیلوگرم","تن","متر","مترمربع","کارتن","سرویس"]},{key:"stock",label:"موجودی فعلی",placeholder:"مثلاً 120 پاکت"},{key:"price",label:"قیمت واحد",placeholder:"قیمت به تومان",ltr:true},{key:"delivery",label:"زمان تحویل",placeholder:"همان روز، 24 ساعت و..."},{key:"status",label:"وضعیت فروش",options:["موجود","سفارش‌پذیر","رو به اتمام","ناموجود"]}],seeds:[{category:"سیمان و گچ",name:"سیمان تیپ 2",brand:"سیمان تهران",unit:"پاکت",stock:"120 پاکت",price:"420,000",delivery:"همان روز",status:"موجود"},{category:"آهن و فولاد",name:"میلگرد 16",brand:"ذوب‌آهن",unit:"کیلوگرم",stock:"8 تن",price:"39,500",delivery:"24 ساعت",status:"موجود"},{category:"آجر و بلوک",name:"بلوک سبک 15cm",brand:"هرمز بلوک",unit:"عدد",stock:"2,400 عدد",price:"68,000",delivery:"همان روز",status:"موجود"}]}},steps:[{title:"هویت فروشگاه",desc:"اطلاعات فروشگاه و مسئول پاسخ‌گویی ثبت می‌شود.",fields:["نام فروشگاه|نام تجاری","نام مدیر یا مسئول|نام و نام خانوادگی","شماره جواز کسب|شماره مجوز|ltr","شماره تماس سفارش|09xx xxx xxxx|ltr"]},{title:"ساختار فروش و انبار",desc:"توان واقعی فروشگاه برای تأمین پروژه مشخص می‌شود.",fields:["تعداد انبارها|تعداد محل‌های موجودی|ltr","آدرس انبار اصلی|شهر و محدوده","نوع فروش|خرده، عمده یا پروژه‌ای","صدور فاکتور رسمی|بله یا خیر"]},{title:"گروه‌های کالایی",desc:"گروه‌هایی را انتخاب کنید که فروشگاه به‌صورت فعال تأمین می‌کند.",options:["سیمان و گچ","آهن و فولاد","آجر و بلوک","سنگ و سرامیک","شن و ماسه","تأسیسات","ابزار و یراق","عایق و شیمی ساختمان"]},{title:"ثبت کالا و مصالح",desc:"هر کالا با عکس، برند، واحد، موجودی، قیمت و تحویل جدا ثبت می‌شود.",collection:"materials"},{title:"ارسال و سفارش",desc:"شرایط سفارش و تحویل برای خریدار شفاف می‌شود.",fields:["شعاع ارسال|کیلومتر|ltr","حداقل مبلغ سفارش|تومان|ltr","زمان معمول آماده‌سازی|همان روز، 24 ساعت و...","روش‌های پرداخت|نقدی، کارت، اعتباری یا چک"]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل فروشگاه",desc:"کالاهای ثبت‌شده پیش از نمایش عمومی مرور می‌شوند.",review:true}]},
   contractor:{primaryCollection:"projects",collections:{projects:{label:"پروژه‌ها و خدمات اجرایی",singular:"پروژه",addLabel:"افزودن پروژه جدید",icon:"building",imageLabel:"عکس واقعی پروژه",titleKey:"name",summaryKeys:["type","role","status"],fields:[{key:"name",label:"عنوان پروژه",placeholder:"مثلاً اجرای نمای برج ساحل"},{key:"type",label:"نوع پروژه",options:["ساختمان مسکونی","تجاری و اداری","صنعتی","سازه فلزی","سازه بتنی","نما","بازسازی","تأسیسات"]},{key:"role",label:"نقش شما",options:["پیمانکار اصلی","پیمانکار جزء","مدیر پیمان","مجری","مدیر پروژه"]},{key:"scale",label:"مقیاس پروژه",placeholder:"متراژ، طبقات یا مبلغ"},{key:"location",label:"محل پروژه",placeholder:"شهر یا محدوده"},{key:"year",label:"سال اجرا",placeholder:"مثلاً 1405",ltr:true},{key:"status",label:"وضعیت پروژه",options:["در حال اجرا","تکمیل‌شده","تحویل موقت","در انتظار شروع"]},{key:"service",label:"خدمات انجام‌شده",placeholder:"شرح کوتاه حوزه اجرا"}],seeds:[{name:"نمای ساختمان قیطریه",type:"نما",role:"پیمانکار اصلی",scale:"3,200m²",location:"تهران",year:"1405",status:"در حال اجرا",service:"طراحی شاپ و اجرای نمای خشک"},{name:"اسکلت سوله صنعتی",type:"سازه فلزی",role:"مجری",scale:"1,800m²",location:"قشم",year:"1404",status:"تکمیل‌شده",service:"ساخت و نصب کامل سازه"}]}},steps:[{title:"هویت پیمانکار یا شرکت",desc:"حساب شخصی و حقوقی در یک مسیر حرفه‌ای تکمیل می‌شود.",fields:["نوع حساب|پیمانکار شخصی یا شرکت","نام پیمانکار یا شرکت|نام کامل یا حقوقی","شناسه ملی یا کد ملی|شناسه معتبر|ltr","رتبه یا گرید|در صورت وجود"]},{title:"ساختار تیم و ظرفیت",desc:"توان واقعی سازمان و تیم اجرایی ثبت می‌شود.",fields:["تعداد نیروی ثابت|تعداد اعضای تیم|ltr","تعداد تیم‌های اجرایی|تعداد تیم‌ها|ltr","حداکثر پروژه همزمان|تعداد پروژه|ltr","دفتر یا پایگاه اصلی|شهر و آدرس کلی"]},{title:"حوزه‌های اجرایی",desc:"زمینه‌های واقعی اجرا و مدیریت پروژه را انتخاب کنید.",options:["سازه و اسکلت","بتن و فونداسیون","نما","بازسازی","تأسیسات","مدیریت پیمان","راه‌سازی","محوطه‌سازی"]},{title:"ثبت پروژه‌ها",desc:"هر پروژه با عکس، نقش، مقیاس، وضعیت و خدمات مستقل ثبت می‌شود.",collection:"projects"},{title:"مجوز، بیمه و محدوده",desc:"مدارک و شرایط پذیرش پروژه تکمیل می‌شود.",fields:["مجوزها و گواهی‌ها|شرح مدارک معتبر","وضعیت بیمه کارکنان|نوع پوشش","محدوده فعالیت|شهرها و استان‌ها","نوع پروژه قابل پذیرش|مقیاس و بودجه موردنظر"]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل پیمانکار",desc:"پروژه‌ها و توان اجرایی پیش از انتشار عمومی بررسی می‌شوند.",review:true}]},
@@ -694,7 +697,7 @@ const roleFormOverhaul={
   store:{steps:[{title:"معرفی فروشگاه",desc:"نام و نوع فروشگاه را مشخص کنید؛ شماره جواز کاملاً اختیاری است.",controls:[{kind:"text",key:"firstName",label:"نام",placeholder:"نام",persianOnly:true},{kind:"text",key:"lastName",label:"نام خانوادگی",placeholder:"نام خانوادگی",persianOnly:true},{kind:"single",key:"gender",label:"جنسیت",options:["مرد","زن"]},{kind:"jdate",key:"birthDate",label:"تاریخ تولد"},{kind:"single",key:"birthProvince",label:"استان تولد",options:PROVINCES.concat(["خارج از ایران"])},{kind:"text",key:"birthCountry",label:"در صورت انتخاب «خارج از ایران»، نام کشور را بنویسید",placeholder:"نام کشور",optional:true},{kind:"text",key:"storeName",label:"نام فروشگاه",placeholder:"نام تجاری"},{kind:"text",key:"businessLicense",label:"شماره جواز کسب (اختیاری)",placeholder:"در صورت تمایل وارد کنید"}]},{title:"محل انجام وظیفه",desc:"استان و شهر فعالیت اصلی خود را انتخاب کنید؛ در صورت نیاز می‌توانید این مرحله را رد کنید.",skippable:true,controls:[{kind:"single",key:"workProvince",label:"استان",options:PROVINCES},{kind:"single",key:"workCity",label:"شهر",dynamicOptions:"workProvince",optionsSource:"province",options:[]},{kind:"single",key:"activityRadius",label:"شعاع فعالیت",options:["فقط همین شهر","تا 50 کیلومتر اطراف","کل استان","استان‌های همجوار","سراسر کشور"]},{kind:"toggle",key:"travelReady",label:"آماده سفر به شهرهای دیگر هستم"}]},{title:"روش تأمین و فروش",desc:"تعداد انبار پرسیده نمی‌شود؛ فقط روش واقعی کارتان را انتخاب کنید.",controls:[{kind:"multi",key:"supplyModel",label:"روش تأمین کالا",options:["موجودی فروشگاه","تأمین پس از سفارش","ارسال مستقیم کارخانه","نمایندگی رسمی","تأمین پروژه‌ای"]},{kind:"multi",key:"saleModel",label:"نوع فروش",options:["خرده‌فروشی","عمده‌فروشی","فروش پروژه‌ای","فروش اعتباری"]},{kind:"single",key:"invoice",label:"فاکتور رسمی",options:["صادر می‌کنم","در صورت درخواست","صادر نمی‌کنم"]},{kind:"text",key:"mainAddress",label:"آدرس اصلی فروشگاه یا انبار",placeholder:"این بخش را خودتان بنویسید"}]},{title:"دسته‌های کالایی",desc:"همه دسته‌ها انتخابی هستند و مورد جدید هم می‌توانید اضافه کنید.",controls:[{kind:"multi",key:"materialCategories",label:"دسته‌های فعال",options:["سیمان و گچ","آهن و فولاد","آجر و بلوک","سنگ و سرامیک","شن و ماسه","تأسیسات برق","تأسیسات مکانیک","ابزار و یراق","عایق","مواد شیمیایی ساختمان"]},{kind:"text",key:"otherMaterialCategory",label:"دسته دیگر",placeholder:"اگر در فهرست نبود اضافه کنید"}]},{title:"کالاها و مصالح",desc:"هر کالا جدا ثبت می‌شود؛ موجودی، تعداد و قیمت همگی اختیاری هستند.",collection:"materials"},{title:"ارسال، سفارش و پرداخت",desc:"شرایط ارسال و پرداخت را انتخاب کنید؛ اطلاعات کارت فقط پس از ثبت سفارش برای خریدار ارسال می‌شود.",controls:[{kind:"single",key:"shippingArea",label:"محدوده ارسال",options:["تحویل حضوری","داخل شهر","شهرهای اطراف","کل استان","سراسر کشور"]},{kind:"single",key:"minimumOrder",label:"حداقل مبلغ سفارش (اختیاری)",options:["بدون حداقل","تا 1 میلیون","1 تا 5 میلیون","5 تا 20 میلیون","بیش از 20 میلیون","توافقی"]},{kind:"multi",key:"paymentMethods",label:"روش‌های پرداخت",options:["کارت‌به‌کارت","درگاه آنلاین","نقدی","واریز بانکی","چک","اعتباری"]},{kind:"single",key:"deliveryTime",label:"زمان معمول ارسال",options:["همان روز","24 ساعت","2 تا 3 روز","طبق موجودی","با هماهنگی"]}]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل فروشگاه",desc:"کالاها و شرایط فروش پیش از نمایش عمومی بررسی می‌شوند.",review:true}]},
   specialist:{steps:[{title:"معرفی متخصص",desc:"اطلاعات پایه و روش همکاری را سریع انتخاب کنید.",controls:[{kind:"text",key:"firstName",label:"نام",placeholder:"نام",persianOnly:true},{kind:"text",key:"lastName",label:"نام خانوادگی",placeholder:"نام خانوادگی",persianOnly:true},{kind:"single",key:"gender",label:"جنسیت",options:["مرد","زن"]},{kind:"jdate",key:"birthDate",label:"تاریخ تولد"},{kind:"single",key:"birthProvince",label:"استان تولد",options:PROVINCES.concat(["خارج از ایران"])},{kind:"text",key:"birthCountry",label:"در صورت انتخاب «خارج از ایران»، نام کشور را بنویسید",placeholder:"نام کشور",optional:true},{kind:"single",key:"cooperation",label:"نوع همکاری",options:["روزانه","پروژه‌ای","پاره‌وقت","تمام‌وقت","توافقی"]}]},{title:"محل انجام وظیفه",desc:"استان و شهر فعالیت اصلی خود را انتخاب کنید؛ در صورت نیاز می‌توانید این مرحله را رد کنید.",skippable:true,controls:[{kind:"single",key:"workProvince",label:"استان",options:PROVINCES},{kind:"single",key:"workCity",label:"شهر",dynamicOptions:"workProvince",optionsSource:"province",options:[]},{kind:"single",key:"activityRadius",label:"شعاع فعالیت",options:["فقط همین شهر","تا 50 کیلومتر اطراف","کل استان","استان‌های همجوار","سراسر کشور"]},{kind:"toggle",key:"travelReady",label:"آماده سفر به شهرهای دیگر هستم"}]},{title:"شرایط کاری",desc:"همه موارد با انتخاب گزینه ثبت می‌شوند.",controls:[{kind:"single",key:"experience",label:"سابقه کلی",options:["کمتر از 2 سال","2 تا 5 سال","5 تا 10 سال","بیش از 10 سال"]},{kind:"single",key:"teamStatus",label:"نحوه فعالیت",options:["مستقل","عضو تیم","سرپرست تیم","هر سه حالت"]},{kind:"single",key:"startTime",label:"زمان شروع",options:["فوری","فردا","هفته آینده","با هماهنگی"]},{kind:"single",key:"travel",label:"محدوده رفت‌وآمد",options:["داخل شهر","شهرهای اطراف","کل استان","امکان اعزام"]}]},{title:"حوزه‌های تخصصی",desc:"تخصص‌ها دقیق‌تر شده‌اند؛ مورد جاافتاده را هم می‌توانید بنویسید.",controls:[{kind:"multi",key:"specialistFields",label:"تخصص‌ها",options:["بنایی و دیوارچینی","جوشکاری سازه","برق ساختمان","لوله‌کشی و تأسیسات","کاشی و سرامیک","گچ‌کاری","نقاشی","اجرای نما","کابینت و نجاری","عایق‌کاری","آرماتوربندی","قالب‌بندی"]},{kind:"text",key:"otherSpecialty",label:"تخصص دیگر",placeholder:"اگر در فهرست نبود اضافه کنید"}]},{title:"مهارت‌ها و نمونه‌کارها",desc:"هر مهارت با سطح، سابقه، دستمزد، مدرک و عکس جدا ثبت می‌شود.",collection:"skills"},{title:"مدارک و آمادگی (اختیاری)",desc:"تمام موارد اختیاری و انتخابی هستند.",controls:[{kind:"single",key:"skillCard",label:"کارت مهارت",options:["معتبر دارم","در حال دریافت","ندارم","فعلاً ثبت نمی‌کنم"]},{kind:"single",key:"safety",label:"گواهی ایمنی",options:["معتبر دارم","منقضی شده","ندارم","فعلاً ثبت نمی‌کنم"]},{kind:"single",key:"insurance",label:"وضعیت بیمه",options:["بیمه هستم","نیاز به بیمه دارم","مهم نیست","فعلاً ثبت نمی‌کنم"]},{kind:"multi",key:"preferredShift",label:"زمان‌های مناسب",options:["صبح","عصر","شب","پایان هفته","تمام‌وقت"]}]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل متخصص",desc:"مهارت‌ها و شرایط همکاری پیش از انتشار بررسی می‌شوند.",review:true}]},
   worker:{label:"نیروی کار(کارگر)",summary:"نیروی عمومی و اجرایی کارگاه",profileTitle:"نیروی اجرایی ساختمان",icon:"helmet",steps:[{title:"معرفی کارگر",desc:"نام و نوع همکاری را انتخاب کنید.",controls:[{kind:"text",key:"firstName",label:"نام",placeholder:"نام",persianOnly:true},{kind:"text",key:"lastName",label:"نام خانوادگی",placeholder:"نام خانوادگی",persianOnly:true},{kind:"single",key:"gender",label:"جنسیت",options:["مرد","زن"]},{kind:"jdate",key:"birthDate",label:"تاریخ تولد"},{kind:"single",key:"birthProvince",label:"استان تولد",options:PROVINCES.concat(["خارج از ایران"])},{kind:"text",key:"birthCountry",label:"در صورت انتخاب «خارج از ایران»، نام کشور را بنویسید",placeholder:"نام کشور",optional:true},{kind:"single",key:"cooperation",label:"نوع همکاری",options:["روزانه","ساعتی","موقت","تمام‌وقت","پروژه‌ای"]}]},{title:"محل انجام وظیفه",desc:"استان و شهر فعالیت اصلی خود را انتخاب کنید؛ در صورت نیاز می‌توانید این مرحله را رد کنید.",skippable:true,controls:[{kind:"single",key:"workProvince",label:"استان",options:PROVINCES},{kind:"single",key:"workCity",label:"شهر",dynamicOptions:"workProvince",optionsSource:"province",options:[]},{kind:"single",key:"activityRadius",label:"شعاع فعالیت",options:["فقط همین شهر","تا 50 کیلومتر اطراف","کل استان","استان‌های همجوار","سراسر کشور"]},{kind:"toggle",key:"travelReady",label:"آماده سفر به شهرهای دیگر هستم"}]},{title:"شرایط حضور در کارگاه",desc:"سؤال‌های غیرضروری حذف شده‌اند؛ فقط شرایط واقعی کار انتخاب می‌شود.",controls:[{kind:"single",key:"experience",label:"سابقه کارگاه",options:["بدون سابقه","کمتر از 1 سال","1 تا 3 سال","بیش از 3 سال"]},{kind:"single",key:"teamStatus",label:"نحوه حضور",options:["فردی","همراه تیم","هر دو حالت"]},{kind:"single",key:"startTime",label:"زمان شروع",options:["فوری","فردا","هفته آینده","با هماهنگی"]},{kind:"multi",key:"shifts",label:"شیفت‌های مناسب",options:["صبح","عصر","شب","تمام‌وقت","پایان هفته"]}]},{title:"حوزه‌های کاری",desc:"وظایف کارگری از مهارت‌های تخصصی جدا شده‌اند.",controls:[{kind:"multi",key:"workerFields",label:"کارهایی که انجام می‌دهید",options:["کارگر ساده","تخریب","حمل مصالح","بتن‌ریزی","کمک بنا","کمک آرماتوربند","نظافت کارگاه","انبارداری","نگهبانی","بارگیری و تخلیه"]},{kind:"text",key:"otherWorkerField",label:"کار دیگر",placeholder:"اگر در فهرست نبود اضافه کنید"}]},{title:"توانایی‌ها و سوابق",desc:"هر توانایی یا سابقه را جدا همراه با شرایط دستمزد ثبت کنید.",collection:"skills"},{title:"ایمنی و امکانات (اختیاری)",desc:"همه موارد انتخابی و اختیاری هستند.",controls:[{kind:"single",key:"safety",label:"آموزش ایمنی",options:["دیده‌ام","نیاز به آموزش دارم","فعلاً ثبت نمی‌کنم"]},{kind:"single",key:"insurance",label:"وضعیت بیمه",options:["بیمه هستم","نیاز به بیمه دارم","مهم نیست","فعلاً ثبت نمی‌کنم"]},{kind:"multi",key:"equipment",label:"تجهیزات شخصی",options:["کفش ایمنی","کلاه ایمنی","لباس کار","دستکش","ابزار شخصی","تجهیزات ندارم"]},{kind:"single",key:"transport",label:"رفت‌وآمد",options:["وسیله شخصی دارم","سرویس کارگاه لازم دارم","هر دو حالت"]}]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل کارگر",desc:"شرایط کار و سوابق قبل از انتشار بررسی می‌شوند.",review:true}]},
-  general:{steps:[{title:"ثبت‌نام و احراز هویت",desc:"اطلاعات پایه برای تعامل مطمئن‌تر با دیگران.",controls:[{kind:"text",key:"firstName",label:"نام",placeholder:"نام",persianOnly:true},{kind:"text",key:"lastName",label:"نام خانوادگی",placeholder:"نام خانوادگی",persianOnly:true},{kind:"single",key:"gender",label:"جنسیت",options:["مرد","زن"]},{kind:"jdate",key:"birthDate",label:"تاریخ تولد"},{kind:"single",key:"birthProvince",label:"استان تولد",options:PROVINCES.concat(["خارج از ایران"])},{kind:"text",key:"birthCountry",label:"در صورت انتخاب «خارج از ایران»، نام کشور را بنویسید",placeholder:"نام کشور",optional:true}]},{title:"محل انجام وظیفه",desc:"استان و شهر فعالیت اصلی خود را انتخاب کنید؛ در صورت نیاز می‌توانید این مرحله را رد کنید.",skippable:true,controls:[{kind:"single",key:"workProvince",label:"استان",options:PROVINCES},{kind:"single",key:"workCity",label:"شهر",dynamicOptions:"workProvince",optionsSource:"province",options:[]},{kind:"single",key:"activityRadius",label:"شعاع فعالیت",options:["فقط همین شهر","تا 50 کیلومتر اطراف","کل استان","استان‌های همجوار","سراسر کشور"]},{kind:"toggle",key:"travelReady",label:"آماده سفر به شهرهای دیگر هستم"}]},{title:"نیازهای شما در بلوک",desc:"برای پیشنهاد متخصص، فروشگاه و پیمانکار مناسب چند مورد را انتخاب کنید.",controls:[{kind:"text",key:"generalCity",label:"شهر محل پروژه",placeholder:"شهر یا منطقه"},{kind:"multi",key:"generalNeeds",label:"دنبال چه هستید؟",options:["ساخت‌وساز","بازسازی","پیدا کردن متخصص","پیدا کردن کارگر","خرید مصالح","اجاره ماشین‌آلات","مشاوره مهندسی","مقایسه قیمت"]},{kind:"text",key:"otherNeed",label:"نیاز دیگر (اختیاری)",placeholder:"اگر در فهرست نبود بنویسید"}]},{title:"تعامل و ارتباط",desc:"روش ارتباط و نوع پروژه‌های موردعلاقه را انتخاب کنید.",controls:[{kind:"multi",key:"contactPreference",label:"روش ارتباط دلخواه",options:["پیام داخل بلوک","تماس تلفنی","درخواست پیش‌فاکتور","رزرو بازدید"]},{kind:"single",key:"projectTiming",label:"زمان احتمالی شروع",options:["فوری","تا یک ماه آینده","1 تا 3 ماه","بعداً","فقط در حال بررسی"]},{kind:"multi",key:"interests",label:"موارد موردعلاقه",options:["پروژه‌های نزدیک","فروشگاه‌های معتبر","افراد تأییدشده","قیمت‌های روز","آموزش و راهنما"]}]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل",desc:"اطلاعات شما پیش از انتشار بررسی می‌شوند.",review:true}]}
+  general:{steps:[{title:"ثبت‌نام و احراز هویت",desc:"اطلاعات پایه برای تعامل مطمئن‌تر با دیگران.",controls:[{kind:"text",key:"firstName",label:"نام",placeholder:"نام",persianOnly:true},{kind:"text",key:"lastName",label:"نام خانوادگی",placeholder:"نام خانوادگی",persianOnly:true},{kind:"single",key:"gender",label:"جنسیت",options:["مرد","زن"]},{kind:"jdate",key:"birthDate",label:"تاریخ تولد"},{kind:"single",key:"birthProvince",label:"استان تولد",options:PROVINCES.concat(["خارج از ایران"])},{kind:"text",key:"birthCountry",label:"در صورت انتخاب «خارج از ایران»، نام کشور را بنویسید",placeholder:"نام کشور",optional:true}]},{title:"محل انجام وظیفه",desc:"استان و شهر فعالیت اصلی خود را انتخاب کنید؛ در صورت نیاز می‌توانید این مرحله را رد کنید.",skippable:true,controls:[{kind:"single",key:"workProvince",label:"استان",options:PROVINCES},{kind:"single",key:"workCity",label:"شهر",dynamicOptions:"workProvince",optionsSource:"province",options:[]},{kind:"single",key:"activityRadius",label:"شعاع فعالیت",options:["فقط همین شهر","تا 50 کیلومتر اطراف","کل استان","استان‌های همجوار","سراسر کشور"]},{kind:"toggle",key:"travelReady",label:"آماده سفر به شهرهای دیگر هستم"}]},{title:"نیازهای شما در بلوک",desc:"برای پیشنهاد متخصص، فروشگاه و پیمانکار مناسب چند مورد را انتخاب کنید.",controls:[{kind:"multi",key:"generalNeeds",label:"دنبال چه هستید؟",options:["ساخت‌وساز","بازسازی","پیدا کردن متخصص","پیدا کردن کارگر","خرید مصالح","اجاره ماشین‌آلات","مشاوره مهندسی","مقایسه قیمت"]},{kind:"text",key:"otherNeed",label:"نیاز دیگر (اختیاری)",placeholder:"اگر در فهرست نبود بنویسید"}]},{title:"تعامل و ارتباط",desc:"روش ارتباط و نوع پروژه‌های موردعلاقه را انتخاب کنید.",controls:[{kind:"multi",key:"contactPreference",label:"روش ارتباط دلخواه",options:["پیام داخل بلوک","تماس تلفنی","درخواست پیش‌فاکتور","رزرو بازدید"]},{kind:"single",key:"projectTiming",label:"زمان احتمالی شروع",options:["فوری","تا یک ماه آینده","1 تا 3 ماه","بعداً","فقط در حال بررسی"]},{kind:"multi",key:"interests",label:"موارد موردعلاقه",options:["پروژه‌های نزدیک","فروشگاه‌های معتبر","افراد تأییدشده","قیمت‌های روز","آموزش و راهنما"]}]},{title:"عکس پروفایل",desc:"افزودن عکس اختیاری است و اعتماد طرف مقابل را افزایش می‌دهد.",skippable:true,controls:[{kind:"photo",key:"profilePhoto",label:"عکس پروفایل"}]},{title:"مرور پروفایل",desc:"اطلاعات شما پیش از انتشار بررسی می‌شوند.",review:true}]}
 };
 Object.keys(roleFormOverhaul).forEach(function(key){Object.assign(roleSchemas[key],roleFormOverhaul[key])});
 
@@ -915,7 +918,7 @@ function replaceRateFields(col,typeLabel,amountLabel){
   col.fields=col.fields.filter(function(field){return field.key!=="rate"&&field.key!=="rateType"&&field.key!=="rateAmount"});
   col.fields.push(
     {key:"rateType",label:typeLabel||"روش محاسبه دستمزد",options:["ساعتی","روزانه","شیفتی","متری","پروژه‌ای","توافقی"]},
-    {key:"rateAmount",label:amountLabel||"مبلغ دستمزد پیشنهادی",placeholder:"مثلاً ۲٬۵۰۰٬۰۰۰ تومان",ltr:true}
+    {key:"rateAmount",label:amountLabel||"مبلغ دستمزد پیشنهادی",placeholder:"مثلاً ۲٬۵۰۰٬۰۰۰ تومان",ltr:true,optional:true}
   );
   (col.seeds||[]).forEach(function(seed,index){
     seed.rateType=seed.rateType||seed.rate||"توافقی";
@@ -926,12 +929,12 @@ function replaceRateFields(col,typeLabel,amountLabel){
 function capabilityCollection(label,singular,sourceValueKey){
   return {label:label,singular:singular,addLabel:"افزودن خدمت",icon:"briefcase",titleKey:"service",syncFromValueKey:sourceValueKey,syncFieldKey:"service",
     emptyHint:"خدمات انتخاب‌شده در مرحلهٔ قبل اینجا نمایش داده می‌شوند. هر خدمت را باز کنید و سابقه و مبلغ آن را کامل کنید.",
-    summaryKeys:["experience","rateType","rateAmount"],requiredKeys:["service","experience","rateType","rateAmount"],
+    summaryKeys:["experience","rateType","rateAmount"],requiredKeys:["service","experience","rateType"],
     fields:[
       {key:"service",label:"عنوان خدمت",allowCustom:true,placeholder:"عنوان خدمت را انتخاب کنید یا بنویسید"},
       {key:"experience",label:"سابقه مرتبط با همین خدمت",options:["کمتر از ۲ سال","۲ تا ۵ سال","۵ تا ۱۰ سال","بیش از ۱۰ سال"]},
       {key:"rateType",label:"روش محاسبه دستمزد",options:["روزانه","متری","پروژه‌ای","درصدی","توافقی"]},
-      {key:"rateAmount",label:"مبلغ پیشنهادی",placeholder:"مثلاً ۱۵٬۰۰۰٬۰۰۰ تومان",ltr:true},
+      {key:"rateAmount",label:"مبلغ پیشنهادی",placeholder:"مثلاً ۱۵٬۰۰۰٬۰۰۰ تومان",ltr:true,optional:true},
       {key:"scope",label:"توضیح کوتاه خدمت",placeholder:"دامنهٔ کار و مواردی که تحویل می‌دهید",optional:true}
     ],seeds:[]};
 }
@@ -944,15 +947,15 @@ function insertDetailStepAfterControl(roleKey,controlKey,step){
 
 replaceRateFields(roleSchemas.specialist.collections.skills,"روش محاسبه دستمزد","مبلغ دستمزد پیشنهادی");
 roleSchemas.specialist.collections.skills.summaryKeys=["experience","level","rateType","rateAmount"];
-configureSyncedCollection("specialist","skills","specialistFields","name",["name","experience","level","rateType","rateAmount"]);
+configureSyncedCollection("specialist","skills","specialistFields","name",["name","experience","level","rateType"]);
 
 replaceRateFields(roleSchemas.worker.collections.skills,"روش محاسبه دستمزد","مبلغ دستمزد پیشنهادی");
 roleSchemas.worker.collections.skills.summaryKeys=["experience","level","rateType","rateAmount"];
-configureSyncedCollection("worker","skills","workerFields","name",["name","experience","level","rateType","rateAmount"]);
+configureSyncedCollection("worker","skills","workerFields","name",["name","experience","shift","rateType"]);
 
 replaceRateFields(roleSchemas.engineer.collections.services,"روش محاسبه تعرفه","مبلغ تعرفه پیشنهادی");
-roleSchemas.engineer.collections.services.summaryKeys=["field","experience","rateType","rateAmount"];
-configureSyncedCollection("engineer","services","engineerTitles","service",["service","field","experience","rateType","rateAmount","coverage"]);
+roleSchemas.engineer.collections.services.summaryKeys=["grade","experience","rateType","rateAmount"];
+configureSyncedCollection("engineer","services","engineerTitles","service",["service","experience","rateType"]);
 
 configureSyncedCollection("machinery","machines","machineActivities","activity",["activity","type","brandModel","capacity","operator","rate","status"]);
 configureSyncedCollection("store","materials","materialCategories","category",["category","name","brand","unit","stock","price","delivery","status"]);
@@ -1281,13 +1284,32 @@ function pendingRequestCount(){return getIncomingRequests().filter(function(item
 function setRequestTab(tab){state.requestTab=tab;render()}
 function respondToRequest(id,status){
   var item=getIncomingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;
+  if(item.real){
+    apiRequest('/api/requests/'+item.backendId+'/respond',{method:'POST',body:{status:status==='accepted'?'ACCEPTED':'DECLINED'}})
+      .then(function(data){
+        item.status=status;
+        if(status==='accepted'&&data.project)getProjects(state.role||'worker').unshift(mapBackendProjectToItem(data.project));
+        render();toast(status==='accepted'?'درخواست تأیید و به کارهای شما اضافه شد':'درخواست رد شد');
+      })
+      .catch(function(e){toast(e.message||'خطا در پاسخ به درخواست','warning')});
+    return;
+  }
   if(item.type==='agreement'&&item.adId){respondToAgreementRequest(item,status);return}
   item.status=status;
   if(status==='accepted')getProjects(state.role||'worker').unshift({title:item.title,who:item.from,stage:'agreed',rating:0,direction:'incoming'});
   getNotifications().unshift({title:status==='accepted'?'درخواست تأیید شد':'درخواست رد شد',sub:item.title+' · '+item.from,time:'همین حالا',day:'امروز',read:false,icon:status==='accepted'?'check':'alert',type:'project',target:'requestsCenter',action:'دیدن درخواست‌ها'});
   render();toast(status==='accepted'?'درخواست تأیید و به کارهای شما اضافه شد':'درخواست رد شد');
 }
-function cancelOutgoingRequest(id){var item=getOutgoingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;item.status='declined';render();toast('درخواست ارسالی لغو شد')}
+function cancelOutgoingRequest(id){
+  var item=getOutgoingRequests().find(function(request){return request.id===id});if(!item||item.status!=='pending')return;
+  if(item.real){
+    apiRequest('/api/requests/'+item.backendId,{method:'DELETE'})
+      .then(function(){item.status='declined';render();toast('درخواست ارسالی لغو شد')})
+      .catch(function(e){toast(e.message||'لغو درخواست ناموفق بود','warning')});
+    return;
+  }
+  item.status='declined';render();toast('درخواست ارسالی لغو شد');
+}
 
 var QUICK_ACTIONS={
   engineer:[['calendar','تقویم بازدیدها','calendar'],['plus','ثبت آگهی هدفمند','newRequest']],
@@ -1327,7 +1349,7 @@ function getMachineCalendar(idx){
 function cycleMachineDay(machineIdx,dayIdx){
   var machine=(state.collections.machines||[])[machineIdx];if(!machine)return;
   var day=getMachineCalendar(machineIdx)[dayIdx];if(!day)return;
-  if(day.status==='booked'){toast('این روز قبلاً رزرو شده است');return}
+  if(day.status==='booked'){toast('این روز قبلاً رزرو شده است','warning');return}
   var order=['available','off'];
   day.status=order[(order.indexOf(day.status)+1)%order.length];
   render();
@@ -1359,10 +1381,10 @@ function getOrders(){if(!state.calendar._orders)state.calendar._orders=cloneData
 function availabilityDayLabel(index,day){return (DAY_NAMES[index]||'روز')+' '+day.date+' مرداد'}
 function openAvailabilityDaySheet(idx){
   var data=getCalendar(state.role||'worker');
-  if(!data||!data.days){toast('تقویم در دسترس نیست؛ صفحه را دوباره باز کنید');return}
+  if(!data||!data.days){toast('تقویم در دسترس نیست؛ صفحه را دوباره باز کنید','warning');return}
   var day=data.days[idx];
   if(!day)return;
-  if(day.status==='booked'){toast('این روز قبلاً رزرو شده و قابل تغییر نیست');return}
+  if(day.status==='booked'){toast('این روز قبلاً رزرو شده و قابل تغییر نیست','warning');return}
   state.availabilityDraft={index:idx,status:day.status,time:day.time||'تمام روز'};
   var choices=[['صبح','صبح'],['عصر','عصر'],['تمام روز','تمام روز'],['off','در دسترس نیستم']];
   var html='<h3>برنامهٔ '+esc(availabilityDayLabel(idx,day))+'</h3><p>زمانی را انتخاب کنید که واقعاً امکان هماهنگی و شروع کار دارید.</p><div class="availability-sheet-grid">'+choices.map(function(choice){var active=choice[0]==='off'?state.availabilityDraft.status==='off':state.availabilityDraft.status==='available'&&state.availabilityDraft.time===choice[0];return '<button class="'+(active?'active':'')+'" onclick="saveAvailabilityDay('+idx+',\''+choice[0]+'\')">'+choice[1]+'</button>'}).join('')+'</div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>';
@@ -1405,7 +1427,7 @@ function renderBookingSheet(){
 }
 function saveBookingSheet(){
   var list=getCalendar(state.role||'worker');
-  if(!state.draftBooking.title){toast('عنوان را وارد کنید');return}
+  if(!state.draftBooking.title){toast('عنوان را وارد کنید','warning');return}
   if(state.draftBookingIndex>-1)list[state.draftBookingIndex]=state.draftBooking;else list.push(state.draftBooking);
   closeSheet();render();
 }
@@ -1415,7 +1437,7 @@ function setProjectField(k,v){state.projectDraft[k]=v}
 function setProjectCategory(v){state.projectDraft.category=v;render()}
 function setProjectProvince(v){state.projectDraft.province=v;state.projectDraft.city='';render()}
 function submitProject(){
-  if(!state.projectDraft.title){toast('لطفاً عنوان را وارد کنید');return}
+  if(!state.projectDraft.title){toast('لطفاً عنوان را وارد کنید','warning');return}
   var who=state.projectTarget?PEOPLE_SEED[state.projectTarget].name:'در انتظار پیشنهاد';
   getProjects(state.role).push({title:state.projectDraft.title,who:who,personId:state.projectTarget||null,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('project',state.projectDraft.title,who,state.projectDraft.category||'درخواست پروژه');
@@ -1443,7 +1465,7 @@ function setAdProvince(value){state.adDraft.province=value;state.adDraft.city=''
 function chooseAdRole(role){
   var values=state.adDraft.targetRoles||(state.adDraft.targetRoles=[]),index=values.indexOf(role);
   if(index>-1)values.splice(index,1);
-  else if(values.length>=3){toast('حداکثر سه گزینه می‌توانید انتخاب کنید');return}
+  else if(values.length>=3){toast('حداکثر سه گزینه می‌توانید انتخاب کنید','warning');return}
   else values.push(role);
   state.adDraft.targetRole=values[0]||'';
   state.adWarnings.targetRole=false;
@@ -1522,19 +1544,36 @@ function openMaterialDiscovery(){
   state.exploreFilters={skills:[],experience:'all',availability:'all',range:'15',resultType:'store',verified:true,rating:'all'};
   go('explore');setTimeout(function(){toast('فروشگاه‌های نزدیک و تأییدشده نمایش داده شدند')},80);
 }
-function publishAd(){
+function publishAd(btn){
   var missing=adMissingForStep(0);
   if(missing.length){missing.forEach(function(key){state.adWarnings[key]=true});state.adStep=0;render();toast(state.adDraft.type==='consult'?'عنوان، توضیحات و پاسخ‌دهندگان را کامل کنید':state.adDraft.type==='work'?'مخاطبان را انتخاب و اطلاعات تخصصی پروفایل را کامل کنید':'نیروی موردنظر، توضیحات و محل پروژه را کامل کنید');return}
-  var d=state.adDraft,config=activeAdConfig(),roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
+  var d=state.adDraft,roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
   var title=(d.title||adFixedTitle(d.type)).trim(),city=d.type==='consult'?d.range:d.type==='work'?(profile.city||profile.province||d.range):d.city.trim(),skills=d.categories.slice();
-  var audience=adAudienceCount();
-  var availabilityLabel=d.type==='consult'?'پاسخ در چت بلوک':d.type==='work'?'آمادهٔ همکاری':(d.startTime||'با هماهنگی');
-  var item={id:'ad-'+Date.now(),isAd:true,title:title,sub:d.description||config.exploreSub,icon:config.icon,city:city,province:d.type==='work'?(profile.province||''):(d.province||''),role:roles[0],ownerRole:state.role||'worker',targetRoles:roles,profile:profile,x:34,y:42,skills:skills,categories:skills,category:skills.join('، '),description:d.description||'',attachment:d.type==='consult'?(d.attachment||null):null,budget:d.type==='consult'?'':(d.budget||'توافقی'),range:d.range,startTime:d.type==='consult'?'':d.startTime,contact:'چت بلوک؛ نمایش شماره طبق تنظیم حریم خصوصی آگهی‌دهنده',experienceYears:1,experienceLabel:profile.experience||'آگهی تازه',availability:d.type==='consult'||d.type==='work'?'flexible':d.startTime==='فوری'?'now':d.startTime==='امروز'?'today':'week',availabilityLabel:availabilityLabel,distance:2.3,resultType:'opportunity',resultLabel:config.shortLabel,verified:profile.verified,rating:null,tone:config.tone,featured:true,isFresh:true,adType:d.type,status:'active',agreement:null};
-  EXPLORE_ITEMS.unshift(item);
-  getProjects(state.role||'worker').push({title:title,who:'منتظر پاسخ مخاطبان',personId:null,stage:'proposed',rating:0,direction:'outgoing'});
-  getNotifications().unshift({title:'آگهی منتشر شد',sub:'برای '+audience+' کاربر مرتبط در محدودهٔ '+d.range+' اعلان ارسال شد',time:'همین حالا',day:'امروز',read:false,icon:'bell',type:'project',target:'adPublished',action:'مشاهدهٔ نتیجه'});
-  state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
-  state.page='adPublished';render();
+  var roleProfileId=getActiveRoleProfileId();
+  if(!roleProfileId){toast('پروفایل نقش شما یافت نشد؛ لطفاً دوباره وارد شوید','warning');return}
+  var stopLoading=setButtonLoading(btn,'در حال انتشار...');
+  apiRequest('/api/ads',{method:'POST',body:{
+    type:d.type.toUpperCase(),
+    roleProfileId:roleProfileId,
+    targetRoles:roles.map(toBackendRole),
+    title:title,
+    description:d.description||'',
+    categories:skills,
+    city:d.type==='work'?(profile.city||null):(city||null),
+    province:d.type==='work'?(profile.province||null):(d.province||null),
+    range:d.range,
+    startTime:d.type==='consult'?null:d.startTime,
+    attachmentUrl:d.type==='consult'?(d.attachment||null):null
+  }})
+    .then(function(data){
+      var audience=adAudienceCount();
+      var item=mapBackendAdToItem(data.ad);
+      EXPLORE_ITEMS.unshift(item);
+      getNotifications().unshift({title:'آگهی منتشر شد',sub:'برای '+audience+' کاربر مرتبط در محدودهٔ '+d.range+' اعلان ارسال شد',time:'همین حالا',day:'امروز',read:false,icon:'bell',type:'project',target:'adPublished',action:'مشاهدهٔ نتیجه'});
+      state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
+      state.page='adPublished';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'انتشار آگهی ناموفق بود','warning')});
 }
 function handleAdAttachment(input){
   var file=input.files&&input.files[0];if(!file)return;
@@ -1550,6 +1589,18 @@ function openAdDetail(id){state.viewingAdId=id;go('adDetail')}
 function currentAdDetail(){return EXPLORE_ITEMS.find(function(item){return item.id===state.viewingAdId})||state.lastPublishedAd}
 function startAdChat(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
+  if(ad.real){
+    apiRequest('/api/conversations',{method:'POST',body:{otherUserId:ad.authorUserId,adId:ad.backendId}})
+      .then(function(data){
+        var conv=mapBackendConversation(data.conversation);
+        var existing=findConversation(conv.id);
+        if(!existing)getConversations().unshift(conv);else conv=existing;
+        state.adChatId=id;state.currentConversationId=conv.id;go('chat');
+        if(!conv.messagesLoaded)loadConversationMessages(conv);
+      })
+      .catch(function(e){toast(e.message||'شروع گفت‌وگو ناموفق بود','warning')});
+    return;
+  }
   var conversation=getConversations().find(function(c){return c.adId===id});
   if(!conversation){var profile=ad.profile||{},conversationId='conversation-'+id;conversation={id:conversationId,adId:id,personId:ad.person||null,name:profile.name||ad.title,initials:profile.initials||'ب',verified:!!profile.verified,online:true,type:'project',unread:0,pinned:false,muted:false,archived:false,time:'اکنون',lastMessage:'گفت‌وگو دربارهٔ این آگهی شروع شد',context:{icon:ad.icon||'building',label:ad.adType==='consult'?'پرسش تخصصی':ad.adType==='work'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:ad.title,meta:(ad.city||'')+(ad.range?' · '+ad.range:''),adId:id},messages:[{type:'system',text:'این گفت‌وگو دربارهٔ «'+ad.title+'» ایجاد شد. جزئیات آگهی در بالای صفحه در دسترس است.'}]};getConversations().unshift(conversation)}
   state.adChatId=id;state.currentConversationId=conversation.id;go('chat');
@@ -1558,7 +1609,16 @@ function startAdChat(id){
 function agreementForAd(ad){return ad&&ad.agreement||null}
 function requestAdAgreement(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad||ad.status==='matched')return;
-  if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است');return}
+  if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است','warning');return}
+  if(ad.real){
+    apiRequest('/api/ads/'+ad.backendId+'/agreement-requests',{method:'POST',body:{}})
+      .then(function(){
+        ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا'};
+        render();toast('تأیید شما ثبت شد؛ منتظر تأیید طرف مقابل باشید');
+      })
+      .catch(function(e){toast(e.message||'ثبت درخواست ناموفق بود','warning')});
+    return;
+  }
   ad.agreement={viewerConfirmed:true,ownerConfirmed:false,status:'pending',createdAt:'همین حالا',viewerName:displayNameFor(state.role||'worker'),ownerName:(ad.profile&&ad.profile.name)||'ثبت‌کنندهٔ آگهی'};
   var request={id:'agree-'+ad.id,type:'agreement',adId:ad.id,title:'تأیید همکاری · '+ad.title,from:displayNameFor(state.role||'worker'),detail:'پس از تأیید شما، آگهی از اکسپلور خارج و همکاری برای هر دو طرف به پروژه‌ها اضافه می‌شود.',status:'pending'};
   getIncomingRequests().unshift(request);
@@ -1606,7 +1666,7 @@ function openStartCoordinationSheet(idx){
   openSheet(html);
 }
 function saveStartCoordination(){
-  if(!state.startCoordinationDraft.date){toast('زمان پیشنهادی را وارد کنید');return}
+  if(!state.startCoordinationDraft.date){toast('زمان پیشنهادی را وارد کنید','warning');return}
   var p=getProjects(state.role)[state.startCoordinationIndex];
   p.startDate=state.startCoordinationDraft.date;
   p.startNote=state.startCoordinationDraft.note;
@@ -1630,6 +1690,16 @@ var PROJECT_SEED={
 function getProjects(role){if(!state.projects[role])state.projects[role]=cloneData(PROJECT_SEED[role]||[]);return state.projects[role]}
 function advanceStage(idx){
   var list=getProjects(state.role);var p=list[idx];
+  if(p.real){
+    apiRequest('/api/projects/'+p.backendId+'/advance',{method:'PATCH'})
+      .then(function(data){
+        p.stage=String(data.project.stage||p.stage).toLowerCase();
+        render();
+        if(p.stage==='done'&&!p.rating)setTimeout(function(){openRatingSheet(idx)},250);
+      })
+      .catch(function(e){toast(e.message||'خطا در پیشبرد پروژه','warning')});
+    return;
+  }
   var i=STAGE_ORDER.indexOf(p.stage);
   if(i<STAGE_ORDER.length-1){p.stage=STAGE_ORDER[i+1];render();
     if(p.stage==='done'&&!p.rating)setTimeout(function(){openRatingSheet(idx)},250);
@@ -1688,6 +1758,15 @@ function submitRating(){
   var list=getProjects(state.role);
   var p=list[state.ratingIndex];
   var value=state.ratingDraft.value||5,comment=(state.ratingDraft.comment||'').trim();
+  if(p.real){
+    apiRequest('/api/projects/'+p.backendId+'/rating',{method:'POST',body:{value:value,comment:comment||undefined}})
+      .then(function(){
+        p.rating=value;p.reviewComment=comment;
+        closeSheet();render();toast('امتیاز و نظر شما ثبت شد');
+      })
+      .catch(function(e){toast(e.message||'ثبت امتیاز ناموفق بود','warning')});
+    return;
+  }
   p.rating=value;
   p.reviewComment=comment;
   var target=p.personId&&PEOPLE_SEED[p.personId];
@@ -1719,7 +1798,17 @@ function renderGuarantorSheet(){
   openSheet(html);
 }
 function saveGuarantor(){
-  if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید');return}
+  if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید','warning');return}
+  if(getSessionUser()&&!state.guarantorDraft.phone){toast('شماره تماس معرف را وارد کنید','warning');return}
+  if(getSessionUser()){
+    apiRequest('/api/guarantors',{method:'POST',body:{name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,phoneNumber:state.guarantorDraft.phone}})
+      .then(function(data){
+        getGuarantors(state.role).unshift(mapBackendGuarantor(data.guarantor));
+        closeSheet();render();toast('درخواست برای معرف ارسال شد');
+      })
+      .catch(function(e){toast(e.message||'ثبت معرف ناموفق بود','warning')});
+    return;
+  }
   var list=getGuarantors(state.role);
   list.push({name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,status:'pending'});
   closeSheet();render();toast('درخواست برای معرف ارسال شد');
@@ -1735,9 +1824,14 @@ var NOTIF_SEED=[
 function getNotifications(){if(!state.notifications)state.notifications=cloneData(NOTIF_SEED);return state.notifications}
 function unreadNotifCount(){return getNotifications().filter(function(n){return !n.read}).length}
 function setNotificationFilter(value){state.notificationFilter=value;render()}
-function markAllNotificationsRead(){getNotifications().forEach(function(n){n.read=true});render();toast('همهٔ اعلان‌ها خوانده شد')}
+function markAllNotificationsRead(){
+  getNotifications().forEach(function(n){n.read=true});
+  render();toast('همهٔ اعلان‌ها خوانده شد');
+  if(getSessionUser())apiRequest('/api/notifications/read-all',{method:'PATCH'}).catch(function(){});
+}
 function openNotification(idx){
   var item=getNotifications()[idx];if(!item)return;item.read=true;
+  if(item.real)apiRequest('/api/notifications/'+item.backendId+'/read',{method:'PATCH'}).catch(function(){});
   if(item.conversationId){openConversation(item.conversationId);return}
   if(item.target){go(item.target);return}
   render();toast('جزئیات اعلان نمایش داده شد');
@@ -1773,7 +1867,7 @@ function renderPortfolioSheet(){
   openSheet(html);
 }
 function savePortfolio(){
-  if(!state.portfolioDraft.title){toast('عنوان را وارد کنید');return}
+  if(!state.portfolioDraft.title){toast('عنوان را وارد کنید','warning');return}
   getPortfolio(state.role).push(state.portfolioDraft);
   state.portfolioSetupCompleted=true;state.dashboardSetupDismissed=false;
   closeSheet();render();toast('نمونه‌کار ذخیره شد');
@@ -1819,7 +1913,10 @@ function filteredConversations(){
   }).sort(function(a,b){return Number(!!b.pinned)-Number(!!a.pinned)});
 }
 function markAllMessagesRead(){getConversations().forEach(function(c){c.unread=0});render();toast('همهٔ پیام‌ها خوانده شد')}
-function openConversation(id){var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat')}
+function openConversation(id){
+  var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat');
+  if(c.real&&!c.messagesLoaded)loadConversationMessages(c);
+}
 function openConversationForPerson(personId){
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
   var person=PEOPLE_SEED[personId];if(!person)return;
@@ -1830,28 +1927,75 @@ function activeConversation(){return findConversation(state.currentConversationI
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
   var v=(el.value||'').trim();if(!v)return;
-  var c=activeConversation();c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
+  var c=activeConversation();
+  if(c.real){
+    el.value='';
+    apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{text:v}})
+      .then(function(data){
+        c.messages.push(mapBackendMessage(data.message));
+        c.lastMessage=v;c.time='اکنون';c.archived=false;
+        render();
+      })
+      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود','warning')});
+    return;
+  }
+  c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
   el.value='';render();
 }
 function handleChatPhoto(input){
   var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'IMAGE',attachmentUrl:data.url}})})
+      .then(function(res){c.messages.push(mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()})
+      .catch(function(e){toast(e.message||'ارسال تصویر ناموفق بود','warning')});
+    return;
+  }
   var reader=new FileReader();
-  reader.onload=function(e){var c=activeConversation();c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
+  reader.onload=function(e){c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
   reader.readAsDataURL(f);
 }
-function handleChatDocument(input){var f=input.files&&input.files[0];if(!f)return;var c=activeConversation();c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render()}
+function handleChatDocument(input){
+  var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'FILE',attachmentUrl:data.url}})})
+      .then(function(res){
+        var mapped=mapBackendMessage(res.message);mapped.file=f.name;mapped.fileSize=Math.max(1,Math.round(f.size/1024))+' کیلوبایت';
+        c.messages.push(mapped);c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+      })
+      .catch(function(e){toast(e.message||'ارسال فایل ناموفق بود','warning')});
+    return;
+  }
+  c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+}
 function voiceDuration(seconds){seconds=Math.max(1,Math.round(seconds||1));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
 async function toggleVoiceRecording(){
   if(state.voiceRecording){if(state.voiceRecorder&&state.voiceRecorder.state!=='inactive')state.voiceRecorder.stop();return}
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){toast('ضبط صدا در این دستگاه پشتیبانی نمی‌شود');return}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){toast('ضبط صدا در این دستگاه پشتیبانی نمی‌شود','warning');return}
   try{
     state.voiceStream=await navigator.mediaDevices.getUserMedia({audio:true});state.permissionPrefs.microphone='granted';state.voiceChunks=[];
     var recorder=new MediaRecorder(state.voiceStream);state.voiceRecorder=recorder;state.voiceStartedAt=Date.now();state.voiceRecording=true;
     recorder.ondataavailable=function(event){if(event.data&&event.data.size)state.voiceChunks.push(event.data)};
     recorder.onstop=function(){
-      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),url=URL.createObjectURL(blob),c=activeConversation();
-      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';
-      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];render();toast('پیام صوتی ارسال شد');
+      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),c=activeConversation();
+      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];
+      if(c.real){
+        var file=new File([blob],'voice.webm',{type:blob.type||'audio/webm'});
+        uploadFileToBackend(file)
+          .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'VOICE',attachmentUrl:data.url}})})
+          .then(function(res){
+            var mapped=mapBackendMessage(res.message);mapped.duration=voiceDuration(duration);
+            c.messages.push(mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
+          })
+          .catch(function(e){toast(e.message||'ارسال پیام صوتی ناموفق بود','warning')});
+        render();
+        return;
+      }
+      var url=URL.createObjectURL(blob);
+      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
     };
     recorder.start();render();toast('ضبط شروع شد؛ برای ارسال دوباره میکروفن را لمس کنید');
   }catch(error){state.permissionPrefs.microphone='denied';render();toast('برای پیام صوتی، دسترسی میکروفن را فعال کنید')}
@@ -1864,7 +2008,7 @@ function renderPhoneShareSheet(){
   openSheet(html);
 }
 function openPhoneShareSheet(){state.phoneShareDraft={phone:chatPhoneNumber(),hours:'فقط با هماهنگی قبلی در چت'};renderPhoneShareSheet()}
-function requestPhoneShare(){var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
+function requestPhoneShare(){var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است','warning');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
 function confirmPhoneShare(){var c=activeConversation();c.phoneShare={status:'shared',phone:state.phoneShareDraft.phone||chatPhoneNumber(),hours:state.phoneShareDraft.hours||'فقط با هماهنگی قبلی در چت'};c.messages.push({type:'system',text:'شماره تماس با اجازهٔ صاحب شماره در همین گفتگو نمایش داده شد. تماس فقط در بازهٔ تعیین‌شده انجام شود.'});closeSheet();render();toast('شماره فقط در همین گفتگو نمایش داده شد')}
 function revokePhoneShare(){var c=activeConversation();if(!c.phoneShare)return;c.phoneShare.status='hidden';c.phoneShare.phone='';c.messages.push({type:'system',text:'نمایش شماره تماس توسط صاحب شماره متوقف شد.'});render();toast('نمایش شماره متوقف شد')}
 function approveRequestedPhoneShare(){openPhoneShareSheet()}
@@ -2146,7 +2290,7 @@ function confirmBookingRequest(personId,slotIdx){
   var p=PEOPLE_SEED[personId],slot=p.slots[slotIdx];
   var requestLabel=p.requestKind==='service'?'درخواست خدمت':'درخواست رزرو';
   var title=requestLabel+' · '+slot,projects=getProjects(state.role);
-  if(projects.some(function(project){return project.title===title&&project.who===p.name})){closeSheet();toast('این درخواست قبلاً ارسال شده است');return}
+  if(projects.some(function(project){return project.title===title&&project.who===p.name})){closeSheet();toast('این درخواست قبلاً ارسال شده است','warning');return}
   projects.push({title:title,who:p.name,personId:personId,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('calendar',title,p.name,state.bookingRequestDraft.note||'در انتظار پاسخ');
   getNotifications().unshift({title:'درخواست هماهنگی ارسال شد',sub:p.name+' · '+slot,time:'همین حالا',day:'امروز',read:false,icon:'calendar',type:'project',target:'myProjects',action:'پیگیری درخواست'});
@@ -2203,8 +2347,8 @@ function selectDeliverySlot(personId,prodIdx,slotIdx){state.orderDraft.slotIdx=s
 function confirmDeliveryOrder(personId,prodIdx){
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx],draft=state.orderDraft,days=deliveryCalendarDays(personId);
   if(!draft.qty){toast(prod.qtyLabel||'مقدار را وارد کنید');return}
-  if(prod.needsLocation&&!draft.location){toast('محل تحویل را وارد کنید');return}
-  if(draft.slotIdx===null||draft.slotIdx===undefined){toast('یک ساعت تحویل را انتخاب کنید');return}
+  if(prod.needsLocation&&!draft.location){toast('محل تحویل را وارد کنید','warning');return}
+  if(draft.slotIdx===null||draft.slotIdx===undefined){toast('یک ساعت تحویل را انتخاب کنید','warning');return}
   var day=days[draft.dayIdx],slot=day.slots[draft.slotIdx];
   slot.status='booked';
   var title='سفارش '+prod.name+' · '+draft.qty+(draft.location?' · '+draft.location:'')+' · '+day.label+' '+slot.time;
@@ -2234,7 +2378,7 @@ function renderReportSheet(){
   openSheet(html);
 }
 function submitReport(){
-  if(!state.reportDraft.reason){toast('لطفاً دلیل گزارش را انتخاب کنید');return}
+  if(!state.reportDraft.reason){toast('لطفاً دلیل گزارش را انتخاب کنید','warning');return}
   closeSheet();toast('گزارش شما ثبت شد و بررسی می‌شود');
 }
 function toggleBlock(id){
@@ -2244,9 +2388,9 @@ function toggleBlock(id){
 }
 
 
-function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render()}
+function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render();syncRealData(page)}
 function back(){state.page=state.stack.pop()||'splash';render()}
-function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
+function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('warning',type==='warning');t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
 function closeSheet(){var s=document.getElementById('sheet');document.getElementById('backdrop').classList.remove('show');s.classList.remove('show');s.setAttribute('aria-hidden','true');s.inert=true}
 function setMode(m){state.mode=m;document.getElementById('phone').setAttribute('data-mode',m);document.getElementById('modeBtn').innerHTML=icon(m==='dark'?'moon':'sun',13);try{localStorage.setItem('block-mode',m)}catch(e){}render()}
@@ -2323,7 +2467,7 @@ function renderProfileSetupNudge(role){
 }
 function dismissProfileSetup(){state.dashboardSetupDismissed=true;render();toast('از بخش «من» هر زمان خواستید ادامه دهید')}
 function saveProfilePhoto(){
-  if(!state.values.profilePhoto){toast('ابتدا یک عکس انتخاب کنید');return}
+  if(!state.values.profilePhoto){toast('ابتدا یک عکس انتخاب کنید','warning');return}
   state.dashboardSetupDismissed=false;state.stack=[];state.page='home';render();toast('عکس پروفایل ذخیره شد');
 }
 
@@ -2335,8 +2479,28 @@ function toggleLegalConsent(){state.legalConsent=!state.legalConsent;state.legal
 function isLegalCurrent(){return !!state.legalAcceptedAt&&state.acceptedLegalVersion===LEGAL_VERSION}
 function legalAcceptanceText(){return isLegalCurrent()?'پذیرفته‌شده · نسخهٔ '+esc(state.acceptedLegalVersion):'نیازمند پذیرش نسخهٔ فعلی'}
 function acceptCurrentLegal(){state.legalConsent=true;state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;render();toast('پذیرش نسخهٔ فعلی قوانین ثبت شد')}
-function completeLogin(){closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render()}
-function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
+function completeLogin(btn){
+  var code=readOtpCode();
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید','warning');return}
+  var stopLoading=setButtonLoading(btn,'در حال بررسی...');
+  apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:state.loginPhone,code:code}})
+    .then(function(data){
+      saveSession(data.token,data.user);
+      hydrateStateFromUser(data.user);
+      closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
+    })
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='ROLE_REQUIRED'){
+        closeSheet();
+        toast('این شماره ثبت‌نام نشده؛ لطفاً ابتدا نقش خود را انتخاب کنید');
+        state.stack=[];go('roleSelect');
+        return;
+      }
+      toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning');
+    });
+}
+function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=value==='large'?'17.5px':value==='larger'?'19px':'16px';try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
 function toggleReduceMotion(){state.reduceMotion=!state.reduceMotion;document.getElementById('phone').setAttribute('data-reduce-motion',state.reduceMotion?'true':'false');render()}
@@ -2344,16 +2508,486 @@ function toggleHelp(index){state.helpOpen=state.helpOpen===index?-1:index;render
 function switchAccountRole(role){if(!roleSchemas[role])return;state.role=role;render();toast('نقش فعال به «'+roleSchemas[role].label+'» تغییر کرد')}
 function openSupportChat(){var support=findConversation('block-support');if(support){openConversation('block-support');return}toast('گفت‌وگوی پشتیبانی در دسترس است')}
 function openChangePhoneSheet(){state.phoneChangeDraft='';openSheet('<h3>تغییر شماره موبایل</h3><p>برای حفظ امنیت حساب، شمارهٔ جدید باید با کد یک‌بارمصرف تأیید شود.</p><div class="field"><label>شمارهٔ جدید</label><input id="newPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx" oninput="state.phoneChangeDraft=this.value"></div><button class="btn-primary" onclick="savePhoneChange()">ارسال کد تأیید</button>')}
-function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
+function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید','warning');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
 function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;closeSheet();render();toast('شمارهٔ جدید تأیید و ذخیره شد')}
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
-function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
+function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
+function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
-function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است');return}var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
+function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید','warning');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است','warning');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
+
+/* ---------- block backend integration ---------- */
+var API_BASE=window.BLOCK_API_BASE||'https://block-backend-v9t9.onrender.com';
+function apiRequest(path,options){
+  options=options||{};
+  var headers=Object.assign({'Content-Type':'application/json'},options.headers||{});
+  var token=localStorage.getItem('block_token');
+  if(token)headers.Authorization='Bearer '+token;
+  return fetch(API_BASE.replace(/\/+$/,'')+path,{
+    method:options.method||'GET',
+    headers:headers,
+    body:options.body?JSON.stringify(options.body):undefined
+  }).then(function(res){
+    return res.json().catch(function(){return{}}).then(function(data){
+      if(!res.ok){var err=new Error(data.message||'خطای سرور');err.status=res.status;err.data=data;throw err}
+      return data;
+    });
+  });
+}
+function uploadFileToBackend(file){
+  var form=new FormData();
+  form.append('file',file);
+  var token=localStorage.getItem('block_token');
+  return fetch(API_BASE.replace(/\/+$/,'')+'/api/uploads',{
+    method:'POST',
+    headers:token?{Authorization:'Bearer '+token}:{},
+    body:form
+  }).then(function(res){
+    return res.json().catch(function(){return{}}).then(function(data){
+      if(!res.ok){var err=new Error(data.message||'آپلود ناموفق بود');err.status=res.status;err.data=data;throw err}
+      return data;
+    });
+  });
+}
+function saveSession(token,user){
+  localStorage.setItem('block_token',token);
+  localStorage.setItem('block_user',JSON.stringify(user));
+}
+function clearSession(){
+  localStorage.removeItem('block_token');
+  localStorage.removeItem('block_user');
+}
+var PERSIAN_DIGITS='۰۱۲۳۴۵۶۷۸۹',ARABIC_INDIC_DIGITS='٠١٢٣٤٥٦٧٨٩';
+function toEnglishDigits(value){
+  return String(value||'').replace(/[۰-۹٠-٩]/g,function(ch){
+    var p=PERSIAN_DIGITS.indexOf(ch);if(p!==-1)return String(p);
+    var a=ARABIC_INDIC_DIGITS.indexOf(ch);return a!==-1?String(a):ch;
+  });
+}
+function normalizePhone(value){return toEnglishDigits(value).replace(/[^\d]/g,'').trim()}
+var ROLE_TO_BACKEND={engineer:'ENGINEER',contractor:'CONTRACTOR',company:'COMPANY',specialist:'SPECIALIST',worker:'WORKER',machinery:'MACHINERY',store:'STORE',materialsSupplier:'MATERIALS_SUPPLIER',general:'GENERAL'};
+function toBackendRole(role){return ROLE_TO_BACKEND[role]||String(role||'').toUpperCase()}
+function readOtpCode(){
+  var inputs=document.querySelectorAll('.otp-row input');
+  var code='';
+  for(var i=0;i<inputs.length;i++)code+=toEnglishDigits((inputs[i].value||'').trim());
+  return code;
+}
+function otpAdvance(el){
+  if(el.value.length>=1){
+    var next=el.nextElementSibling;
+    while(next&&next.tagName!=='INPUT')next=next.nextElementSibling;
+    if(next)next.focus();else el.blur();
+  }
+}
+function otpBackspace(e,el){
+  if(e.key==='Backspace'&&!el.value){
+    var prev=el.previousElementSibling;
+    while(prev&&prev.tagName!=='INPUT')prev=prev.previousElementSibling;
+    if(prev)prev.focus();
+  }
+}
+function otpPaste(e,el){
+  var text=((e.clipboardData||window.clipboardData).getData('text')||'').replace(/[^\d]/g,'');
+  if(!text)return;
+  e.preventDefault();
+  var inputs=el.parentElement.querySelectorAll('input');
+  for(var i=0;i<inputs.length&&i<text.length;i++)inputs[i].value=text[i];
+  var last=inputs[Math.min(text.length,inputs.length)-1];
+  if(last)last.focus();
+}
+var otpCountdownTimer=null;
+function formatMMSS(totalSeconds){var m=Math.floor(totalSeconds/60),s=totalSeconds%60;return m+':'+(s<10?'0':'')+s}
+function startOtpCountdown(seconds){
+  state.otpResendAvailableAt=Date.now()+seconds*1000;
+  if(otpCountdownTimer)clearInterval(otpCountdownTimer);
+  updateOtpCountdownUI();
+  otpCountdownTimer=setInterval(updateOtpCountdownUI,1000);
+}
+function updateOtpCountdownUI(){
+  var remaining=Math.max(0,Math.ceil((state.otpResendAvailableAt-Date.now())/1000));
+  var els=document.querySelectorAll('.otp-resend');
+  for(var i=0;i<els.length;i++){
+    els[i].disabled=remaining>0;
+    els[i].textContent=remaining>0?('ارسال مجدد کد ('+formatMMSS(remaining)+')'):'ارسال مجدد کد';
+  }
+  if(remaining<=0&&otpCountdownTimer){clearInterval(otpCountdownTimer);otpCountdownTimer=null}
+}
+function setButtonLoading(el,loadingText){
+  if(!el)return function(){};
+  var original=el.textContent;
+  el.disabled=true;el.textContent=loadingText;
+  return function(){el.disabled=false;el.textContent=original};
+}
+var OTP_INPUT_HTML=(function(){
+  var one='<input maxlength="1" inputmode="numeric" pattern="[0-9]*" oninput="otpAdvance(this)" onkeydown="otpBackspace(event,this)" onpaste="otpPaste(event,this)">';
+  return one+one+one+one;
+})();
+
+/* ---------- real ads/requests/projects: session + mapping helpers ---------- */
+function getSessionUser(){
+  try{return JSON.parse(localStorage.getItem('block_user')||'null')}catch(e){return null}
+}
+function getActiveRoleProfileId(){
+  var user=getSessionUser();if(!user||!user.roleProfiles)return null;
+  var backendRole=toBackendRole(state.role);
+  var match=user.roleProfiles.find(function(rp){return rp.role===backendRole});
+  return match?match.id:null;
+}
+function personName(person){
+  if(!person)return'کاربر بلوک';
+  return [person.firstName,person.lastName].filter(Boolean).join(' ')||'کاربر بلوک';
+}
+function mapBackendAdToItem(ad){
+  var type=(ad.type||'WORK').toLowerCase();
+  var config=AD_CONFIG[type]||AD_CONFIG.work;
+  var snapshot=ad.authorSnapshot||{};
+  var role=(snapshot.role||'').toLowerCase();
+  return{
+    id:ad.id,real:true,backendId:ad.id,authorUserId:ad.authorUserId,isAd:true,
+    title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
+    city:ad.city||'',province:ad.province||'',
+    role:role,ownerRole:role,
+    targetRoles:(ad.targetRoles||[]).map(function(r){return String(r).toLowerCase()}),
+    profile:{name:personName(snapshot),role:role,roleLabel:AD_ROLE_LABELS[role]||'',province:snapshot.workProvince||'',city:snapshot.workCity||'',verified:!!snapshot.verified},
+    x:34,y:42,
+    skills:ad.categories||[],categories:ad.categories||[],category:(ad.categories||[]).join('، '),
+    description:ad.description||'',attachment:ad.attachmentUrl||null,
+    budget:ad.rateDescriptor||'توافقی',range:ad.range||'',startTime:ad.startTime||'',
+    contact:'چت بلوک',
+    experienceYears:1,experienceLabel:'',availability:'flexible',availabilityLabel:ad.startTime||'با هماهنگی',
+    distance:null,resultType:'opportunity',resultLabel:config.shortLabel,
+    verified:!!snapshot.verified,rating:null,tone:config.tone,
+    featured:false,isFresh:(Date.now()-new Date(ad.createdAt).getTime())<24*3600*1000,
+    adType:type,status:ad.status==='ACTIVE'?'active':'matched',agreement:null
+  };
+}
+function mapBackendRequestToIncoming(r){
+  return{id:'real-'+r.id,real:true,backendId:r.id,type:'agreement',adId:r.adId,title:'تأیید همکاری · '+(r.ad?r.ad.title:''),from:personName(r.fromUser),detail:r.detail||'',status:String(r.status).toLowerCase()};
+}
+function mapBackendRequestToOutgoing(r,role){
+  return{id:'real-'+r.id,real:true,backendId:r.id,role:role,type:'agreement',title:'تأیید همکاری · '+(r.ad?r.ad.title:''),to:personName(r.toUser),detail:r.detail||'',status:String(r.status).toLowerCase()};
+}
+function mapBackendProjectToItem(project){
+  var me=getSessionUser();
+  var isPartyA=!!(me&&project.partyA&&project.partyA.id===me.id);
+  var other=isPartyA?project.partyB:project.partyA;
+  return{real:true,backendId:project.id,adId:project.adId,title:project.title,who:personName(other),personId:null,stage:String(project.stage||'AGREED').toLowerCase(),rating:0,direction:'mutual',bothParties:true,startDate:project.startDate,startNote:project.startNote};
+}
+function mergeReal(list,items){
+  for(var i=list.length-1;i>=0;i--){if(list[i].real)list.splice(i,1)}
+  items.forEach(function(item){list.unshift(item)});
+}
+function loadRealAds(){
+  var qs='';
+  if(state.role)qs='?targetRole='+encodeURIComponent(toBackendRole(state.role));
+  apiRequest('/api/ads'+qs)
+    .then(function(data){mergeReal(EXPLORE_ITEMS,(data.ads||[]).map(mapBackendAdToItem));render()})
+    .catch(function(e){console.error('loadRealAds failed',e)});
+}
+function loadRealRequests(){
+  var role=state.role||'worker';
+  Promise.all([apiRequest('/api/requests/incoming'),apiRequest('/api/requests/outgoing')])
+    .then(function(results){
+      var incoming=(results[0].requests||[]).filter(function(r){return r.status==='PENDING'}).map(mapBackendRequestToIncoming);
+      var outgoing=(results[1].requests||[]).map(function(r){return mapBackendRequestToOutgoing(r,role)});
+      mergeReal(getIncomingRequests(),incoming);
+      state.outgoingRequests=state.outgoingRequests.filter(function(item){return!item.real}).concat(outgoing);
+      render();
+    })
+    .catch(function(e){console.error('loadRealRequests failed',e)});
+}
+function loadRealProjects(){
+  var role=state.role||'worker';
+  apiRequest('/api/projects')
+    .then(function(data){mergeReal(getProjects(role),(data.projects||[]).map(mapBackendProjectToItem));render()})
+    .catch(function(e){console.error('loadRealProjects failed',e)});
+}
+var NOTIF_ICONS={PROJECT:'building',MESSAGE:'message',PROFILE:'star',ACCOUNT:'user',SYSTEM:'bell'};
+function timeAgoFa(iso){
+  var diff=Math.max(0,Date.now()-new Date(iso).getTime());
+  var mins=Math.floor(diff/60000);
+  if(mins<1)return'همین حالا';
+  if(mins<60)return mins+' دقیقه پیش';
+  var hours=Math.floor(mins/60);
+  if(hours<24)return hours+' ساعت پیش';
+  var days=Math.floor(hours/24);
+  return days+' روز پیش';
+}
+function mapBackendNotification(n){
+  var recent=(Date.now()-new Date(n.createdAt).getTime())<24*3600*1000;
+  return{
+    real:true,backendId:n.id,
+    title:n.title,sub:n.body||'',time:timeAgoFa(n.createdAt),day:recent?'امروز':'قبل‌تر',
+    read:n.read,icon:NOTIF_ICONS[n.type]||'bell',type:String(n.type).toLowerCase(),
+    target:n.targetType||null
+  };
+}
+function loadRealNotifications(){
+  apiRequest('/api/notifications')
+    .then(function(data){mergeReal(getNotifications(),(data.notifications||[]).map(mapBackendNotification));render()})
+    .catch(function(e){console.error('loadRealNotifications failed',e)});
+}
+function syncRealData(page){
+  if(!getSessionUser())return;
+  if(page==='explore')loadRealAds();
+  if(page==='requestsCenter')loadRealRequests();
+  if(page==='myProjects')loadRealProjects();
+  if(page==='notifications'||page==='home')loadRealNotifications();
+  if(page==='messages')loadRealConversations();
+  if(page==='guarantor'){loadGuarantors();loadGuarantorRequests()}
+}
+
+/* ---------- guarantor/vouching -> real backend ---------- */
+function mapBackendGuarantor(g){
+  return{real:true,backendId:g.id,name:g.name,relation:g.relation||'',status:String(g.status).toLowerCase()};
+}
+function loadGuarantors(){
+  var role=state.role||'worker';
+  apiRequest('/api/guarantors')
+    .then(function(data){mergeReal(getGuarantors(role),(data.guarantors||[]).map(mapBackendGuarantor));render()})
+    .catch(function(e){console.error('loadGuarantors failed',e)});
+}
+function loadGuarantorRequests(){
+  apiRequest('/api/guarantors/pending')
+    .then(function(data){
+      state.guarantorRequests=(data.requests||[]).map(function(r){return{backendId:r.id,requesterName:personName(r.user),relation:r.relation||''}});
+      render();
+    })
+    .catch(function(e){console.error('loadGuarantorRequests failed',e)});
+}
+function respondGuarantorRequest(id,status){
+  apiRequest('/api/guarantors/'+id+'/respond',{method:'POST',body:{status:status}})
+    .then(function(){
+      state.guarantorRequests=(state.guarantorRequests||[]).filter(function(r){return r.backendId!==id});
+      render();toast(status==='CONFIRMED'?'تأیید شما ثبت شد':'درخواست رد شد');
+    })
+    .catch(function(e){toast(e.message||'ثبت پاسخ ناموفق بود','warning')});
+}
+
+/* ---------- chat: conversations/messages -> real backend ---------- */
+function mapBackendConversationSummary(c){
+  var last=c.lastMessage;
+  return{
+    id:c.id,real:true,backendId:c.id,personId:null,
+    name:personName(c.otherUser),initials:(personName(c.otherUser)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:c.unreadCount||0,pinned:false,muted:false,archived:false,
+    time:last?timeAgoFa(last.createdAt):'',
+    lastMessage:last?(last.type==='TEXT'?(last.text||''):'پیوست ارسال شد'):'',
+    context:c.ad?{icon:'briefcase',label:c.ad.type==='CONSULT'?'پرسش تخصصی':c.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:c.ad.title,meta:'',adId:c.ad.id}:undefined,
+    adId:c.adId,otherUserId:c.otherUser&&c.otherUser.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendConversation(conv){
+  var me=getSessionUser();
+  var other=conv.participantA&&me&&conv.participantA.id===me.id?conv.participantB:conv.participantA;
+  return{
+    id:conv.id,real:true,backendId:conv.id,personId:null,
+    name:personName(other),initials:(personName(other)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:0,pinned:false,muted:false,archived:false,
+    time:'اکنون',lastMessage:'',
+    context:conv.ad?{icon:'briefcase',label:conv.ad.type==='CONSULT'?'پرسش تخصصی':conv.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:conv.ad.title,meta:'',adId:conv.ad.id}:undefined,
+    adId:conv.adId,otherUserId:other&&other.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendMessage(m){
+  var me=getSessionUser();
+  var mine=!!(me&&m.senderId===me.id);
+  var time=new Date(m.createdAt).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  if(m.type==='SYSTEM')return{type:'system',text:m.text||''};
+  if(m.type==='IMAGE')return{mine:mine,time:time,status:'ارسال شد',image:m.attachmentUrl};
+  if(m.type==='FILE')return{mine:mine,time:time,status:'ارسال شد',file:'فایل پیوست',fileSize:''};
+  if(m.type==='VOICE')return{mine:mine,time:time,status:'ارسال شد',audioUrl:m.attachmentUrl,duration:''};
+  return{mine:mine,time:time,status:'ارسال شد',text:m.text||''};
+}
+function loadRealConversations(){
+  apiRequest('/api/conversations')
+    .then(function(data){mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));render()})
+    .catch(function(e){console.error('loadRealConversations failed',e)});
+}
+function loadConversationMessages(c){
+  apiRequest('/api/conversations/'+c.backendId+'/messages')
+    .then(function(data){
+      c.messages=(data.messages||[]).map(mapBackendMessage);
+      c.messagesLoaded=true;
+      render();
+    })
+    .catch(function(e){console.error('loadConversationMessages failed',e)});
+  apiRequest('/api/conversations/'+c.backendId+'/read',{method:'PATCH'}).catch(function(){});
+}
+
+/* ---------- profile setup (quickSetup/regStep) -> real backend sync ---------- */
+function jalaaliToGregorian(jy,jm,jd){
+  jy+=1595;
+  var days=-355668+(365*jy)+(~~(jy/33)*8)+~~(((jy%33)+3)/4)+jd+((jm<7)?(jm-1)*31:((jm-7)*30)+186);
+  var gy=400*~~(days/146097);
+  days%=146097;
+  if(days>36524){gy+=100*~~(--days/36524);days%=36524;if(days>=365)days++}
+  gy+=4*~~(days/1461);
+  days%=1461;
+  if(days>365){gy+=~~((days-1)/365);days=(days-1)%365}
+  var gd=days+1;
+  var sal_a=[0,31,((gy%4===0&&gy%100!==0)||(gy%400===0))?29:28,31,30,31,30,31,31,30,31,30,31];
+  var gm;
+  for(gm=1;gm<=12;gm++){var v=sal_a[gm];if(gd<=v)break;gd-=v}
+  return [gy,gm,gd];
+}
+function jalaliObjToISO(d){
+  if(!d||!d.day||!d.month||!d.year)return undefined;
+  var monthIndex=PERSIAN_MONTHS.indexOf(d.month);
+  if(monthIndex===-1)return undefined;
+  var g=jalaaliToGregorian(Number(d.year),monthIndex+1,Number(d.day));
+  var mm=String(g[1]).length<2?'0'+g[1]:String(g[1]);
+  var dd=String(g[2]).length<2?'0'+g[2]:String(g[2]);
+  return g[0]+'-'+mm+'-'+dd;
+}
+function genderToBackend(v){return v==='مرد'?'MALE':v==='زن'?'FEMALE':undefined}
+var COMMON_VALUE_KEYS=['firstName','lastName','gender','birthDate','birthProvince','birthCountry','workProvince','workCity','activityRadius','travelReady','foreignNational','quickName','quickCity','profilePhoto'];
+var CATALOG_COLLECTION_TYPES={skills:'SKILL',services:'SERVICE',machines:'MACHINE',materials:'MATERIAL'};
+function numOrNull(v){var n=parseFloat(String(v==null?'':v).replace(/[^\d.]/g,''));return isNaN(n)?null:n}
+function buildUserPayload(){
+  var v=state.values,payload={};
+  if(v.firstName!==undefined)payload.firstName=v.firstName;
+  if(v.lastName!==undefined)payload.lastName=v.lastName;
+  if(v.gender!==undefined){var g=genderToBackend(v.gender);if(g)payload.gender=g}
+  if(v.birthDate){var iso=jalaliObjToISO(v.birthDate);if(iso)payload.birthDate=iso}
+  if(v.birthProvince!==undefined)payload.birthProvince=v.birthProvince;
+  if(v.birthCountry!==undefined)payload.birthCountry=v.birthCountry;
+  if(v.profilePhoto&&/^https?:\/\//.test(v.profilePhoto))payload.avatarUrl=v.profilePhoto;
+  return payload;
+}
+function buildRoleProfileDataBlob(){
+  var v=state.values,data={};
+  Object.keys(v).forEach(function(key){if(COMMON_VALUE_KEYS.indexOf(key)===-1)data[key]=v[key]});
+  var role=state.role||'worker',schema=roleSchemas[role]||{},collections=schema.collections||{};
+  Object.keys(collections).forEach(function(key){
+    if(!CATALOG_COLLECTION_TYPES[key]){
+      var items=state.collections[key];
+      if(items&&items.length)data[key]=items;
+    }
+  });
+  return data;
+}
+function buildRoleProfilePayload(markComplete){
+  var v=state.values;
+  return{
+    workProvince:v.workProvince||undefined,
+    workCity:v.workCity||undefined,
+    travelReady:!!v.travelReady,
+    data:buildRoleProfileDataBlob(),
+    profileComplete:!!markComplete
+  };
+}
+function buildCatalogItemPayload(item,col,backendType){
+  return{
+    type:backendType,
+    name:item[col.titleKey]||col.singular||'آیتم',
+    category:item.category||item.activity||null,
+    unit:item.unit||null,
+    rateType:item.rate||item.rateType||null,
+    rateAmount:numOrNull(item.rateAmount),
+    price:numOrNull(item.price),
+    stock:(function(){var n=numOrNull(item.stock);return n!==null?Math.round(n):null})(),
+    status:item.status||null,
+    data:item
+  };
+}
+function syncCatalogItemsToBackend(roleProfileId){
+  var role=state.role||'worker',schema=roleSchemas[role]||{},collections=schema.collections||{};
+  var tasks=[];
+  Object.keys(collections).forEach(function(key){
+    var backendType=CATALOG_COLLECTION_TYPES[key];
+    if(!backendType)return;
+    var items=state.collections[key]||[],col=collections[key];
+    items.forEach(function(item){
+      tasks.push(apiRequest('/api/role-profiles/'+roleProfileId+'/catalog-items',{method:'POST',body:buildCatalogItemPayload(item,col,backendType)}));
+    });
+  });
+  return Promise.all(tasks);
+}
+function syncProfileToBackend(markComplete){
+  var roleProfileId=getActiveRoleProfileId();
+  if(!roleProfileId)return Promise.reject(new Error('پروفایل نقش یافت نشد؛ لطفاً دوباره وارد شوید'));
+  var userPayload=buildUserPayload();
+  return Promise.all([
+    Object.keys(userPayload).length?apiRequest('/api/users/me',{method:'PUT',body:userPayload}):Promise.resolve(),
+    apiRequest('/api/role-profiles/'+roleProfileId,{method:'PUT',body:buildRoleProfilePayload(markComplete)})
+  ])
+    .then(function(){return syncCatalogItemsToBackend(roleProfileId)})
+    .then(function(){return apiRequest('/api/auth/me')})
+    .then(function(data){if(data&&data.user)saveSession(localStorage.getItem('block_token'),data.user)});
+}
+
+/* ---------- restore state.values/state.collections/state.role from a fetched account (login/boot) ---------- */
+function backendRoleToFrontend(role){
+  var found=Object.keys(ROLE_TO_BACKEND).find(function(k){return ROLE_TO_BACKEND[k]===role});
+  return found||String(role||'').toLowerCase();
+}
+function genderToFrontend(g){return g==='MALE'?'مرد':g==='FEMALE'?'زن':undefined}
+function gregorianToJalali(gy,gm,gd){
+  function div(a,b){return Math.trunc(a/b)}
+  var g_d_m=[0,31,59,90,120,151,181,212,243,273,304,334];
+  var jy=(gy<=1600)?0:979;
+  gy-=(gy<=1600)?621:1600;
+  var gy2=(gm>2)?(gy+1):gy;
+  var days=(365*gy)+(div((gy2+3),4))-(div((gy2+99),100))+(div((gy2+399),400))-80+gd+g_d_m[gm-1];
+  jy+=33*div(days,12053);
+  days%=12053;
+  jy+=4*div(days,1461);
+  days%=1461;
+  if(days>365){jy+=div((days-1),365);days=(days-1)%365}
+  var jm=(days<186)?1+div(days,31):7+div((days-186),30);
+  var jd=1+((days<186)?(days%31):((days-186)%30));
+  return[jy,jm,jd];
+}
+function isoToJalaliObj(iso){
+  if(!iso)return undefined;
+  var d=new Date(iso);
+  var g=gregorianToJalali(d.getUTCFullYear(),d.getUTCMonth()+1,d.getUTCDate());
+  return{day:String(g[2]),month:PERSIAN_MONTHS[g[1]-1]||'',year:String(g[0])};
+}
+function hydrateStateFromUser(user){
+  if(!user)return;
+  var roleProfile=(user.roleProfiles||[])[0];
+  if(!roleProfile)return;
+  var role=backendRoleToFrontend(roleProfile.role);
+  state.role=role;
+  state.profileComplete=!!roleProfile.profileComplete;
+  var v=state.values;
+  if(user.firstName)v.firstName=user.firstName;
+  if(user.lastName)v.lastName=user.lastName;
+  var gender=genderToFrontend(user.gender);if(gender)v.gender=gender;
+  var jalaliBirth=isoToJalaliObj(user.birthDate);if(jalaliBirth)v.birthDate=jalaliBirth;
+  if(user.birthProvince)v.birthProvince=user.birthProvince;
+  if(user.birthCountry)v.birthCountry=user.birthCountry;
+  if(user.avatarUrl)v.profilePhoto=user.avatarUrl;
+  if(roleProfile.workProvince)v.workProvince=roleProfile.workProvince;
+  if(roleProfile.workCity)v.workCity=roleProfile.workCity;
+  if(roleProfile.travelReady!==undefined)v.travelReady=roleProfile.travelReady;
+  var schema=roleSchemas[role]||{},collections=schema.collections||{};
+  var data=Object.assign({},roleProfile.data||{});
+  Object.keys(collections).forEach(function(colKey){
+    if(!CATALOG_COLLECTION_TYPES[colKey]&&data[colKey]!==undefined){
+      state.collections[colKey]=data[colKey];
+      delete data[colKey];
+    }
+  });
+  Object.assign(v,data);
+  var CATALOG_TYPE_TO_COLLECTION={SKILL:'skills',SERVICE:'services',MACHINE:'machines',MATERIAL:'materials'};
+  (roleProfile.catalogItems||[]).forEach(function(item){
+    var colKey=CATALOG_TYPE_TO_COLLECTION[item.type];
+    if(!colKey)return;
+    if(!state.collections[colKey])state.collections[colKey]=[];
+    state.collections[colKey].push(item.data&&Object.keys(item.data).length?item.data:{name:item.name});
+  });
+}
 
 /* ---------- role select ---------- */
 function pickRole(k){state.role=k;render()}
@@ -2364,18 +2998,58 @@ function continueFromRoleSelect(){
 }
 function pickContractorType(type){state.role=type;startRegistration()}
 function startRegistration(){if(!state.role)return;state.otpStage='phone';go('phoneVerify')}
-function submitPhoneStage(){
-  if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید');return}
-  if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است');return}
-  state.otpStage='code';render();
+function submitPhoneStage(btn){
+  if(!state.values.signupPhone){toast('شماره موبایل را وارد کنید','warning');return}
+  if(!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین و حریم خصوصی برای ساخت حساب لازم است','warning');return}
+  var stopLoading=setButtonLoading(btn,'در حال ارسال...');
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
+    .then(function(data){state.otpStage='code';render();toast('کد تأیید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){state.otpStage='code';render();startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود','warning');
+    });
 }
-function confirmSignupOtp(){if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';go('pathChoice')}
+function resendSignupOtp(){
+  if(state.otpResendAvailableAt&&Date.now()<state.otpResendAvailableAt)return;
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
+    .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود','warning');
+    });
+}
+function confirmSignupOtp(btn){
+  if(!state.legalConsent){state.legalError=true;state.otpStage='phone';render();return}
+  var code=readOtpCode();
+  if(code.length<4){toast('کد ۴ رقمی را کامل وارد کنید','warning');return}
+  var stopLoading=setButtonLoading(btn,'در حال بررسی...');
+  apiRequest('/api/auth/verify-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone),code:code,role:toBackendRole(state.role)}})
+    .then(function(data){
+      saveSession(data.token,data.user);
+      hydrateStateFromUser(data.user);
+      state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
+      if(data.isNewUser){go('pathChoice')}
+      else{state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();toast('خوش برگشتید')}
+    })
+    .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning')});
+}
 function choosePathQuick(){state.values.quickName='';state.values.quickCity='';go('quickSetup')}
 function choosePathFull(){state.step=0;state.editMode=false;state.collections={};state.stepWarnings={};go('regStep')}
-function submitQuickSetup(){
-  if(!state.values.quickName){toast('نام خود را وارد کنید');return}
-  state.step=0;state.collections={};
-  state.stack=[];state.page='setupDone';render();
+function submitQuickSetup(btn){
+  if(!state.values.quickName){toast('نام خود را وارد کنید','warning');return}
+  var parts=state.values.quickName.trim().split(/\s+/);
+  state.values.firstName=state.values.firstName||parts[0];
+  state.values.lastName=state.values.lastName||(parts.slice(1).join(' ')||parts[0]);
+  if(state.values.quickCity&&!state.values.workCity)state.values.workCity=state.values.quickCity;
+  var stopLoading=setButtonLoading(btn,'در حال ذخیره...');
+  syncProfileToBackend(false)
+    .then(function(){
+      stopLoading();
+      state.step=0;state.collections={};
+      state.stack=[];state.page='setupDone';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'ذخیره پروفایل ناموفق بود','warning')});
 }
 function startFullProfile(){state.step=0;state.editMode=false;state.stepWarnings={};go('regStep')}
 var PERSIAN_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
@@ -2419,7 +3093,8 @@ function controlHasValue(key){
   if(value&&typeof value==='object')return Object.keys(value).every(function(part){return !!value[part]});
   return value!==undefined&&value!==null&&String(value).trim()!=='';
 }
-function isCollectionItemComplete(col,item){return (col.requiredKeys||[]).every(function(key){return !!item[key]})}
+function effectiveRequiredKeys(col){var fieldKeys=(col.fields||[]).map(function(f){return f.key});return (col.requiredKeys||[]).filter(function(key){return fieldKeys.indexOf(key)>-1})}
+function isCollectionItemComplete(col,item){return effectiveRequiredKeys(col).every(function(key){return !!item[key]})}
 function controlIsActive(control){
   if(control.conditionalOn&&!state.values[control.conditionalOn])return false;
   if(control.disabledWhen&&state.values[control.disabledWhen])return false;
@@ -2490,6 +3165,11 @@ function handlePhotoField(input,key){
   var reader=new FileReader();
   reader.onload=function(e){state.values[key]=e.target.result;render()};
   reader.readAsDataURL(f);
+  if(getSessionUser()){
+    uploadFileToBackend(f)
+      .then(function(data){state.values[key]=data.url;render()})
+      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود','warning')});
+  }
 }
 
 function renderStepControls(controls){
@@ -2627,7 +3307,7 @@ function openCollectionSheet(colKey,idx){
 }
 function renderCollectionSheet(){
   var colKey=state.draftCollection,col=activeRole().collections[colKey];
-  var missingKeys=(col.requiredKeys||[]).filter(function(key){return !state.draft[key]});
+  var missingKeys=effectiveRequiredKeys(col).filter(function(key){return !state.draft[key]});
   var fieldsHtml=col.fields.map(function(f){
     var fieldClass='field'+(state.draftWarningsShown&&missingKeys.indexOf(f.key)>-1?' field-warning':'');
     if(f.kind==='photo'){
@@ -2663,7 +3343,7 @@ function handleDraftPhoto(input,key){
 }
 function saveDraft(){
   var col=activeRole().collections[state.draftCollection];
-  var missing=(col.requiredKeys||[]).filter(function(key){return !state.draft[key]});
+  var missing=effectiveRequiredKeys(col).filter(function(key){return !state.draft[key]});
   if(missing.length&&!state.draftWarningsShown){
     state.draftWarningsShown=true;
     renderCollectionSheet();
@@ -2710,9 +3390,9 @@ function renderReview(){
   return topbar('مرور پروفایل '+schema.label,'پیش از انتشار بررسی کنید','regBack()')
     +'<div class="page"><div class="eyebrow">آخرین مرحله</div><h2 style="margin:8px 0 12px;font-size:1rem">همه‌چیز درست به‌نظر می‌رسد؟</h2>'
     +(blocks||'<p style="font-size:.62rem">هنوز اطلاعاتی ثبت نشده — به مراحل قبل برگردید.</p>')
-    +'</div><div class="dock"><button class="btn-primary" onclick="finishSetup()">ثبت نهایی پروفایل</button></div>';
+    +'</div><div class="dock"><button class="btn-primary" onclick="finishSetup(this)">ثبت نهایی پروفایل</button></div>';
 }
-function finishSetup(){
+function finishSetup(btn){
   var portfolioItems=state.collections.portfolioItems||[];
   if(!portfolioItems.length&&(state.role==='contractor'||state.role==='company')){
     portfolioItems=(state.collections.projects||[]).map(function(item){return {title:item.name,city:item.location||item.type||'',image:item.image||null} });
@@ -2720,7 +3400,13 @@ function finishSetup(){
   if(portfolioItems.length){
     state.portfolio[state.role]=portfolioItems.map(function(item,index){return {title:item.title,city:item.city||item.skill||'',image:item.image||null,color:index%2?'var(--tone-mint)':'var(--accent2)'} });
   }
-  state.profileComplete=true;state.stack=[];state.page='setupDone';render();
+  var stopLoading=setButtonLoading(btn,'در حال ثبت...');
+  syncProfileToBackend(true)
+    .then(function(){
+      stopLoading();
+      state.profileComplete=true;state.stack=[];state.page='setupDone';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'ثبت پروفایل ناموفق بود','warning')});
 }
 
 /* ---------- static content helpers ---------- */
@@ -2876,7 +3562,7 @@ function openJobOpportunity(id){state.viewingJobId=id;go('jobDetail')}
 function currentJobOpportunity(){return JOB_OPPORTUNITIES.find(function(job){return job.id===state.viewingJobId})||JOB_OPPORTUNITIES[0]}
 function sendJobInterest(id){
   var job=JOB_OPPORTUNITIES.find(function(item){return item.id===id});if(!job)return;
-  if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است');return}
+  if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است','warning');return}
   state.jobInterestIds.push(id);
   getProjects(state.role||'worker').push({title:job.title,who:job.employer,personId:job.person||null,stage:'proposed',rating:0,direction:'outgoing'});
   addOutgoingRequest('job',job.title,job.employer,job.pay+' · '+job.start);
@@ -3046,7 +3732,8 @@ function renderExploreEmpty(){
 function renderAdProgress(){return '<div class="ad-progress">'+[0,1].map(function(index){return '<i class="'+(state.adStep>=index?'done':'')+'"></i>'}).join('')+'</div>'}
 function renderAdAudienceChoices(){
   var config=activeAdConfig(),selected=state.adDraft.targetRoles||[];
-  return '<div class="audience-grid">'+config.roles.map(function(role){var schema=roleSchemas[role],active=selected.indexOf(role)>-1;return '<button aria-pressed="'+(active?'true':'false')+'" class="audience-choice'+(active?' active':'')+'" onclick="chooseAdRole(\''+role+'\')"><i>'+icon(mapIcon(schema.icon),15)+'</i><span>'+esc(AD_ROLE_LABELS[role])+'</span><em>'+(active?'انتخاب شد':'')+'</em></button>'}).join('')+'</div><div class="audience-limit"><span>حداکثر سه گزینه انتخاب کنید</span><strong>'+selected.length+' از ۳</strong></div>';
+  var availableRoles=config.roles.filter(function(role){return!MVP_HIDE_BUSINESS_ROLES||BUSINESS_ROLES.indexOf(role)===-1});
+  return '<div class="audience-grid">'+availableRoles.map(function(role){var schema=roleSchemas[role],active=selected.indexOf(role)>-1;return '<button aria-pressed="'+(active?'true':'false')+'" class="audience-choice'+(active?' active':'')+'" onclick="chooseAdRole(\''+role+'\')"><i>'+icon(mapIcon(schema.icon),15)+'</i><span>'+esc(AD_ROLE_LABELS[role])+'</span><em>'+(active?'انتخاب شد':'')+'</em></button>'}).join('')+'</div><div class="audience-limit"><span>حداکثر سه گزینه انتخاب کنید</span><strong>'+selected.length+' از ۳</strong></div>';
 }
 function renderAdProfileNotice(){
   var categories=profileAdCategories(),warning=state.adWarnings.category;
@@ -3112,9 +3799,9 @@ phoneVerify:function(){
   +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px"><div class="cicon">'+icon('shield',18)+'</div><div><b style="font-size:.66rem">چرا شماره موبایل لازم است؟</b><p style="font-size:.55rem;margin-top:2px">برای امنیت حساب و اعتماد طرف مقابل، هویت هر کاربر یا کسب‌وکار در بلوک با یک شمارهٔ تأییدشده گره می‌خورد.</p></div></div></div>'
   +(stage==='phone'
     ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',this.value)" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
-    :'<div class="field"><label>کد تأیید</label><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
+    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
   +'</div>'
-  +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage()':'confirmSignupOtp()')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
+  +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage(this)':'confirmSignupOtp(this)')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
 },
 
 legalGate:function(){
@@ -3138,7 +3825,7 @@ quickSetup:function(){
   +'<div class="field"><label>نام و نام خانوادگی</label><input id="qName" class="input" value="'+esc(state.values.quickName||'')+'" oninput="setVal(\'quickName\',this.value)" placeholder="مثلاً رضا توکلی"></div>'
   +'<div class="field"><label>شهر فعالیت</label><input id="qCity" class="input" value="'+esc(state.values.quickCity||'')+'" oninput="setVal(\'quickCity\',this.value)" placeholder="مثلاً قشم یا بندرعباس"></div>'
   +'</div>'
-  +'<div class="dock"><button class="btn-primary" onclick="submitQuickSetup()">شروع استفاده از بلوک</button></div>'
+  +'<div class="dock"><button class="btn-primary" onclick="submitQuickSetup(this)">شروع استفاده از بلوک</button></div>'
 },
 
 roleSelect:function(){
@@ -3309,9 +3996,14 @@ portfolio:function(){
 guarantor:function(){
   var role=state.role||'worker';
   var list=getGuarantors(role);
-  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':g.status==='declined'?'رد شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var incoming=state.guarantorRequests||[];
+  var incomingSection=incoming.length?('<div class="sec-head"><b>درخواست تأیید برای شما</b></div>'+incoming.map(function(r){
+    return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(r.requesterName)+'</b><span>شما را به‌عنوان «'+esc(r.relation||'آشنا')+'» معرفی کرده است</span></div></div><div class="request-actions" style="margin-bottom:10px"><button class="accept" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'CONFIRMED\')">'+icon('check',12)+' تأیید</button><button class="decline" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'DECLINED\')">رد</button></div>';
+  }).join('')):'';
   return topbar('اعتبار و قیم')
   +'<div class="page"><div class="card" style="margin-bottom:14px"><b style="font-size:.66rem">معرف یا قیم چیست؟</b><p style="font-size:.55rem;margin-top:4px;line-height:1.7">فردی که شما را می‌شناسد و اعتبار شما را نزد بلوک تأیید می‌کند. هرچه معرف بیشتری داشته باشید، اعتماد کارفرماها به شما بیشتر می‌شود.</p></div>'
+  +incomingSection
   +'<div class="sec-head"><b>معرف‌های شما</b></div>'+rows
   +'<button class="btn-secondary" style="margin-top:6px" onclick="openGuarantorSheet()">'+icon('plus',14)+' افزودن معرف</button></div>';
 },
@@ -3507,7 +4199,7 @@ createAd:function(){
   }else{
     content='<div class="ad-step-copy"><span>مرحله ۲ از ۲</span><h2>مرور و انتشار</h2><p>اطلاعات زیر در اکسپلور نمایش داده می‌شود و برای مخاطبان انتخاب‌شده اعلان می‌رود.</p></div>'+renderAdReview();
   }
-  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd()':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
+  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd(this)':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
 },
 
 adDetail:function(){
@@ -3577,7 +4269,7 @@ profile:function(){
   var account=settingsRow('lock','حساب و امنیت',phone,"go('accountSecurity')")+settingsRow('eye','حریم خصوصی','نمایش پروفایل، موقعیت و وضعیت آنلاین',"go('privacySettings')")+settingsRow('alert','کاربران مسدودشده',state.blockedUsers.length+' کاربر',"go('blockedUsers')")+settingsRow('shield','قوانین و حریم خصوصی',legalAcceptanceText(),"go('legalCenter')");
   var support=settingsRow('sun','نمایش و خوانایی',state.mode==='dark'?'حالت تیره':'حالت روشن',"go('settings')")+settingsRow('wrench','وضعیت برنامه و دسترسی‌ها',state.online?'آنلاین و آماده':'اینترنت قطع است',"go('systemStatus')")+settingsRow('help','راهنما و پرسش‌های متداول','پاسخ به سؤال‌های استفاده از بلوک',"go('helpCenter')")+settingsRow('message','پشتیبانی بلوک','گفت‌وگو یا گزارش مشکل',"go('supportCenter')")+settingsRow('info','دربارهٔ بلوک','نسخه، مأموریت و اطلاعات برنامه',"go('aboutApp')");
   return '<div class="page" style="padding-top:16px"><div class="message-head"><h2>من</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
-    +'<div class="profile-hero"><div class="profile-identity">'+renderMyAvatar(role)+'<div class="profile-copy"><h2>'+esc(displayName)+'</h2><p>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</p><div class="profile-status-row"><span class="status-pill">'+icon('phone',10)+' موبایل تأییدشده</span><span class="status-pill '+(state.profileComplete?'':'warning')+'">'+icon(state.profileComplete?'check':'alert',10)+' '+(state.profileComplete?'اطلاعات اصلی ثبت‌شده':'نیازمند تکمیل')+'</span></div></div></div><div class="profile-progress"><div class="profile-progress-head"><b>کامل‌بودن پروفایل</b><span>'+completion+'٪</span></div><div class="profile-progress-track"><i style="width:'+completion+'%"></i></div></div></div>'
+    +'<div class="profile-hero" role="button" tabindex="0" style="cursor:pointer" onclick="openTrustCard(\'self\')"><div class="profile-identity">'+renderMyAvatar(role)+'<div class="profile-copy"><h2>'+esc(displayName)+'</h2><p>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</p><div class="profile-status-row"><span class="status-pill">'+icon('phone',10)+' موبایل تأییدشده</span><span class="status-pill '+(state.profileComplete?'':'warning')+'">'+icon(state.profileComplete?'check':'alert',10)+' '+(state.profileComplete?'اطلاعات اصلی ثبت‌شده':'نیازمند تکمیل')+'</span></div></div></div><div class="profile-progress"><div class="profile-progress-head"><b>کامل‌بودن پروفایل</b><span>'+completion+'٪</span></div><div class="profile-progress-track"><i style="width:'+completion+'%"></i></div></div></div>'
     +'<div class="profile-actions"><button class="profile-action" onclick="go(\'editProfile\')"><i>'+icon('doc',15)+'</i><b>ویرایش پروفایل</b><span>اطلاعات و تخصص‌ها</span></button><button class="profile-action" onclick="go(\'myPublicProfile\')"><i>'+icon('eye',15)+'</i><b>نمایش عمومی</b><span>پیش‌نمایش برای دیگران</span></button></div>'
     +'<div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div><div class="settings-group">'+settingsRow('logout','خروج و مدیریت حساب','خروج یا درخواست حذف حساب',"go('accountManagement')",true)+'</div><div class="version-row">بلوک · نسخهٔ نمایشی ۱.۲</div></div>'+bottomNav('profile')
 },
@@ -3597,8 +4289,7 @@ editProfile:function(){
   }).join('');
   return topbar('ویرایش پروفایل')
   +'<div class="page">'
-  +'<div class="field"><label>نام و نام خانوادگی</label><input id="qName" class="input" value="'+esc(state.values.quickName||'')+'" oninput="setVal(\'quickName\',this.value)"></div>'
-  +'<div class="field"><label>شهر فعالیت</label><input id="qCity" class="input" value="'+esc(state.values.quickCity||'')+'" oninput="setVal(\'quickCity\',this.value)"></div>'
+  +'<div class="chat-safety">'+icon('lock',14)+'<span>نام، نام خانوادگی و شهر فعالیت بخشی از احراز هویت (KYC) شما هستند و از همین صفحه قابل تغییر نیستند. برای اصلاح آن‌ها با پشتیبانی بلوک در تماس باشید.</span></div>'
   +renderMyRatePreview()
   +renderMyProductsPreview()
   +'<div class="sec-head"><b>اطلاعات تخصصی</b></div>'
@@ -3636,7 +4327,7 @@ blockedUsers:function(){
 
 legalCenter:function(){
   var accepted=isLegalCurrent();
-  return topbar('قوانین و حریم خصوصی','مرکز شفافیت بلوک')+'<div class="page"><div class="legal-hero"><i>'+icon('shield',18)+'</i><h2>همکاری روشن و امن</h2><p>قوانین بلوک مشخص می‌کند چه اطلاعاتی نمایش داده می‌شود، کاربران چه مسئولیتی دارند و چه محتوایی مجاز نیست.</p><div class="legal-meta"><span>نسخهٔ '+LEGAL_VERSION+'</span><span>به‌روزرسانی '+LEGAL_UPDATED+'</span></div></div><div class="legal-acceptance-card"><i>'+icon(accepted?'check':'alert',16)+'</i><div><b>'+(accepted?'قوانین فعلی را پذیرفته‌اید':'پذیرش قوانین ثبت نشده است')+'</b><p>'+(accepted?'نسخهٔ '+esc(state.acceptedLegalVersion||LEGAL_VERSION)+' · '+esc(state.legalAcceptedAt):'برای ادامهٔ استفاده، نسخهٔ فعلی را مطالعه و تأیید کنید.')+'</p></div></div><div class="settings-group">'+settingsRow('doc','قوانین استفاده','شرایط حساب، آگهی، گفتگو و مسئولیت‌ها',"go('terms')")+settingsRow('lock','سیاست حریم خصوصی','جمع‌آوری، استفاده و کنترل داده‌ها',"go('privacyPolicy')")+settingsRow('users','قواعد انتشار و رفتار','محتوای مجاز و اصول تعامل',"go('communityRules')")+'</div>'+(!accepted?'<button class="btn-primary" onclick="acceptCurrentLegal()">پذیرش نسخهٔ فعلی قوانین</button>':'<div class="chat-safety">'+icon('check',14)+'<span>اگر قوانین به‌طور مهم تغییر کند، پیش از ادامه دوباره از شما تأیید می‌گیریم.</span></div>')+'</div>';
+  return topbar('قوانین و حریم خصوصی','مرکز شفافیت بلوک')+'<div class="page"><div class="legal-hero"><i>'+icon('shield',18)+'</i><h2>همکاری روشن و امن</h2><p>قوانین بلوک مشخص می‌کند چه اطلاعاتی نمایش داده می‌شود، کاربران چه مسئولیتی دارند و چه محتوایی مجاز نیست.</p><div class="legal-meta"><span>نسخهٔ '+LEGAL_VERSION+'</span><span>به‌روزرسانی '+LEGAL_UPDATED+'</span></div></div><div class="legal-acceptance-card"><i>'+icon(accepted?'check':'alert',16)+'</i><div><b>'+(accepted?'قوانین فعلی را پذیرفته‌اید':'پذیرش قوانین ثبت نشده است')+'</b><p>'+(accepted?'نسخهٔ '+esc(state.acceptedLegalVersion||LEGAL_VERSION)+' · '+esc(state.legalAcceptedAt):'برای ادامهٔ استفاده، نسخهٔ فعلی را مطالعه و تأیید کنید.')+'</p></div></div><div class="settings-group">'+settingsRow('doc','قوانین استفاده','شرایط حساب، آگهی، گفتگو و مسئولیت‌ها',"go('terms')")+settingsRow('lock','سیاست حریم خصوصی','جمع‌آوری، استفاده و کنترل داده‌ها',"go('privacyPolicy')")+settingsRow('users','قواعد انتشار و رفتار','محتوای مجاز و اصول تعامل',"go('communityRules')")+settingsRow('shield','نحوهٔ محاسبهٔ امتیاز بلوک','فرمول اعتبار و راه افزایش آن',"go('scoreGuide')")+'</div>'+(!accepted?'<button class="btn-primary" onclick="acceptCurrentLegal()">پذیرش نسخهٔ فعلی قوانین</button>':'<div class="chat-safety">'+icon('check',14)+'<span>اگر قوانین به‌طور مهم تغییر کند، پیش از ادامه دوباره از شما تأیید می‌گیریم.</span></div>')+'</div>';
 },
 
 terms:function(){
@@ -3649,6 +4340,16 @@ privacyPolicy:function(){
 
 communityRules:function(){
   return topbar('قواعد انتشار و رفتار','اصول جامعهٔ حرفه‌ای بلوک')+'<div class="page"><div class="legal-hero"><i>'+icon('users',18)+'</i><h2>رفتار حرفه‌ای در بلوک</h2><p>هدف این قواعد، جلوگیری از آگهی‌های بی‌کیفیت و ایجاد همکاری امن در صنعت ساختمان است.</p></div><section class="legal-section"><h3>محتوای مجاز</h3><ul><li>نیاز واقعی پروژه، پرسش تخصصی یا معرفی خدمت واقعی</li><li>عنوان روشن، توضیح کافی، تصویر مرتبط و قیمت قابل‌فهم</li><li>مدارک و نمونه‌کار متعلق به خود کاربر یا مجموعه</li></ul></section><section class="legal-section"><h3>محتوای غیرمجاز</h3><ul><li>هویت، مجوز، سابقه یا قیمت جعلی و گمراه‌کننده</li><li>استخدام یا همکاری تبعیض‌آمیز و خلاف قانون</li><li>کار ناایمن، کالای ممنوع، جعل مدرک یا درخواست پرداخت مشکوک</li><li>هرزنامه، تبلیغ تکراری و جمع‌آوری شماره تماس کاربران</li></ul></section><section class="legal-section"><h3>رسیدگی</h3><p>گزارش‌ها بررسی می‌شوند و بسته به شدت تخلف، محتوا محدود، آگهی حذف یا حساب موقتاً یا دائماً بسته می‌شود.</p></section></div>';
+},
+
+scoreGuide:function(){
+  return topbar('نحوهٔ محاسبهٔ امتیاز بلوک','شفاف، قابل‌پیش‌بینی و بر پایهٔ عملکرد واقعی')+'<div class="page"><div class="legal-hero"><i>'+icon('shield',18)+'</i><h2>امتیاز بلوک از ۱۰۰</h2><p>امتیازی که روی کارت هویت و اعتبار هر کاربر نمایش داده می‌شود، از چهار بخش زیر محاسبه می‌شود. هیچ بخشی از این امتیاز با پرداخت پول یا تبلیغ قابل خرید نیست.</p></div>'
+    +'<section class="legal-section"><h3>۱. میانگین امتیاز کاربران (۵۵٪ از نمرهٔ نهایی)</h3><p>میانگین ستارهٔ نظراتی که سایر کاربران پس از همکاری برای شما ثبت می‌کنند، مبنای اصلی امتیاز بلوک است. هرچه میانگین ستاره‌ها (از ۵) بالاتر باشد، سهم بیشتری از این ۵۵ امتیاز را می‌گیرید.</p></section>'
+    +'<section class="legal-section"><h3>۲. پروژه‌های تکمیل‌شده در بلوک (۲۵٪ از نمرهٔ نهایی)</h3><p>تعداد پروژه یا سفارشی که از ابتدا تا پایان داخل بلوک انجام و ثبت شده باشد. این بخش تا سقف ۴۰ پروژه محاسبه می‌شود؛ یعنی از ۴۰ پروژهٔ تکمیل‌شده به بعد، امتیاز بیشتری از این بخش اضافه نمی‌شود.</p></section>'
+    +'<section class="legal-section"><h3>۳. تعداد نظرات ثبت‌شده (۱۰٪ از نمرهٔ نهایی)</h3><p>صرف داشتن نظر (جدا از میانگین ستاره‌اش) هم امتیاز دارد، چون نشان می‌دهد سابقهٔ شما در بلوک با نظر واقعی کاربران دیگر تأیید شده. این بخش تا سقف ۵ نظر محاسبه می‌شود.</p></section>'
+    +'<section class="legal-section"><h3>۴. تأیید هویت (۱۰٪ از نمرهٔ نهایی)</h3><p>اگر هویت شما در بلوک تأیید شده باشد، ۱۰ امتیاز ثابت به‌طور کامل به نمرهٔ نهایی اضافه می‌شود؛ در غیر این صورت این بخش صفر است.</p></section>'
+    +'<section class="legal-section"><h3>راه‌های افزایش امتیاز</h3><ul><li>پروفایل و مدارک خود را برای تأیید هویت کامل کنید.</li><li>پروژه‌ها و سفارش‌ها را تا پایان و از طریق خود بلوک هماهنگ و تکمیل کنید.</li><li>از طرف مقابل بخواهید پس از پایان همکاری، نظر واقعی خود را در بلوک ثبت کند.</li><li>با ارائهٔ خدمت باکیفیت، میانگین ستارهٔ نظرات خود را بالا نگه دارید.</li></ul></section>'
+    +'<div class="chat-safety">'+icon('info',14)+'<span>این امتیاز فقط بر اساس سابقهٔ واقعی داخل بلوک محاسبه می‌شود و نشان تضمین قانونی یا مالی برای هیچ همکاری نیست.</span></div></div>';
 },
 
 helpCenter:function(){
@@ -3677,11 +4378,35 @@ settings:function(){
 };
 
 function openLoginSheet(){
-  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="closeSheet();openOtpSheet()">دریافت کد ورود</button>')
+  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button><p style="font-size:.58rem;text-align:center;margin-top:14px">حساب ندارید؟ <button class="legal-link" onclick="closeSheet();go(\'roleSelect\')">ثبت‌نام را شروع کنید</button></p>')
 }
-function openOtpSheet(){
+function submitLoginPhone(btn){
+  var input=document.getElementById('loginPhone');
+  var phone=normalizePhone(input?input.value:'');
+  if(!phone){toast('شماره موبایل را وارد کنید','warning');return}
+  state.loginPhone=phone;
+  var stopLoading=setButtonLoading(btn,'در حال ارسال...');
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:phone}})
+    .then(function(data){closeSheet();openOtpSheet(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      stopLoading();
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود','warning');
+    });
+}
+function resendLoginOtp(){
+  if(state.otpResendAvailableAt&&Date.now()<state.otpResendAvailableAt)return;
+  apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:state.loginPhone}})
+    .then(function(data){toast('کد جدید ارسال شد');startOtpCountdown(data.retryAfterSeconds||120)})
+    .catch(function(e){
+      if(e.data&&e.data.code==='OTP_COOLDOWN'&&e.data.retryAfterSeconds){startOtpCountdown(e.data.retryAfterSeconds)}
+      toast(e.message||'ارسال کد ناموفق بود','warning');
+    });
+}
+function openOtpSheet(seconds){
   setTimeout(function(){
-    openSheet('<h3>کد تأیید را وارد کنید</h3><p>کد ۴ رقمی به شماره شما پیامک شد.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="completeLogin()">تأیید و ورود</button>')
+    openSheet('<h3>کد تأیید را وارد کنید</h3><p>کد ۴ رقمی به شماره شما پیامک شد.</p><div class="otp-row">'+OTP_INPUT_HTML+'</div><button class="legal-link otp-resend" onclick="resendLoginOtp()">ارسال مجدد کد</button><button class="btn-primary" onclick="completeLogin(this)">تأیید و ورود</button>');
+    startOtpCountdown(seconds||120);
   },200)
 }
 
@@ -3761,6 +4486,7 @@ function showDebugError(text,file,line,col){
   }
 }
 restoreStateSnapshot();
+if(getSessionUser()&&!(state.values&&state.values.firstName))hydrateStateFromUser(getSessionUser());
 var savedMode='dark',savedTextSize='large',savedHighContrast=true;
 try{savedMode=localStorage.getItem('block-mode')||'dark';savedTextSize=localStorage.getItem('block-text-size')||'large';savedHighContrast=(localStorage.getItem('block-high-contrast')||'true')!=='false'}catch(e){}
 state.textSize=savedTextSize;state.highContrast=savedHighContrast;
