@@ -1588,6 +1588,18 @@ function openAdDetail(id){state.viewingAdId=id;go('adDetail')}
 function currentAdDetail(){return EXPLORE_ITEMS.find(function(item){return item.id===state.viewingAdId})||state.lastPublishedAd}
 function startAdChat(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
+  if(ad.real){
+    apiRequest('/api/conversations',{method:'POST',body:{otherUserId:ad.authorUserId,adId:ad.backendId}})
+      .then(function(data){
+        var conv=mapBackendConversation(data.conversation);
+        var existing=findConversation(conv.id);
+        if(!existing)getConversations().unshift(conv);else conv=existing;
+        state.adChatId=id;state.currentConversationId=conv.id;go('chat');
+        if(!conv.messagesLoaded)loadConversationMessages(conv);
+      })
+      .catch(function(e){toast(e.message||'شروع گفت‌وگو ناموفق بود')});
+    return;
+  }
   var conversation=getConversations().find(function(c){return c.adId===id});
   if(!conversation){var profile=ad.profile||{},conversationId='conversation-'+id;conversation={id:conversationId,adId:id,personId:ad.person||null,name:profile.name||ad.title,initials:profile.initials||'ب',verified:!!profile.verified,online:true,type:'project',unread:0,pinned:false,muted:false,archived:false,time:'اکنون',lastMessage:'گفت‌وگو دربارهٔ این آگهی شروع شد',context:{icon:ad.icon||'building',label:ad.adType==='consult'?'پرسش تخصصی':ad.adType==='work'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:ad.title,meta:(ad.city||'')+(ad.range?' · '+ad.range:''),adId:id},messages:[{type:'system',text:'این گفت‌وگو دربارهٔ «'+ad.title+'» ایجاد شد. جزئیات آگهی در بالای صفحه در دسترس است.'}]};getConversations().unshift(conversation)}
   state.adChatId=id;state.currentConversationId=conversation.id;go('chat');
@@ -1786,6 +1798,16 @@ function renderGuarantorSheet(){
 }
 function saveGuarantor(){
   if(!state.guarantorDraft.name){toast('نام معرف را وارد کنید');return}
+  if(getSessionUser()&&!state.guarantorDraft.phone){toast('شماره تماس معرف را وارد کنید');return}
+  if(getSessionUser()){
+    apiRequest('/api/guarantors',{method:'POST',body:{name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,phoneNumber:state.guarantorDraft.phone}})
+      .then(function(data){
+        getGuarantors(state.role).unshift(mapBackendGuarantor(data.guarantor));
+        closeSheet();render();toast('درخواست برای معرف ارسال شد');
+      })
+      .catch(function(e){toast(e.message||'ثبت معرف ناموفق بود')});
+    return;
+  }
   var list=getGuarantors(state.role);
   list.push({name:state.guarantorDraft.name,relation:state.guarantorDraft.relation,status:'pending'});
   closeSheet();render();toast('درخواست برای معرف ارسال شد');
@@ -1801,9 +1823,14 @@ var NOTIF_SEED=[
 function getNotifications(){if(!state.notifications)state.notifications=cloneData(NOTIF_SEED);return state.notifications}
 function unreadNotifCount(){return getNotifications().filter(function(n){return !n.read}).length}
 function setNotificationFilter(value){state.notificationFilter=value;render()}
-function markAllNotificationsRead(){getNotifications().forEach(function(n){n.read=true});render();toast('همهٔ اعلان‌ها خوانده شد')}
+function markAllNotificationsRead(){
+  getNotifications().forEach(function(n){n.read=true});
+  render();toast('همهٔ اعلان‌ها خوانده شد');
+  if(getSessionUser())apiRequest('/api/notifications/read-all',{method:'PATCH'}).catch(function(){});
+}
 function openNotification(idx){
   var item=getNotifications()[idx];if(!item)return;item.read=true;
+  if(item.real)apiRequest('/api/notifications/'+item.backendId+'/read',{method:'PATCH'}).catch(function(){});
   if(item.conversationId){openConversation(item.conversationId);return}
   if(item.target){go(item.target);return}
   render();toast('جزئیات اعلان نمایش داده شد');
@@ -1885,7 +1912,10 @@ function filteredConversations(){
   }).sort(function(a,b){return Number(!!b.pinned)-Number(!!a.pinned)});
 }
 function markAllMessagesRead(){getConversations().forEach(function(c){c.unread=0});render();toast('همهٔ پیام‌ها خوانده شد')}
-function openConversation(id){var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat')}
+function openConversation(id){
+  var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat');
+  if(c.real&&!c.messagesLoaded)loadConversationMessages(c);
+}
 function openConversationForPerson(personId){
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
   var person=PEOPLE_SEED[personId];if(!person)return;
@@ -1896,16 +1926,50 @@ function activeConversation(){return findConversation(state.currentConversationI
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
   var v=(el.value||'').trim();if(!v)return;
-  var c=activeConversation();c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
+  var c=activeConversation();
+  if(c.real){
+    el.value='';
+    apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{text:v}})
+      .then(function(data){
+        c.messages.push(mapBackendMessage(data.message));
+        c.lastMessage=v;c.time='اکنون';c.archived=false;
+        render();
+      })
+      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود')});
+    return;
+  }
+  c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
   el.value='';render();
 }
 function handleChatPhoto(input){
   var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'IMAGE',attachmentUrl:data.url}})})
+      .then(function(res){c.messages.push(mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()})
+      .catch(function(e){toast(e.message||'ارسال تصویر ناموفق بود')});
+    return;
+  }
   var reader=new FileReader();
-  reader.onload=function(e){var c=activeConversation();c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
+  reader.onload=function(e){c.messages.push({mine:true,image:e.target.result,time:'اکنون',status:'ارسال شد'});c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()};
   reader.readAsDataURL(f);
 }
-function handleChatDocument(input){var f=input.files&&input.files[0];if(!f)return;var c=activeConversation();c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render()}
+function handleChatDocument(input){
+  var f=input.files&&input.files[0];if(!f)return;
+  var c=activeConversation();
+  if(c.real){
+    uploadFileToBackend(f)
+      .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'FILE',attachmentUrl:data.url}})})
+      .then(function(res){
+        var mapped=mapBackendMessage(res.message);mapped.file=f.name;mapped.fileSize=Math.max(1,Math.round(f.size/1024))+' کیلوبایت';
+        c.messages.push(mapped);c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+      })
+      .catch(function(e){toast(e.message||'ارسال فایل ناموفق بود')});
+    return;
+  }
+  c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
+}
 function voiceDuration(seconds){seconds=Math.max(1,Math.round(seconds||1));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
 async function toggleVoiceRecording(){
   if(state.voiceRecording){if(state.voiceRecorder&&state.voiceRecorder.state!=='inactive')state.voiceRecorder.stop();return}
@@ -1915,9 +1979,22 @@ async function toggleVoiceRecording(){
     var recorder=new MediaRecorder(state.voiceStream);state.voiceRecorder=recorder;state.voiceStartedAt=Date.now();state.voiceRecording=true;
     recorder.ondataavailable=function(event){if(event.data&&event.data.size)state.voiceChunks.push(event.data)};
     recorder.onstop=function(){
-      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),url=URL.createObjectURL(blob),c=activeConversation();
-      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';
-      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];render();toast('پیام صوتی ارسال شد');
+      var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),c=activeConversation();
+      (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];
+      if(c.real){
+        var file=new File([blob],'voice.webm',{type:blob.type||'audio/webm'});
+        uploadFileToBackend(file)
+          .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'VOICE',attachmentUrl:data.url}})})
+          .then(function(res){
+            var mapped=mapBackendMessage(res.message);mapped.duration=voiceDuration(duration);
+            c.messages.push(mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
+          })
+          .catch(function(e){toast(e.message||'ارسال پیام صوتی ناموفق بود')});
+        render();
+        return;
+      }
+      var url=URL.createObjectURL(blob);
+      c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
     };
     recorder.start();render();toast('ضبط شروع شد؛ برای ارسال دوباره میکروفن را لمس کنید');
   }catch(error){state.permissionPrefs.microphone='denied';render();toast('برای پیام صوتی، دسترسی میکروفن را فعال کنید')}
@@ -2458,6 +2535,21 @@ function apiRequest(path,options){
     });
   });
 }
+function uploadFileToBackend(file){
+  var form=new FormData();
+  form.append('file',file);
+  var token=localStorage.getItem('block_token');
+  return fetch(API_BASE+'/api/uploads',{
+    method:'POST',
+    headers:token?{Authorization:'Bearer '+token}:{},
+    body:form
+  }).then(function(res){
+    return res.json().catch(function(){return{}}).then(function(data){
+      if(!res.ok){var err=new Error(data.message||'آپلود ناموفق بود');err.status=res.status;err.data=data;throw err}
+      return data;
+    });
+  });
+}
 function saveSession(token,user){
   localStorage.setItem('block_token',token);
   localStorage.setItem('block_user',JSON.stringify(user));
@@ -2553,7 +2645,7 @@ function mapBackendAdToItem(ad){
   var snapshot=ad.authorSnapshot||{};
   var role=(snapshot.role||'').toLowerCase();
   return{
-    id:ad.id,real:true,backendId:ad.id,isAd:true,
+    id:ad.id,real:true,backendId:ad.id,authorUserId:ad.authorUserId,isAd:true,
     title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
     city:ad.city||'',province:ad.province||'',
     role:role,ownerRole:role,
@@ -2612,11 +2704,223 @@ function loadRealProjects(){
     .then(function(data){mergeReal(getProjects(role),(data.projects||[]).map(mapBackendProjectToItem));render()})
     .catch(function(e){console.error('loadRealProjects failed',e)});
 }
+var NOTIF_ICONS={PROJECT:'building',MESSAGE:'message',PROFILE:'star',ACCOUNT:'user',SYSTEM:'bell'};
+function timeAgoFa(iso){
+  var diff=Math.max(0,Date.now()-new Date(iso).getTime());
+  var mins=Math.floor(diff/60000);
+  if(mins<1)return'همین حالا';
+  if(mins<60)return mins+' دقیقه پیش';
+  var hours=Math.floor(mins/60);
+  if(hours<24)return hours+' ساعت پیش';
+  var days=Math.floor(hours/24);
+  return days+' روز پیش';
+}
+function mapBackendNotification(n){
+  var recent=(Date.now()-new Date(n.createdAt).getTime())<24*3600*1000;
+  return{
+    real:true,backendId:n.id,
+    title:n.title,sub:n.body||'',time:timeAgoFa(n.createdAt),day:recent?'امروز':'قبل‌تر',
+    read:n.read,icon:NOTIF_ICONS[n.type]||'bell',type:String(n.type).toLowerCase(),
+    target:n.targetType||null
+  };
+}
+function loadRealNotifications(){
+  apiRequest('/api/notifications')
+    .then(function(data){mergeReal(getNotifications(),(data.notifications||[]).map(mapBackendNotification));render()})
+    .catch(function(e){console.error('loadRealNotifications failed',e)});
+}
 function syncRealData(page){
   if(!getSessionUser())return;
   if(page==='explore')loadRealAds();
   if(page==='requestsCenter')loadRealRequests();
   if(page==='myProjects')loadRealProjects();
+  if(page==='notifications'||page==='home')loadRealNotifications();
+  if(page==='messages')loadRealConversations();
+  if(page==='guarantor'){loadGuarantors();loadGuarantorRequests()}
+}
+
+/* ---------- guarantor/vouching -> real backend ---------- */
+function mapBackendGuarantor(g){
+  return{real:true,backendId:g.id,name:g.name,relation:g.relation||'',status:String(g.status).toLowerCase()};
+}
+function loadGuarantors(){
+  var role=state.role||'worker';
+  apiRequest('/api/guarantors')
+    .then(function(data){mergeReal(getGuarantors(role),(data.guarantors||[]).map(mapBackendGuarantor));render()})
+    .catch(function(e){console.error('loadGuarantors failed',e)});
+}
+function loadGuarantorRequests(){
+  apiRequest('/api/guarantors/pending')
+    .then(function(data){
+      state.guarantorRequests=(data.requests||[]).map(function(r){return{backendId:r.id,requesterName:personName(r.user),relation:r.relation||''}});
+      render();
+    })
+    .catch(function(e){console.error('loadGuarantorRequests failed',e)});
+}
+function respondGuarantorRequest(id,status){
+  apiRequest('/api/guarantors/'+id+'/respond',{method:'POST',body:{status:status}})
+    .then(function(){
+      state.guarantorRequests=(state.guarantorRequests||[]).filter(function(r){return r.backendId!==id});
+      render();toast(status==='CONFIRMED'?'تأیید شما ثبت شد':'درخواست رد شد');
+    })
+    .catch(function(e){toast(e.message||'ثبت پاسخ ناموفق بود')});
+}
+
+/* ---------- chat: conversations/messages -> real backend ---------- */
+function mapBackendConversationSummary(c){
+  var last=c.lastMessage;
+  return{
+    id:c.id,real:true,backendId:c.id,personId:null,
+    name:personName(c.otherUser),initials:(personName(c.otherUser)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:c.unreadCount||0,pinned:false,muted:false,archived:false,
+    time:last?timeAgoFa(last.createdAt):'',
+    lastMessage:last?(last.type==='TEXT'?(last.text||''):'پیوست ارسال شد'):'',
+    context:c.ad?{icon:'briefcase',label:c.ad.type==='CONSULT'?'پرسش تخصصی':c.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:c.ad.title,meta:'',adId:c.ad.id}:undefined,
+    adId:c.adId,otherUserId:c.otherUser&&c.otherUser.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendConversation(conv){
+  var me=getSessionUser();
+  var other=conv.participantA&&me&&conv.participantA.id===me.id?conv.participantB:conv.participantA;
+  return{
+    id:conv.id,real:true,backendId:conv.id,personId:null,
+    name:personName(other),initials:(personName(other)||'ب').charAt(0),
+    verified:false,online:false,type:'project',
+    unread:0,pinned:false,muted:false,archived:false,
+    time:'اکنون',lastMessage:'',
+    context:conv.ad?{icon:'briefcase',label:conv.ad.type==='CONSULT'?'پرسش تخصصی':conv.ad.type==='WORK'?'آگهی پیدا کردن کار':'آگهی نیروی کار',title:conv.ad.title,meta:'',adId:conv.ad.id}:undefined,
+    adId:conv.adId,otherUserId:other&&other.id,
+    messages:[],messagesLoaded:false
+  };
+}
+function mapBackendMessage(m){
+  var me=getSessionUser();
+  var mine=!!(me&&m.senderId===me.id);
+  var time=new Date(m.createdAt).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  if(m.type==='SYSTEM')return{type:'system',text:m.text||''};
+  if(m.type==='IMAGE')return{mine:mine,time:time,status:'ارسال شد',image:m.attachmentUrl};
+  if(m.type==='FILE')return{mine:mine,time:time,status:'ارسال شد',file:'فایل پیوست',fileSize:''};
+  if(m.type==='VOICE')return{mine:mine,time:time,status:'ارسال شد',audioUrl:m.attachmentUrl,duration:''};
+  return{mine:mine,time:time,status:'ارسال شد',text:m.text||''};
+}
+function loadRealConversations(){
+  apiRequest('/api/conversations')
+    .then(function(data){mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));render()})
+    .catch(function(e){console.error('loadRealConversations failed',e)});
+}
+function loadConversationMessages(c){
+  apiRequest('/api/conversations/'+c.backendId+'/messages')
+    .then(function(data){
+      c.messages=(data.messages||[]).map(mapBackendMessage);
+      c.messagesLoaded=true;
+      render();
+    })
+    .catch(function(e){console.error('loadConversationMessages failed',e)});
+  apiRequest('/api/conversations/'+c.backendId+'/read',{method:'PATCH'}).catch(function(){});
+}
+
+/* ---------- profile setup (quickSetup/regStep) -> real backend sync ---------- */
+function jalaaliToGregorian(jy,jm,jd){
+  jy+=1595;
+  var days=-355668+(365*jy)+(~~(jy/33)*8)+~~(((jy%33)+3)/4)+jd+((jm<7)?(jm-1)*31:((jm-7)*30)+186);
+  var gy=400*~~(days/146097);
+  days%=146097;
+  if(days>36524){gy+=100*~~(--days/36524);days%=36524;if(days>=365)days++}
+  gy+=4*~~(days/1461);
+  days%=1461;
+  if(days>365){gy+=~~((days-1)/365);days=(days-1)%365}
+  var gd=days+1;
+  var sal_a=[0,31,((gy%4===0&&gy%100!==0)||(gy%400===0))?29:28,31,30,31,30,31,31,30,31,30,31];
+  var gm;
+  for(gm=1;gm<=12;gm++){var v=sal_a[gm];if(gd<=v)break;gd-=v}
+  return [gy,gm,gd];
+}
+function jalaliObjToISO(d){
+  if(!d||!d.day||!d.month||!d.year)return undefined;
+  var monthIndex=PERSIAN_MONTHS.indexOf(d.month);
+  if(monthIndex===-1)return undefined;
+  var g=jalaaliToGregorian(Number(d.year),monthIndex+1,Number(d.day));
+  var mm=String(g[1]).length<2?'0'+g[1]:String(g[1]);
+  var dd=String(g[2]).length<2?'0'+g[2]:String(g[2]);
+  return g[0]+'-'+mm+'-'+dd;
+}
+function genderToBackend(v){return v==='مرد'?'MALE':v==='زن'?'FEMALE':undefined}
+var COMMON_VALUE_KEYS=['firstName','lastName','gender','birthDate','birthProvince','birthCountry','workProvince','workCity','activityRadius','travelReady','foreignNational','quickName','quickCity','profilePhoto'];
+var CATALOG_COLLECTION_TYPES={skills:'SKILL',services:'SERVICE',machines:'MACHINE',materials:'MATERIAL'};
+function numOrNull(v){var n=parseFloat(String(v==null?'':v).replace(/[^\d.]/g,''));return isNaN(n)?null:n}
+function buildUserPayload(){
+  var v=state.values,payload={};
+  if(v.firstName!==undefined)payload.firstName=v.firstName;
+  if(v.lastName!==undefined)payload.lastName=v.lastName;
+  if(v.gender!==undefined){var g=genderToBackend(v.gender);if(g)payload.gender=g}
+  if(v.birthDate){var iso=jalaliObjToISO(v.birthDate);if(iso)payload.birthDate=iso}
+  if(v.birthProvince!==undefined)payload.birthProvince=v.birthProvince;
+  if(v.birthCountry!==undefined)payload.birthCountry=v.birthCountry;
+  if(v.profilePhoto&&/^https?:\/\//.test(v.profilePhoto))payload.avatarUrl=v.profilePhoto;
+  return payload;
+}
+function buildRoleProfileDataBlob(){
+  var v=state.values,data={};
+  Object.keys(v).forEach(function(key){if(COMMON_VALUE_KEYS.indexOf(key)===-1)data[key]=v[key]});
+  var role=state.role||'worker',schema=roleSchemas[role]||{},collections=schema.collections||{};
+  Object.keys(collections).forEach(function(key){
+    if(!CATALOG_COLLECTION_TYPES[key]){
+      var items=state.collections[key];
+      if(items&&items.length)data[key]=items;
+    }
+  });
+  return data;
+}
+function buildRoleProfilePayload(markComplete){
+  var v=state.values;
+  return{
+    workProvince:v.workProvince||undefined,
+    workCity:v.workCity||undefined,
+    travelReady:!!v.travelReady,
+    data:buildRoleProfileDataBlob(),
+    profileComplete:!!markComplete
+  };
+}
+function buildCatalogItemPayload(item,col,backendType){
+  return{
+    type:backendType,
+    name:item[col.titleKey]||col.singular||'آیتم',
+    category:item.category||item.activity||null,
+    unit:item.unit||null,
+    rateType:item.rate||item.rateType||null,
+    rateAmount:numOrNull(item.rateAmount),
+    price:numOrNull(item.price),
+    stock:(function(){var n=numOrNull(item.stock);return n!==null?Math.round(n):null})(),
+    status:item.status||null,
+    data:item
+  };
+}
+function syncCatalogItemsToBackend(roleProfileId){
+  var role=state.role||'worker',schema=roleSchemas[role]||{},collections=schema.collections||{};
+  var tasks=[];
+  Object.keys(collections).forEach(function(key){
+    var backendType=CATALOG_COLLECTION_TYPES[key];
+    if(!backendType)return;
+    var items=state.collections[key]||[],col=collections[key];
+    items.forEach(function(item){
+      tasks.push(apiRequest('/api/role-profiles/'+roleProfileId+'/catalog-items',{method:'POST',body:buildCatalogItemPayload(item,col,backendType)}));
+    });
+  });
+  return Promise.all(tasks);
+}
+function syncProfileToBackend(markComplete){
+  var roleProfileId=getActiveRoleProfileId();
+  if(!roleProfileId)return Promise.reject(new Error('پروفایل نقش یافت نشد؛ لطفاً دوباره وارد شوید'));
+  var userPayload=buildUserPayload();
+  return Promise.all([
+    Object.keys(userPayload).length?apiRequest('/api/users/me',{method:'PUT',body:userPayload}):Promise.resolve(),
+    apiRequest('/api/role-profiles/'+roleProfileId,{method:'PUT',body:buildRoleProfilePayload(markComplete)})
+  ])
+    .then(function(){return syncCatalogItemsToBackend(roleProfileId)})
+    .then(function(){return apiRequest('/api/auth/me')})
+    .then(function(data){if(data&&data.user)saveSession(localStorage.getItem('block_token'),data.user)});
 }
 
 /* ---------- role select ---------- */
@@ -2665,10 +2969,20 @@ function confirmSignupOtp(btn){
 }
 function choosePathQuick(){state.values.quickName='';state.values.quickCity='';go('quickSetup')}
 function choosePathFull(){state.step=0;state.editMode=false;state.collections={};state.stepWarnings={};go('regStep')}
-function submitQuickSetup(){
+function submitQuickSetup(btn){
   if(!state.values.quickName){toast('نام خود را وارد کنید');return}
-  state.step=0;state.collections={};
-  state.stack=[];state.page='setupDone';render();
+  var parts=state.values.quickName.trim().split(/\s+/);
+  state.values.firstName=state.values.firstName||parts[0];
+  state.values.lastName=state.values.lastName||(parts.slice(1).join(' ')||parts[0]);
+  if(state.values.quickCity&&!state.values.workCity)state.values.workCity=state.values.quickCity;
+  var stopLoading=setButtonLoading(btn,'در حال ذخیره...');
+  syncProfileToBackend(false)
+    .then(function(){
+      stopLoading();
+      state.step=0;state.collections={};
+      state.stack=[];state.page='setupDone';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'ذخیره پروفایل ناموفق بود')});
 }
 function startFullProfile(){state.step=0;state.editMode=false;state.stepWarnings={};go('regStep')}
 var PERSIAN_MONTHS=['فروردین','اردیبهشت','خرداد','تیر','مرداد','شهریور','مهر','آبان','آذر','دی','بهمن','اسفند'];
@@ -2784,6 +3098,11 @@ function handlePhotoField(input,key){
   var reader=new FileReader();
   reader.onload=function(e){state.values[key]=e.target.result;render()};
   reader.readAsDataURL(f);
+  if(getSessionUser()){
+    uploadFileToBackend(f)
+      .then(function(data){state.values[key]=data.url;render()})
+      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود')});
+  }
 }
 
 function renderStepControls(controls){
@@ -3004,9 +3323,9 @@ function renderReview(){
   return topbar('مرور پروفایل '+schema.label,'پیش از انتشار بررسی کنید','regBack()')
     +'<div class="page"><div class="eyebrow">آخرین مرحله</div><h2 style="margin:8px 0 12px;font-size:1rem">همه‌چیز درست به‌نظر می‌رسد؟</h2>'
     +(blocks||'<p style="font-size:.62rem">هنوز اطلاعاتی ثبت نشده — به مراحل قبل برگردید.</p>')
-    +'</div><div class="dock"><button class="btn-primary" onclick="finishSetup()">ثبت نهایی پروفایل</button></div>';
+    +'</div><div class="dock"><button class="btn-primary" onclick="finishSetup(this)">ثبت نهایی پروفایل</button></div>';
 }
-function finishSetup(){
+function finishSetup(btn){
   var portfolioItems=state.collections.portfolioItems||[];
   if(!portfolioItems.length&&(state.role==='contractor'||state.role==='company')){
     portfolioItems=(state.collections.projects||[]).map(function(item){return {title:item.name,city:item.location||item.type||'',image:item.image||null} });
@@ -3014,7 +3333,13 @@ function finishSetup(){
   if(portfolioItems.length){
     state.portfolio[state.role]=portfolioItems.map(function(item,index){return {title:item.title,city:item.city||item.skill||'',image:item.image||null,color:index%2?'var(--tone-mint)':'var(--accent2)'} });
   }
-  state.profileComplete=true;state.stack=[];state.page='setupDone';render();
+  var stopLoading=setButtonLoading(btn,'در حال ثبت...');
+  syncProfileToBackend(true)
+    .then(function(){
+      stopLoading();
+      state.profileComplete=true;state.stack=[];state.page='setupDone';render();
+    })
+    .catch(function(e){stopLoading();toast(e.message||'ثبت پروفایل ناموفق بود')});
 }
 
 /* ---------- static content helpers ---------- */
@@ -3432,7 +3757,7 @@ quickSetup:function(){
   +'<div class="field"><label>نام و نام خانوادگی</label><input id="qName" class="input" value="'+esc(state.values.quickName||'')+'" oninput="setVal(\'quickName\',this.value)" placeholder="مثلاً رضا توکلی"></div>'
   +'<div class="field"><label>شهر فعالیت</label><input id="qCity" class="input" value="'+esc(state.values.quickCity||'')+'" oninput="setVal(\'quickCity\',this.value)" placeholder="مثلاً قشم یا بندرعباس"></div>'
   +'</div>'
-  +'<div class="dock"><button class="btn-primary" onclick="submitQuickSetup()">شروع استفاده از بلوک</button></div>'
+  +'<div class="dock"><button class="btn-primary" onclick="submitQuickSetup(this)">شروع استفاده از بلوک</button></div>'
 },
 
 roleSelect:function(){
@@ -3603,9 +3928,14 @@ portfolio:function(){
 guarantor:function(){
   var role=state.role||'worker';
   var list=getGuarantors(role);
-  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var rows=list.length?list.map(function(g){return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(g.name)+'</b><span>'+esc(g.relation)+'</span></div><span class="badge badge-'+(g.status==='confirmed'?'inprogress':'agreed')+'">'+(g.status==='confirmed'?'تأیید شده':g.status==='declined'?'رد شده':'در انتظار')+'</span></div>'}).join(''):'<p style="font-size:.6rem;margin-bottom:12px">هنوز معرفی اضافه نکرده‌اید.</p>';
+  var incoming=state.guarantorRequests||[];
+  var incomingSection=incoming.length?('<div class="sec-head"><b>درخواست تأیید برای شما</b></div>'+incoming.map(function(r){
+    return '<div class="list-row"><div class="ricon">'+icon('shield',16)+'</div><div class="rcopy"><b>'+esc(r.requesterName)+'</b><span>شما را به‌عنوان «'+esc(r.relation||'آشنا')+'» معرفی کرده است</span></div></div><div class="request-actions" style="margin-bottom:10px"><button class="accept" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'CONFIRMED\')">'+icon('check',12)+' تأیید</button><button class="decline" onclick="respondGuarantorRequest(\''+r.backendId+'\',\'DECLINED\')">رد</button></div>';
+  }).join('')):'';
   return topbar('اعتبار و قیم')
   +'<div class="page"><div class="card" style="margin-bottom:14px"><b style="font-size:.66rem">معرف یا قیم چیست؟</b><p style="font-size:.55rem;margin-top:4px;line-height:1.7">فردی که شما را می‌شناسد و اعتبار شما را نزد بلوک تأیید می‌کند. هرچه معرف بیشتری داشته باشید، اعتماد کارفرماها به شما بیشتر می‌شود.</p></div>'
+  +incomingSection
   +'<div class="sec-head"><b>معرف‌های شما</b></div>'+rows
   +'<button class="btn-secondary" style="margin-top:6px" onclick="openGuarantorSheet()">'+icon('plus',14)+' افزودن معرف</button></div>';
 },
