@@ -3791,7 +3791,7 @@ var PAGES={
 splash:function(){
   return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:50px 26px 26px">'
   +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">'
-  +'<div class="hexlogo"><img src="assets/logo.png" alt="بلوک"></div>'
+  +'<div class="hexlogo" style="width:120px;height:120px"><img src="assets/logo.png" alt="بلوک"></div>'
   +'<h1 style="font-size:1.8rem">بلوک</h1>'
   +'<p style="font-size:.68rem">اکوسیستم هوشمند صنعت ساختمان — کارگر، مهندس، پیمانکار و تأمین‌کننده در یک شبکهٔ امن</p>'
   +'<div class="trust-row" style="margin-top:6px"><span>هویت واقعی</span><span>تصمیم دقیق</span><span>ارتباط امن</span></div>'
