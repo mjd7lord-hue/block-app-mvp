@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پنل مدیریت بلوک</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0A1B2E; --surface:#11223A; --surface2:#132845; --line:#1E3654; --line-strong:#2A4666;
+  --ink:#EAF1FB; --muted:#8FA3C0; --accent:#00A3FF; --accent2:#0D4C9F; --silver:#E6E8EB;
+  --danger:#E5484D; --danger-soft:#3a1a1c; --success:#2ecc71; --warn:#f5a623;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Vazirmatn',sans-serif;min-height:100vh}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px}
+
+.app{display:flex;min-height:100vh}
+.sidebar{width:220px;flex:none;background:var(--surface);border-left:1px solid var(--line);padding:18px 14px;display:flex;flex-direction:column;gap:4px}
+.brand{display:flex;align-items:center;gap:10px;padding:6px 6px 18px;border-bottom:1px solid var(--line);margin-bottom:14px}
+.brand img{width:36px;height:36px;object-fit:contain}
+.brand b{font-size:.95rem}
+.brand span{display:block;font-size:.6rem;color:var(--muted)}
+.navitem{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;color:var(--muted);font-size:.78rem;font-weight:700;border:0;background:transparent;text-align:right;width:100%}
+.navitem:hover{background:var(--surface2);color:var(--ink)}
+.navitem.active{background:var(--accent2);color:#fff}
+.sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+.logout-btn{width:100%;padding:10px;border-radius:10px;border:1px solid var(--line-strong);background:transparent;color:var(--muted);font-size:.72rem;font-weight:700}
+.logout-btn:hover{color:var(--danger);border-color:var(--danger)}
+
+.main{flex:1;min-width:0;padding:22px 26px;overflow-x:hidden}
+.pagehead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.pagehead h1{font-size:1.1rem;margin:0}
+.pagehead p{margin:2px 0 0;font-size:.68rem;color:var(--muted)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px}
+.stat-card b{display:block;font-size:1.3rem}
+.stat-card span{font-size:.65rem;color:var(--muted)}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:18px}
+.panel h3{margin:0 0 12px;font-size:.82rem}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;font-size:.68rem}
+.bar-row span:first-child{width:110px;flex:none;color:var(--muted)}
+.bar-track{flex:1;height:8px;background:var(--surface2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;background:var(--accent);border-radius:6px}
+.bar-row b{width:36px;flex:none;text-align:left}
+
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.toolbar input,.toolbar select{background:var(--surface2);border:1px solid var(--line-strong);color:var(--ink);border-radius:10px;padding:8px 12px;font-size:.72rem;outline:0}
+.toolbar input{min-width:200px;flex:1}
+
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;font-size:.72rem;white-space:nowrap}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line)}
+th{color:var(--muted);font-weight:700;background:var(--surface2);position:sticky;top:0}
+tbody tr{cursor:pointer}
+tbody tr:hover{background:var(--surface2)}
+.badge{display:inline-block;padding:3px 9px;border-radius:8px;font-size:.62rem;font-weight:800;background:var(--surface2);color:var(--muted)}
+.badge.green{background:#123322;color:var(--success)}
+.badge.orange{background:#3a2a12;color:var(--warn)}
+.badge.blue{background:#0d2a45;color:var(--accent)}
+.badge.red{background:var(--danger-soft);color:var(--danger)}
+
+.pager{display:flex;align-items:center;gap:10px;justify-content:center;margin-top:14px;font-size:.72rem;color:var(--muted)}
+.pager button{background:var(--surface);border:1px solid var(--line-strong);color:var(--ink);border-radius:8px;padding:6px 12px}
+.pager button:disabled{opacity:.4;cursor:default}
+
+.empty-state{padding:40px 10px;text-align:center;color:var(--muted);font-size:.75rem}
+.loading-row{padding:24px;text-align:center;color:var(--muted);font-size:.72rem}
+
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-card{width:100%;max-width:340px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 24px;text-align:center}
+.login-card img{width:64px;height:64px;object-fit:contain;margin-bottom:10px}
+.login-card h2{margin:0 0 4px;font-size:1rem}
+.login-card p{margin:0 0 20px;font-size:.68rem;color:var(--muted)}
+.field{text-align:right;margin-bottom:12px}
+.field label{display:block;font-size:.65rem;color:var(--muted);margin-bottom:6px}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--line-strong);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:.78rem;outline:0}
+.field input:focus{border-color:var(--accent)}
+.btn-primary{width:100%;padding:12px;border:0;border-radius:12px;background:var(--accent);color:#00131f;font-weight:800;font-size:.78rem;margin-top:6px}
+.btn-primary:disabled{opacity:.6}
+.login-error{background:var(--danger-soft);color:var(--danger);border-radius:10px;padding:8px 10px;font-size:.68rem;margin-bottom:12px;display:none}
+
+.overlay{position:fixed;inset:0;background:rgba(2,8,16,.6);display:flex;align-items:center;justify-content:center;padding:20px;z-index:50}
+.overlay[hidden]{display:none}
+.modal{width:100%;max-width:560px;max-height:85vh;overflow:auto;background:var(--surface);border:1px solid var(--line-strong);border-radius:16px;padding:20px}
+.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.modal-head h3{margin:0;font-size:.9rem}
+.modal-close{background:transparent;border:0;color:var(--muted);font-size:1.1rem}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 10px;font-size:.72rem;margin-bottom:6px}
+.kv b{color:var(--muted);font-weight:700}
+.kv span{word-break:break-word}
+.section-title{font-size:.72rem;color:var(--accent);font-weight:800;margin:16px 0 8px;padding-top:10px;border-top:1px solid var(--line)}
+.mini-list{display:flex;flex-direction:column;gap:6px}
+.mini-item{background:var(--surface2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.68rem}
+.action-row{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+.action-btn{border:1px solid var(--line-strong);background:var(--surface2);color:var(--ink);border-radius:10px;padding:8px 14px;font-size:.68rem;font-weight:700}
+.action-btn.danger{border-color:var(--danger);color:var(--danger)}
+.action-btn.accent{border-color:var(--accent);color:var(--accent)}
+
+@media (max-width:760px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;flex-direction:row;overflow-x:auto;align-items:center;padding:10px}
+  .brand{border-left:1px solid var(--line);border-bottom:0;margin:0 10px 0 0;padding:0 10px 0 0}
+  .navitem{width:auto;white-space:nowrap}
+  .sidebar-foot{margin-top:0;padding-top:0;border-top:0;margin-right:6px}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+var API_BASE=(window.ADMIN_API_BASE||'https://block-backend-v9t9.onrender.com').replace(/\/+$/,'');
+var TOKEN_KEY='block_admin_token';
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+function fmtDate(d){if(!d)return '—';try{return new Date(d).toLocaleString('fa-IR')}catch(e){return String(d)}}
+function personName(p){if(!p)return '—';var n=[p.firstName,p.lastName].filter(Boolean).join(' ');return n||p.phoneNumber||p.id||'—'}
+
+function getToken(){try{return localStorage.getItem(TOKEN_KEY)}catch(e){return null}}
+function setToken(t){try{localStorage.setItem(TOKEN_KEY,t)}catch(e){}}
+function clearToken(){try{localStorage.removeItem(TOKEN_KEY)}catch(e){}}
+
+function api(path,opts){
+  opts=opts||{};
+  var headers=Object.assign({'Content-Type':'application/json'},opts.headers||{});
+  var token=getToken();
+  if(token)headers.Authorization='Bearer '+token;
+  return fetch(API_BASE+path,{method:opts.method||'GET',headers:headers,body:opts.body?JSON.stringify(opts.body):undefined})
+    .then(function(res){
+      return res.json().catch(function(){return {}}).then(function(data){
+        if(res.status===401){clearToken();state.page='login';render();}
+        if(!res.ok){var err=new Error(data.message||'خطای سرور');err.status=res.status;throw err}
+        return data;
+      });
+    });
+}
+
+var ROLE_LABELS={ENGINEER:'مهندس',CONTRACTOR:'پیمانکار',COMPANY:'شرکت',SPECIALIST:'متخصص',WORKER:'کارگر',MACHINERY:'ماشین‌آلات',STORE:'فروشگاه',MATERIALS_SUPPLIER:'تأمین‌کننده مصالح',GENERAL:'عمومی'};
+var STATUS_LABELS={ACTIVE:'فعال',MATCHED:'جفت‌شده',CLOSED:'بسته',PENDING:'در انتظار',ACCEPTED:'پذیرفته‌شده',DECLINED:'ردشده',PROPOSED:'پیشنهادی',AGREED:'توافق‌شده',INPROGRESS:'در حال انجام',DONE:'انجام‌شده',CONFIRMED:'تأییدشده'};
+function statusBadge(s){
+  var cls='blue';
+  if(['CLOSED','DECLINED'].indexOf(s)>-1)cls='red';
+  else if(['ACTIVE','ACCEPTED','DONE','CONFIRMED'].indexOf(s)>-1)cls='green';
+  else if(['PENDING','PROPOSED','MATCHED','AGREED','INPROGRESS'].indexOf(s)>-1)cls='orange';
+  return '<span class="badge '+cls+'">'+(STATUS_LABELS[s]||s)+'</span>';
+}
+
+var NAV=[
+  {key:'dashboard',label:'داشبورد'},
+  {key:'users',label:'کاربران'},
+  {key:'ads',label:'آگهی‌ها'},
+  {key:'requests',label:'درخواست‌ها'},
+  {key:'projects',label:'پروژه‌ها'},
+  {key:'ratings',label:'امتیازها'},
+  {key:'guarantors',label:'ضامن‌ها'},
+  {key:'conversations',label:'گفتگوها'}
+];
+
+var state={
+  page: getToken() ? 'dashboard' : 'login',
+  loading:false,
+  loginError:'',
+  data:{},
+  query:{ users:{page:1,search:'',role:'',verified:''}, ads:{page:1,search:'',status:'',type:''}, requests:{page:1,status:''}, projects:{page:1,stage:''}, ratings:{page:1}, guarantors:{page:1,status:''}, conversations:{page:1} },
+  modal:null
+};
+
+function render(){
+  var root=document.getElementById('root');
+  if(state.page==='login'){root.innerHTML=renderLogin();return}
+  root.innerHTML=renderApp();
+  if(state.modal)renderModalInto();
+}
+
+function renderLogin(){
+  return '<div class="login-wrap"><div class="login-card">'
+    +'<img src="assets/logo.png" alt="بلوک">'
+    +'<h2>پنل مدیریت بلوک</h2><p>ورود مخصوص مدیران سامانه</p>'
+    +'<div class="login-error" id="loginErr" style="'+(state.loginError?'display:block':'')+'">'+esc(state.loginError)+'</div>'
+    +'<div class="field"><label>نام کاربری</label><input id="adminUser" autocomplete="username"></div>'
+    +'<div class="field"><label>رمز عبور</label><input id="adminPass" type="password" autocomplete="current-password"></div>'
+    +'<button class="btn-primary" id="loginBtn" onclick="doLogin()">ورود</button>'
+    +'</div></div>';
+}
+
+function doLogin(){
+  var username=document.getElementById('adminUser').value.trim();
+  var password=document.getElementById('adminPass').value;
+  var btn=document.getElementById('loginBtn');
+  btn.disabled=true;btn.textContent='در حال ورود...';
+  api('/api/admin/login',{method:'POST',body:{username:username,password:password}})
+    .then(function(res){setToken(res.token);state.page='dashboard';state.loginError='';render();loadCurrentPage();})
+    .catch(function(e){state.loginError=e.message||'ورود ناموفق بود';render();
+      var i=document.getElementById('adminPass');if(i)i.focus();
+    });
+}
+
+function logout(){clearToken();state.page='login';render()}
+
+function renderApp(){
+  return '<div class="app">'
+    +'<div class="sidebar">'
+      +'<div class="brand"><img src="assets/logo.png" alt=""><div><b>بلوک</b><span>پنل مدیریت</span></div></div>'
+      +NAV.map(function(n){return '<button class="navitem'+(state.page===n.key?' active':'')+'" onclick="goPage(\''+n.key+'\')">'+n.label+'</button>'}).join('')
+      +'<div class="sidebar-foot"><button class="logout-btn" onclick="logout()">خروج از پنل</button></div>'
+    +'</div>'
+    +'<div class="main">'+renderPageContent()+'</div>'
+    +'<div class="overlay" id="overlay" hidden><div class="modal" id="modalBody"></div></div>'
+  +'</div>';
+}
+
+function goPage(key){state.page=key;render();loadCurrentPage()}
+
+function pageMeta(key){
+  var m={dashboard:['داشبورد','نمای کلی از وضعیت سامانه'],users:['کاربران','مدیریت حساب‌های ثبت‌شده'],ads:['آگهی‌ها','آگهی‌های کار و نیروی کار'],requests:['درخواست‌ها','درخواست‌های همکاری بین کاربران'],projects:['پروژه‌ها','پروژه‌های توافق‌شده بین طرفین'],ratings:['امتیازها','بازخوردهای ثبت‌شده پس از پروژه'],guarantors:['ضامن‌ها','افراد معرفی‌شده به‌عنوان ضامن'],conversations:['گفتگوها','گفتگوهای بین کاربران']};
+  return m[key]||['—',''];
+}
+
+function renderPageContent(){
+  var meta=pageMeta(state.page);
+  var head='<div class="pagehead"><div><h1>'+meta[0]+'</h1><p>'+meta[1]+'</p></div></div>';
+  if(state.page==='dashboard')return head+renderDashboard();
+  if(state.page==='users')return head+renderToolbarUsers()+renderTable('users');
+  if(state.page==='ads')return head+renderToolbarAds()+renderTable('ads');
+  if(state.page==='requests')return head+renderToolbarRequests()+renderTable('requests');
+  if(state.page==='projects')return head+renderToolbarProjects()+renderTable('projects');
+  if(state.page==='ratings')return head+renderTable('ratings');
+  if(state.page==='guarantors')return head+renderToolbarGuarantors()+renderTable('guarantors');
+  if(state.page==='conversations')return head+renderTable('conversations');
+  return head;
+}
+
+/* ---------------- Dashboard ---------------- */
+function renderDashboard(){
+  var s=state.data.stats;
+  if(!s)return '<div class="loading-row">در حال بارگذاری...</div>';
+  var t=s.totals;
+  var cards=[
+    ['کاربران',t.users],['کاربران تأییدشده',t.verifiedUsers],['آگهی‌ها',t.ads],['آگهی‌های فعال',t.activeAds],
+    ['درخواست‌ها',t.requests],['درخواست‌های در انتظار',t.pendingRequests],['پروژه‌ها',t.projects],
+    ['امتیازها',t.ratings],['ضامن‌ها',t.guarantors],['گفتگوها',t.conversations],['پیام‌ها',t.messages]
+  ];
+  var html='<div class="stat-grid">'+cards.map(function(c){return '<div class="stat-card"><b>'+c[1]+'</b><span>'+c[0]+'</span></div>'}).join('')+'</div>';
+  html+=breakdownPanel('کاربران به تفکیک نقش',s.usersByRole,function(r){return ROLE_LABELS[r.role]||r.role});
+  html+=breakdownPanel('آگهی‌ها به تفکیک وضعیت',s.adsByStatus,function(r){return STATUS_LABELS[r.status]||r.status});
+  html+=breakdownPanel('درخواست‌ها به تفکیک وضعیت',s.requestsByStatus,function(r){return STATUS_LABELS[r.status]||r.status});
+  html+=breakdownPanel('پروژه‌ها به تفکیک مرحله',s.projectsByStage,function(r){return STATUS_LABELS[r.stage]||r.stage});
+  return html;
+}
+function breakdownPanel(title,rows,labelFn){
+  if(!rows||!rows.length)return '';
+  var max=Math.max.apply(null,rows.map(function(r){return r.count}));
+  return '<div class="panel"><h3>'+title+'</h3>'+rows.map(function(r){
+    var pct=max?Math.round(r.count/max*100):0;
+    return '<div class="bar-row"><span>'+labelFn(r)+'</span><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><b>'+r.count+'</b></div>';
+  }).join('')+'</div>';
+}
+
+/* ---------------- Toolbars ---------------- */
+function renderToolbarUsers(){
+  var q=state.query.users;
+  return '<div class="toolbar">'
+    +'<input placeholder="جستجو بر اساس نام یا شماره موبایل" value="'+esc(q.search)+'" oninput="setQuery(\'users\',\'search\',this.value)" onkeydown="if(event.key===\'Enter\')reloadList(\'users\')">'
+    +'<select onchange="setQuery(\'users\',\'role\',this.value)">'+roleOptions(q.role)+'</select>'
+    +'<select onchange="setQuery(\'users\',\'verified\',this.value)">'
+      +'<option value=""'+(q.verified===''?' selected':'')+'>همه</option>'
+      +'<option value="true"'+(q.verified==='true'?' selected':'')+'>تأییدشده</option>'
+      +'<option value="false"'+(q.verified==='false'?' selected':'')+'>تأییدنشده</option>'
+    +'</select>'
+  +'</div>';
+}
+function roleOptions(sel){
+  var out='<option value=""'+(sel===''?' selected':'')+'>همه نقش‌ها</option>';
+  Object.keys(ROLE_LABELS).forEach(function(k){out+='<option value="'+k+'"'+(sel===k?' selected':'')+'>'+ROLE_LABELS[k]+'</option>'});
+  return out;
+}
+function renderToolbarAds(){
+  var q=state.query.ads;
+  return '<div class="toolbar">'
+    +'<input placeholder="جستجو در عنوان یا توضیحات" value="'+esc(q.search)+'" oninput="setQuery(\'ads\',\'search\',this.value)" onkeydown="if(event.key===\'Enter\')reloadList(\'ads\')">'
+    +'<select onchange="setQuery(\'ads\',\'status\',this.value)"><option value="">همه وضعیت‌ها</option><option value="ACTIVE"'+(q.status==='ACTIVE'?' selected':'')+'>فعال</option><option value="MATCHED"'+(q.status==='MATCHED'?' selected':'')+'>جفت‌شده</option><option value="CLOSED"'+(q.status==='CLOSED'?' selected':'')+'>بسته</option></select>'
+    +'<select onchange="setQuery(\'ads\',\'type\',this.value)"><option value="">همه انواع</option><option value="WORK"'+(q.type==='WORK'?' selected':'')+'>کار</option><option value="WORKFORCE"'+(q.type==='WORKFORCE'?' selected':'')+'>نیروی کار</option><option value="CONSULT"'+(q.type==='CONSULT'?' selected':'')+'>مشاوره</option></select>'
+  +'</div>';
+}
+function renderToolbarRequests(){
+  var q=state.query.requests;
+  return '<div class="toolbar"><select onchange="setQuery(\'requests\',\'status\',this.value)"><option value="">همه وضعیت‌ها</option><option value="PENDING"'+(q.status==='PENDING'?' selected':'')+'>در انتظار</option><option value="ACCEPTED"'+(q.status==='ACCEPTED'?' selected':'')+'>پذیرفته‌شده</option><option value="DECLINED"'+(q.status==='DECLINED'?' selected':'')+'>ردشده</option></select></div>';
+}
+function renderToolbarProjects(){
+  var q=state.query.projects;
+  var stages=['PROPOSED','AGREED','INPROGRESS','DONE','DECLINED'];
+  return '<div class="toolbar"><select onchange="setQuery(\'projects\',\'stage\',this.value)"><option value="">همه مراحل</option>'+stages.map(function(s){return '<option value="'+s+'"'+(q.stage===s?' selected':'')+'>'+(STATUS_LABELS[s]||s)+'</option>'}).join('')+'</select></div>';
+}
+function renderToolbarGuarantors(){
+  var q=state.query.guarantors;
+  return '<div class="toolbar"><select onchange="setQuery(\'guarantors\',\'status\',this.value)"><option value="">همه وضعیت‌ها</option><option value="PENDING"'+(q.status==='PENDING'?' selected':'')+'>در انتظار</option><option value="CONFIRMED"'+(q.status==='CONFIRMED'?' selected':'')+'>تأییدشده</option><option value="DECLINED"'+(q.status==='DECLINED'?' selected':'')+'>ردشده</option></select></div>';
+}
+
+function setQuery(key,field,value){
+  state.query[key][field]=value;
+  state.query[key].page=1;
+  reloadList(key);
+}
+
+/* ---------------- Generic table ---------------- */
+var TABLE_COLUMNS={
+  users:['نام','موبایل','نقش‌ها','تأییدشده','تاریخ ثبت‌نام'],
+  ads:['عنوان','نویسنده','نوع','وضعیت','تاریخ'],
+  requests:['آگهی','از','به','وضعیت','تاریخ'],
+  projects:['عنوان','طرف اول','طرف دوم','مرحله','تاریخ'],
+  ratings:['امتیازدهنده','گیرنده','پروژه','امتیاز','تاریخ'],
+  guarantors:['صاحب حساب','نام ضامن','شماره ضامن','وضعیت','تاریخ'],
+  conversations:['طرف اول','طرف دوم','تعداد پیام','آخرین به‌روزرسانی']
+};
+
+function renderTable(key){
+  var d=state.data[key];
+  var cols=TABLE_COLUMNS[key];
+  var body;
+  if(!d)body='<tr><td colspan="'+cols.length+'"><div class="loading-row">در حال بارگذاری...</div></td></tr>';
+  else if(!d.items.length)body='<tr><td colspan="'+cols.length+'"><div class="empty-state">موردی یافت نشد.</div></td></tr>';
+  else body=d.items.map(function(item){return renderRow(key,item)}).join('');
+  var html='<div class="table-wrap"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
+  if(d&&d.meta)html+=renderPager(key,d.meta);
+  return html;
+}
+
+function renderRow(key,item){
+  if(key==='users'){
+    return '<tr onclick="openDetail(\'users\',\''+item.id+'\')"><td>'+esc(personName(item))+'</td><td dir="ltr">'+esc(item.phoneNumber)+'</td><td>'+(item.roleProfiles||[]).map(function(r){return ROLE_LABELS[r.role]||r.role}).join('، ')+'</td><td>'+(item.verified?'<span class="badge green">تأییدشده</span>':'<span class="badge">تأییدنشده</span>')+'</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='ads'){
+    return '<tr onclick="openDetail(\'ads\',\''+item.id+'\')"><td>'+esc(item.title)+'</td><td>'+esc(personName(item.author))+'</td><td>'+esc(item.type)+'</td><td>'+statusBadge(item.status)+'</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='requests'){
+    return '<tr onclick="openDetail(\'requests\',\''+item.id+'\')"><td>'+esc(item.ad&&item.ad.title)+'</td><td>'+esc(personName(item.fromUser))+'</td><td>'+esc(personName(item.toUser))+'</td><td>'+statusBadge(item.status)+'</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='projects'){
+    return '<tr onclick="openDetail(\'projects\',\''+item.id+'\')"><td>'+esc(item.title)+'</td><td>'+esc(personName(item.partyA))+'</td><td>'+esc(personName(item.partyB))+'</td><td>'+statusBadge(item.stage)+'</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='ratings'){
+    return '<tr><td>'+esc(personName(item.rater))+'</td><td>'+esc(personName(item.ratee))+'</td><td>'+esc(item.project&&item.project.title)+'</td><td>'+esc(item.value)+' / 5</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='guarantors'){
+    return '<tr><td>'+esc(personName(item.user))+'</td><td>'+esc(item.name)+'</td><td dir="ltr">'+esc(item.phoneNumber)+'</td><td>'+statusBadge(item.status)+'</td><td>'+fmtDate(item.createdAt)+'</td></tr>';
+  }
+  if(key==='conversations'){
+    return '<tr onclick="openDetail(\'conversations\',\''+item.id+'\')"><td>'+esc(personName(item.participantA))+'</td><td>'+esc(personName(item.participantB))+'</td><td>'+(item._count?item._count.messages:0)+'</td><td>'+fmtDate(item.updatedAt)+'</td></tr>';
+  }
+  return '';
+}
+
+function renderPager(key,meta){
+  return '<div class="pager">'
+    +'<button '+(meta.page<=1?'disabled':'')+' onclick="changePage(\''+key+'\',-1)">قبلی</button>'
+    +'<span>صفحه '+meta.page+' از '+meta.totalPages+' ('+meta.total+' مورد)</span>'
+    +'<button '+(meta.page>=meta.totalPages?'disabled':'')+' onclick="changePage(\''+key+'\',1)">بعدی</button>'
+  +'</div>';
+}
+function changePage(key,delta){state.query[key].page+=delta;reloadList(key)}
+
+/* ---------------- Data loading ---------------- */
+function qsFromQuery(q){
+  var parts=[];
+  Object.keys(q).forEach(function(k){if(q[k]!==''&&q[k]!=null)parts.push(k+'='+encodeURIComponent(q[k]))});
+  return parts.length?'?'+parts.join('&'):'';
+}
+function reloadList(key){
+  var endpointMap={users:'/api/admin/users',ads:'/api/admin/ads',requests:'/api/admin/requests',projects:'/api/admin/projects',ratings:'/api/admin/ratings',guarantors:'/api/admin/guarantors',conversations:'/api/admin/conversations'};
+  api(endpointMap[key]+qsFromQuery(state.query[key])).then(function(res){state.data[key]=res;render()}).catch(function(e){console.error(e)});
+}
+function loadCurrentPage(){
+  if(state.page==='dashboard'){api('/api/admin/stats').then(function(res){state.data.stats=res;render()}).catch(function(e){console.error(e)});return}
+  if(TABLE_COLUMNS[state.page])reloadList(state.page);
+}
+
+/* ---------------- Detail modal ---------------- */
+function openOverlay(html){state.modal=html;document.getElementById('overlay').hidden=false;document.getElementById('modalBody').innerHTML=html}
+function closeModal(){state.modal=null;var o=document.getElementById('overlay');if(o)o.hidden=true}
+function renderModalInto(){var b=document.getElementById('modalBody');if(b)b.innerHTML=state.modal}
+
+function openDetail(key,id){
+  var endpointMap={users:'/api/admin/users/',ads:'/api/admin/ads/',requests:'/api/admin/requests/',projects:'/api/admin/projects/',conversations:'/api/admin/conversations/'};
+  openOverlay('<div class="loading-row">در حال بارگذاری جزئیات...</div>');
+  document.getElementById('overlay').hidden=false;
+  api(endpointMap[key]+id).then(function(res){
+    if(key==='users')openOverlay(renderUserDetail(res.user));
+    else if(key==='ads')openOverlay(renderAdDetail(res.ad));
+    else if(key==='requests')openOverlay(renderRequestDetail(res.request));
+    else if(key==='projects')openOverlay(renderProjectDetail(res.project));
+    else if(key==='conversations')openOverlay(renderConversationDetail(res.conversation));
+  }).catch(function(e){openOverlay('<div class="empty-state">خطا در دریافت اطلاعات: '+esc(e.message)+'</div>')});
+}
+
+function modalShell(title,bodyHtml,actionsHtml){
+  return '<div class="modal-head"><h3>'+title+'</h3><button class="modal-close" onclick="closeModal()">✕</button></div>'+bodyHtml+(actionsHtml?'<div class="action-row">'+actionsHtml+'</div>':'');
+}
+function kv(label,value){return '<div class="kv"><b>'+label+'</b><span>'+value+'</span></div>'}
+
+function renderUserDetail(u){
+  var body=kv('نام',esc(personName(u)))+kv('موبایل','<span dir="ltr">'+esc(u.phoneNumber)+'</span>')+kv('جنسیت',u.gender==='MALE'?'مرد':u.gender==='FEMALE'?'زن':'—')
+    +kv('تولد',fmtDate(u.birthDate))+kv('استان تولد',esc(u.birthProvince||'—'))+kv('تأییدشده',u.verified?'بله':'خیر')+kv('ثبت‌نام',fmtDate(u.createdAt));
+  (u.roleProfiles||[]).forEach(function(rp){
+    body+='<div class="section-title">نقش: '+(ROLE_LABELS[rp.role]||rp.role)+'</div>';
+    body+=kv('محل فعالیت',esc([rp.workProvince,rp.workCity].filter(Boolean).join('، ')||'—'));
+    body+=kv('شعاع فعالیت',rp.activityRadius?rp.activityRadius+' کیلومتر':'—');
+    body+=kv('پروفایل کامل',rp.profileComplete?'بله':'خیر');
+    if(rp.catalogItems&&rp.catalogItems.length){
+      body+='<div class="mini-list">'+rp.catalogItems.map(function(c){return '<div class="mini-item">'+esc(c.name)+(c.category?' · '+esc(c.category):'')+(c.rateAmount?' · '+c.rateAmount:'')+(c.price?' · '+c.price+' تومان':'')+'</div>'}).join('')+'</div>';
+    }
+  });
+  if(u.ads&&u.ads.length){
+    body+='<div class="section-title">آگهی‌ها ('+u.ads.length+')</div><div class="mini-list">'+u.ads.map(function(a){return '<div class="mini-item">'+esc(a.title)+' — '+statusBadge(a.status)+'</div>'}).join('')+'</div>';
+  }
+  if(u.guarantorsOfMe&&u.guarantorsOfMe.length){
+    body+='<div class="section-title">ضامن‌های معرفی‌شده ('+u.guarantorsOfMe.length+')</div><div class="mini-list">'+u.guarantorsOfMe.map(function(g){return '<div class="mini-item">'+esc(g.name)+' — '+statusBadge(g.status)+'</div>'}).join('')+'</div>';
+  }
+  var actions='<button class="action-btn accent" onclick="toggleVerify(\''+u.id+'\','+(!u.verified)+')">'+(u.verified?'لغو تأیید':'تأیید کاربر')+'</button>'
+    +'<button class="action-btn danger" onclick="confirmDeleteUser(\''+u.id+'\')">حذف کاربر</button>';
+  return modalShell('جزئیات کاربر',body,actions);
+}
+
+function renderAdDetail(a){
+  var body=kv('عنوان',esc(a.title))+kv('نویسنده',esc(personName(a.author)))+kv('نوع',esc(a.type))+kv('وضعیت',statusBadge(a.status))
+    +kv('شهر',esc([a.province,a.city].filter(Boolean).join('، ')||'—'))+kv('توضیحات',esc(a.description||'—'))
+    +kv('نقش‌های هدف',(a.targetRoles||[]).map(function(r){return ROLE_LABELS[r]||r}).join('، ')||'—')
+    +kv('ثبت',fmtDate(a.createdAt));
+  if(a.requests&&a.requests.length)body+='<div class="section-title">درخواست‌های این آگهی ('+a.requests.length+')</div><div class="mini-list">'+a.requests.map(function(r){return '<div class="mini-item">'+statusBadge(r.status)+'</div>'}).join('')+'</div>';
+  var actions='<button class="action-btn danger" onclick="confirmDeleteAd(\''+a.id+'\')">حذف آگهی</button>';
+  return modalShell('جزئیات آگهی',body,actions);
+}
+
+function renderRequestDetail(r){
+  var body=kv('آگهی',esc(r.ad&&r.ad.title))+kv('از',esc(personName(r.fromUser)))+kv('به',esc(personName(r.toUser)))+kv('وضعیت',statusBadge(r.status))+kv('توضیح',esc(r.detail||'—'))+kv('ثبت',fmtDate(r.createdAt));
+  if(r.project)body+=kv('پروژه مرتبط',statusBadge(r.project.stage));
+  return modalShell('جزئیات درخواست',body);
+}
+
+function renderProjectDetail(p){
+  var body=kv('عنوان',esc(p.title))+kv('طرف اول',esc(personName(p.partyA)))+kv('طرف دوم',esc(personName(p.partyB)))+kv('مرحله',statusBadge(p.stage))+kv('تاریخ شروع',fmtDate(p.startDate))+kv('یادداشت شروع',esc(p.startNote||'—'))+kv('ثبت',fmtDate(p.createdAt));
+  if(p.ratings&&p.ratings.length)body+='<div class="section-title">امتیازها</div><div class="mini-list">'+p.ratings.map(function(r){return '<div class="mini-item">'+r.value+' / 5 — '+esc(r.comment||'بدون نظر')+'</div>'}).join('')+'</div>';
+  return modalShell('جزئیات پروژه',body);
+}
+
+function renderConversationDetail(c){
+  var body=kv('طرف اول',esc(personName(c.participantA)))+kv('طرف دوم',esc(personName(c.participantB)))+kv('شروع',fmtDate(c.createdAt));
+  body+='<div class="section-title">پیام‌ها ('+(c.messages?c.messages.length:0)+')</div>';
+  body+='<div class="mini-list">'+(c.messages||[]).map(function(m){
+    var senderName=m.senderId===c.participantA.id?personName(c.participantA):m.senderId===c.participantB.id?personName(c.participantB):'سیستم';
+    return '<div class="mini-item"><b>'+esc(senderName)+':</b> '+esc(m.text||('['+m.type+']'))+'</div>';
+  }).join('')+'</div>';
+  return modalShell('جزئیات گفتگو',body);
+}
+
+function toggleVerify(id,value){
+  api('/api/admin/users/'+id+'/verify',{method:'PATCH',body:{verified:value}})
+    .then(function(){closeModal();reloadList('users')})
+    .catch(function(e){alert(e.message)});
+}
+function confirmDeleteUser(id){
+  if(!confirm('آیا از حذف این کاربر مطمئن هستید؟ این عملیات همه اطلاعات مرتبط را نیز حذف می‌کند و قابل بازگشت نیست.'))return;
+  api('/api/admin/users/'+id,{method:'DELETE'}).then(function(){closeModal();reloadList('users')}).catch(function(e){alert(e.message)});
+}
+function confirmDeleteAd(id){
+  if(!confirm('آیا از حذف این آگهی مطمئن هستید؟'))return;
+  api('/api/admin/ads/'+id,{method:'DELETE'}).then(function(){closeModal();reloadList('ads')}).catch(function(e){alert(e.message)});
+}
+
+render();
+if(state.page!=='login')loadCurrentPage();
+</script>
+</body>
+</html>
