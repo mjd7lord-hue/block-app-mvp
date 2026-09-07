@@ -10,6 +10,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com/">
 <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <style>
 *{box-sizing:border-box}
 html,body{margin:0;min-height:100%;background:#dfe6e3;font-family:"Vazirmatn",Tahoma,Arial,sans-serif}
@@ -322,6 +324,8 @@ p{color:var(--muted);margin:0}
   linear-gradient(var(--line) 1px,transparent 1px) 0 0/26px 26px,
   linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/26px 26px,
   var(--surface2);overflow:hidden;margin-bottom:10px}
+#exploreLeafletMap{height:100%;font-family:inherit}
+.map-dark-tiles .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(0.92) contrast(0.9)}
 .mappin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;text-align:center}
 .mappin i{display:block;width:14px;height:14px;border-radius:50% 50% 50% 0;background:var(--accent);border:2px solid var(--surface);transform:rotate(-45deg);margin:0 auto}
 .mappin span{display:none;position:absolute;bottom:20px;right:50%;transform:translateX(50%);background:var(--ink);color:var(--bg);font-size:.44rem;padding:3px 7px;border-radius:6px;white-space:nowrap}
@@ -666,6 +670,50 @@ var PROVINCE_CITIES={
   "خراسان شمالی":["بجنورد","شیروان","اسفراین","سایر"],
   "اردبیل":["اردبیل","مشگین‌شهر","پارس‌آباد","خلخال","سایر"]
 };
+var CITY_COORDS={
+  "تهران":[35.6892,51.3890],"شهریار":[35.6555,51.0566],"اسلامشهر":[35.5449,51.1959],"ری":[35.5930,51.4370],"پردیس":[35.7590,51.7920],
+  "بندرعباس":[27.1865,56.2808],"قشم":[26.9581,56.2719],"میناب":[27.1467,57.0801],"بندرلنگه":[26.5579,54.8807],"کیش":[26.5578,53.9829],
+  "اصفهان":[32.6546,51.6680],"کاشان":[33.9850,51.4100],"نجف‌آباد":[32.6339,51.3661],"خمینی‌شهر":[32.6997,51.5580],"شاهین‌شهر":[32.8514,51.5556],
+  "شیراز":[29.5918,52.5837],"مرودشت":[29.8834,52.8025],"جهرم":[28.5000,53.5587],"کازرون":[29.6199,51.6537],"فسا":[28.9383,53.6482],
+  "مشهد":[36.2605,59.6168],"نیشابور":[36.2133,58.7958],"سبزوار":[36.2126,57.6819],"تربت حیدریه":[35.2727,59.2192],"کاشمر":[35.2394,58.4658],
+  "تبریز":[38.0800,46.2919],"مراغه":[37.3900,46.2400],"میانه":[37.4300,47.7100],"اهر":[38.4700,47.0700],"مرند":[38.4300,45.7700],
+  "ارومیه":[37.5527,45.0761],"خوی":[38.5500,44.9500],"میاندوآب":[36.9700,46.1000],"بوکان":[36.5200,46.2100],"سلماس":[38.1950,44.7650],
+  "اهواز":[31.3183,48.6706],"آبادان":[30.3392,48.3043],"خرمشهر":[30.4400,48.1800],"دزفول":[32.3800,48.4000],"بندر ماهشهر":[30.5589,49.1986],
+  "ساری":[36.5633,53.0601],"بابل":[36.5513,52.6790],"آمل":[36.4700,52.3500],"قائم‌شهر":[36.4640,52.8580],"نوشهر":[36.6500,51.5000],
+  "رشت":[37.2809,49.5832],"بندر انزلی":[37.4737,49.4602],"لاهیجان":[37.2080,50.0050],"آستارا":[38.4260,48.8730],"لنگرود":[37.1980,50.1500],
+  "کرج":[35.8400,50.9391],"نظرآباد":[35.9500,50.6000],"فردیس":[35.7300,50.9900],"اشتهارد":[35.7250,50.3450],
+  "کرمان":[30.2839,57.0834],"رفسنجان":[30.4067,55.9950],"سیرجان":[29.4520,55.6814],"جیرفت":[28.6780,57.7280],"بم":[29.1060,58.3570],
+  "یزد":[31.8974,54.3569],"میبد":[32.2500,54.0170],"اردکان":[32.3100,54.0180],"بافق":[31.6060,55.4090],
+  "قم":[34.6399,50.8759],
+  "سمنان":[35.5769,53.3960],"شاهرود":[36.4180,55.0090],"دامغان":[36.1670,54.3480],
+  "اراک":[34.0917,49.6892],"ساوه":[35.0213,50.3564],"خمین":[33.6440,50.0790],"محلات":[33.9070,50.4620],
+  "همدان":[34.7992,48.5146],"ملایر":[34.2960,48.8280],"نهاوند":[34.1900,48.3720],"تویسرکان":[34.5460,48.4470],
+  "سنندج":[35.3149,46.9923],"سقز":[36.2500,46.2700],"مریوان":[35.5250,46.1750],"بانه":[35.9950,45.8850],
+  "کرمانشاه":[34.3277,47.0778],"اسلام‌آباد غرب":[34.1090,46.5280],"سنقر":[34.7940,47.5980],
+  "خرم‌آباد":[33.4878,48.3558],"بروجرد":[33.8940,48.7530],"الیگودرز":[33.4000,49.7000],"دورود":[33.4900,49.0600],
+  "ایلام":[33.6374,46.4227],"دهلران":[32.6940,47.2680],"آبدانان":[32.9920,47.4190],
+  "بوشهر":[28.9684,50.8385],"برازجان":[29.2650,51.2170],"گناوه":[29.5800,50.5300],"کنگان":[27.8390,52.0640],
+  "زنجان":[36.6736,48.4787],"ابهر":[36.1500,49.2200],"خدابنده":[36.1300,48.5800],
+  "قزوین":[36.2688,50.0041],"تاکستان":[36.0670,49.6910],
+  "گرگان":[36.8393,54.4347],"گنبد کاووس":[37.2500,55.1750],"علی‌آباد کتول":[36.9200,54.8700],
+  "زاهدان":[29.4963,60.8629],"چابهار":[25.2919,60.6430],"ایرانشهر":[27.2030,60.6840],"زابل":[31.0290,61.4980],
+  "یاسوج":[30.6683,51.5876],"گچساران":[30.3580,50.7980],"دوگنبدان":[30.3580,50.7980],
+  "شهرکرد":[32.3256,50.8644],"بروجن":[31.9660,51.2890],"فارسان":[32.2610,50.5680],
+  "بیرجند":[32.8649,59.2262],"قائن":[33.7290,59.1780],"فردوس":[34.0170,58.1680],
+  "بجنورد":[37.4747,57.3290],"شیروان":[37.4090,57.9250],"اسفراین":[37.0800,57.5170],
+  "اردبیل":[38.2498,48.2933],"مشگین‌شهر":[38.3900,47.6800],"پارس‌آباد":[39.6500,47.9200],"خلخال":[37.6200,48.5300]
+};
+var PROVINCE_CENTER={};
+Object.keys(PROVINCE_CITIES).forEach(function(p){
+  var first=PROVINCE_CITIES[p].find(function(c){return CITY_COORDS[c]});
+  if(first)PROVINCE_CENTER[p]=CITY_COORDS[first];
+});
+function resolveItemCoords(item,idx){
+  var base=(item&&(CITY_COORDS[item.city]||PROVINCE_CENTER[item.province]))||null;
+  if(!base)return null;
+  var i=idx||0,jitterLat=((i%7)-3)*0.008,jitterLng=(((i*3)%7)-3)*0.008;
+  return [base[0]+jitterLat,base[1]+jitterLng];
+}
 const roleOrder=["engineer","contractor","specialist","worker","general","machinery","store","materialsSupplier"];
 const BUSINESS_ROLES=["machinery","store","materialsSupplier"];
 /* MVP: hide the 3 business/supplier roles from every user-facing entry point (role picker, explore).
@@ -2055,6 +2103,28 @@ var EXPLORE_SORT_LABELS={recommended:'پیشنهاد بلوک',nearest:'نزدی
 function setExploreCity(c,fromSheet){state.exploreCity=c;if(fromSheet)openExploreFilters();else render()}
 function setExploreRole(r,fromSheet){state.exploreRole=r;if(fromSheet)openExploreFilters();else render()}
 function setExploreView(v){state.exploreView=v;render()}
+var _exploreMap=null;
+function destroyExploreMap(){if(_exploreMap){_exploreMap.remove();_exploreMap=null}}
+function initExploreMap(){
+  var el=document.getElementById('exploreLeafletMap');
+  destroyExploreMap();
+  if(!el||typeof L==='undefined')return;
+  var isDark=state.mode==='dark';
+  _exploreMap=L.map(el,{zoomControl:true,attributionControl:true}).setView([32.4279,53.6880],5);
+  el.classList[isDark?'add':'remove']('map-dark-tiles');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:'abc',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_exploreMap);
+  var items=filteredExploreItems(),pts=[];
+  items.forEach(function(it,idx){
+    var coords=resolveItemCoords(it,idx);
+    if(!coords)return;
+    pts.push(coords);
+    var marker=L.circleMarker(coords,{radius:8,color:'#ffffff',weight:2,fillColor:'#00A3FF',fillOpacity:1}).addTo(_exploreMap);
+    marker.bindTooltip(esc(it.title),{direction:'top',offset:[0,-8]});
+    marker.on('click',function(){if(it.isAd)openAdDetail(it.id);else openPersonProfile(it.person)});
+  });
+  if(pts.length>1)_exploreMap.fitBounds(pts,{padding:[28,28]});
+  else if(pts.length===1)_exploreMap.setView(pts[0],11);
+}
 function setExploreQuery(v){state.exploreQuery=v;render()}
 function ensureExploreFilters(){
   if(!state.exploreFilters)state.exploreFilters={skills:[],experience:'all',availability:'all',range:'all',resultType:'all',verified:false,rating:'all'};
@@ -4140,8 +4210,7 @@ explore:function(){
   var toggleBtn='<button class="explore-view-btn" onclick="setExploreView(\''+(state.exploreView==='cards'?'map':'cards')+'\')">'+icon(state.exploreView==='cards'?'eye':'building',14)+(state.exploreView==='cards'?'نقشه':'کارت‌ها')+'</button>';
   var body='';
   if(state.exploreView==='map'){
-    var pins=items.map(function(it){return '<div class="mappin" style="right:'+it.x+'%;top:'+it.y+'%" onclick="'+openExploreItem(it)+'"><i></i><span>'+esc(it.title)+'</span></div>'}).join('');
-    body='<div class="explore-section-head"><b>'+items.length+' نتیجه روی نقشه</b><span>برای مشاهده لمس کنید</span></div>'+(items.length?'<div class="mapbox">'+pins+'</div>':renderExploreEmpty());
+    body='<div class="explore-section-head"><b>'+items.length+' نتیجه روی نقشه</b><span>برای مشاهده لمس کنید</span></div>'+(items.length?'<div id="exploreLeafletMap" class="mapbox"></div>':renderExploreEmpty());
   }else if(!items.length){
     body=renderExploreEmpty();
   }else{
@@ -4492,6 +4561,8 @@ function render(){
     var el=document.getElementById(activeId);
     if(el){el.focus&&el.focus();if(selStart!=null&&el.setSelectionRange){try{el.setSelectionRange(selStart,selEnd)}catch(e){}}}
   }
+  if(state.page==='explore'&&state.exploreView==='map')requestAnimationFrame(initExploreMap);
+  else destroyExploreMap();
 }
 window.addEventListener('offline',function(){state.online=false;render()});
 window.addEventListener('online',function(){state.online=true;render();toast('اتصال اینترنت برقرار شد')});
