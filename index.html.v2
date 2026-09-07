@@ -2268,12 +2268,21 @@ function renderPublicTrustCard(person,personId){
     var safe=String(skill).replace(/'/g,"\\'");
     return canRequest?'<span class="skill-tap" onclick="openTargetedProject(\''+personId+'\',\''+safe+'\')">'+esc(skill)+'<i>‹</i></span>':'<span>'+esc(skill)+'</span>';
   }).join('');
-  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+esc(person.initials||'ب')+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p></div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div><div class="trust-tier"><b>'+trustTier(score)+'</b><span>براساس سابقهٔ واقعی در بلوک</span></div><div class="trust-facts"><div class="trust-fact"><span>'+(org?'قدمت مجموعه':'سن')+'</span><b>'+esc(person.age||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>'+(org?'محل ثبت':'محل تولد')+'</span><b>'+esc(person.birthPlace||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>سابقهٔ کلی</span><b>'+esc(person.experience||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>محدودهٔ فعالیت</span><b>'+esc(person.activityRange||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>پروژهٔ تکمیل‌شده در بلوک</span><b>'+esc(person.completed||0)+' پروژه</b></div>'+(person.phone?'<div class="trust-fact"><span>شمارهٔ تماس</span><b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b></div>':'')+'</div>'+(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی'+(canRequest?'<em>برای درخواست لمس کنید</em>':'')+'</div><div class="trust-skills">'+skillChips+'</div>':'')+(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>هنوز نظری برای این حساب ثبت نشده است.</p></div>')+actionButton+'<div class="trust-card-brand"><i class="hexlogo-mini">'+appLogo()+'</i><span>صادرشده و تأییدشده در <strong>بلوک</strong></span></div></section>';
+  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+esc(person.initials||'ب')+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p></div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div><div class="trust-tier"><b>'+trustTier(score)+'</b><span>براساس سابقهٔ واقعی در بلوک</span></div><div class="trust-facts"><div class="trust-fact"><span>'+(org?'قدمت مجموعه':'سن')+'</span><b>'+esc(person.age||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>'+(org?'محل ثبت':'محل تولد')+'</span><b>'+esc(person.birthPlace||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>سابقهٔ کلی</span><b>'+esc(person.experience||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>محدودهٔ فعالیت</span><b>'+esc(person.activityRange||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>پروژهٔ تکمیل‌شده در بلوک</span><b>'+esc(person.completed||0)+' پروژه</b></div>'+(person.phone?'<div class="trust-fact trust-fact-phone"><span>شمارهٔ تماس</span>'+(state.trustPhone&&state.trustPhone.revealed?'<b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b>':'<button class="btn-ghost" style="display:flex;align-items:center;gap:3px;padding:0;margin-top:3px;font-size:.5rem" onclick="revealTrustPhone()">'+icon('eye',10)+' نمایش شماره</button>')+'</div>':'')+'</div>'+(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی'+(canRequest?'<em>برای درخواست لمس کنید</em>':'')+'</div><div class="trust-skills">'+skillChips+'</div>':'')+(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>هنوز نظری برای این حساب ثبت نشده است.</p></div>')+actionButton+'<div class="trust-card-brand"><i class="hexlogo-mini">'+appLogo()+'</i><span>صادرشده و تأییدشده در <strong>بلوک</strong></span></div></section>';
 }
-function openTrustCard(id){state.trustPersonId=id;go('trustCard')}
-function openAdTrustCard(){state.trustPersonId='ad';go('trustCard')}
-function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[]}}
-function currentTrustPerson(){if(state.trustPersonId==='self')return myTrustPerson(state.role||'worker');if(state.trustPersonId==='ad')return adTrustPerson(currentAdDetail());return PEOPLE_SEED[state.trustPersonId]||myTrustPerson(state.role||'worker')}
+function resetTrustPhone(){state.trustPhone={loading:false,value:null,revealed:false}}
+function loadRealTrustPhone(userId){
+  if(!userId)return;
+  state.trustPhone={loading:true,value:null,revealed:false};
+  apiRequest('/api/users/'+userId)
+    .then(function(res){state.trustPhone={loading:false,value:(res.user&&res.user.phoneNumber)||null,revealed:false};render()})
+    .catch(function(){state.trustPhone={loading:false,value:null,revealed:false}});
+}
+function revealTrustPhone(){if(state.trustPhone)state.trustPhone.revealed=true;render()}
+function openTrustCard(id){state.trustPersonId=id;resetTrustPhone();if(id!=='self'&&id!=='ad'&&!PEOPLE_SEED[id])loadRealTrustPhone(id);go('trustCard')}
+function openAdTrustCard(){state.trustPersonId='ad';resetTrustPhone();var ad=currentAdDetail();if(ad&&ad.authorUserId)loadRealTrustPhone(ad.authorUserId);go('trustCard')}
+function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[]}}
+function currentTrustPerson(){if(state.trustPersonId==='self')return myTrustPerson(state.role||'worker');if(state.trustPersonId==='ad')return adTrustPerson(currentAdDetail());var seeded=PEOPLE_SEED[state.trustPersonId];if(seeded)return seeded;var real=myTrustPerson(state.role||'worker');real.phone=(state.trustPhone&&state.trustPhone.value)||'';return real}
 function openPersonProfile(id){state.viewingPerson=id;go('viewProfile')}
 function renderPortfolioCards(items){
   if(!items||!items.length)return '<p style="font-size:.58rem">نمونه‌کاری ثبت نشده است.</p>';
@@ -2483,7 +2492,13 @@ function saveProfilePhoto(){
 /* ---------- account, settings & legal ---------- */
 function settingsRow(ic,title,sub,action,danger){return '<button class="settings-row'+(danger?' danger':'')+'" onclick="'+action+'"><i class="settings-row-icon">'+icon(ic,16)+'</i><span class="settings-row-copy"><b>'+esc(title)+'</b><span>'+esc(sub||'')+'</span></span><span class="settings-row-arrow">‹</span></button>'}
 function getAccountPrefs(){if(!state.accountPrefs)state.accountPrefs={publicProfile:true,onlineStatus:true,preciseLocation:false,activitySuggestions:true,publicAge:true,publicBirthPlace:true,publicPhone:false};return state.accountPrefs}
-function toggleAccountPref(key){var prefs=getAccountPrefs();prefs[key]=!prefs[key];render()}
+function toggleAccountPref(key){
+  var prefs=getAccountPrefs();prefs[key]=!prefs[key];render();
+  if(key==='publicPhone'&&getSessionUser()){
+    apiRequest('/api/users/me',{method:'PUT',body:{phoneVisible:prefs.publicPhone}})
+      .catch(function(){prefs.publicPhone=!prefs.publicPhone;render();toast('ذخیره‌سازی تنظیم شماره تماس ناموفق بود','warning')});
+  }
+}
 function toggleLegalConsent(){state.legalConsent=!state.legalConsent;state.legalError=false;render()}
 function isLegalCurrent(){return !!state.legalAcceptedAt&&state.acceptedLegalVersion===LEGAL_VERSION}
 function legalAcceptanceText(){return isLegalCurrent()?'پذیرفته‌شده · نسخهٔ '+esc(state.acceptedLegalVersion):'نیازمند پذیرش نسخهٔ فعلی'}
@@ -2972,6 +2987,7 @@ function isoToJalaliObj(iso){
 }
 function hydrateStateFromUser(user){
   if(!user)return;
+  getAccountPrefs().publicPhone=!!user.phoneVisible;
   var roleProfile=(user.roleProfiles||[])[0];
   if(!roleProfile)return;
   var role=backendRoleToFrontend(roleProfile.role);
