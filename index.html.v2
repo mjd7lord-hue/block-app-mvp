@@ -2614,7 +2614,7 @@ function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
 
 /* ---------- block backend integration ---------- */
-var API_BASE=window.BLOCK_API_BASE||'https://block-backend-v9t9.onrender.com';
+var API_BASE=window.BLOCK_API_BASE||'⁠[https://api.blooko.ir](https://api.blooko.ir)⁠';
 function apiRequest(path,options){
   options=options||{};
   var headers=Object.assign({'Content-Type':'application/json'},options.headers||{});
