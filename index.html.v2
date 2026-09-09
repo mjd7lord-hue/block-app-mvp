@@ -1918,7 +1918,7 @@ function renderPortfolioSheet(){
   var html='<h3>افزودن نمونه‌کار</h3>'
     +'<div class="field"><label>عنوان</label><input class="input" value="'+esc(d.title)+'" oninput="setPortfolioDraft(\'title\',this.value)"></div>'
     +'<div class="field"><label>شهر</label><input class="input" value="'+esc(d.city)+'" oninput="setPortfolioDraft(\'city\',this.value)"></div>'
-    +'<div class="field"><label>عکس</label>'+(d.image?'<img src="'+d.image+'" alt="پیش‌نمایش عکس نمونه‌کار" style="width:100%;height:100px;object-fit:cover;border-radius:12px;margin-bottom:8px">':'')+'<label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;cursor:pointer">انتخاب عکس<input type="file" accept="image/*" style="display:none" onchange="handlePortfolioPhoto(this)"></label></div>'
+    +'<div class="field"><label>عکس</label>'+(d.image?'<img src="'+esc(d.image)+'" alt="پیش‌نمایش عکس نمونه‌کار" style="width:100%;height:100px;object-fit:cover;border-radius:12px;margin-bottom:8px">':'')+'<label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;cursor:pointer">انتخاب عکس<input type="file" accept="image/*" style="display:none" onchange="handlePortfolioPhoto(this)"></label></div>'
     +'<button class="btn-primary" onclick="savePortfolio()">ذخیره</button>';
   openSheet(html);
 }
@@ -2539,7 +2539,7 @@ function displayCityFor(role){
 }
 function renderMyAvatar(role){
   var schema=roleSchemas[role]||activeRole(),photo=state.values.profilePhoto;
-  return '<div class="avatar">'+(photo?'<img src="'+photo+'" alt="عکس پروفایل">':esc(schema.initials||'ب'))+'</div>';
+  return '<div class="avatar">'+(photo?'<img src="'+esc(photo)+'" alt="عکس پروفایل">':esc(schema.initials||'ب'))+'</div>';
 }
 function profileSetupTasks(role){
   var tasks=[];
@@ -3315,7 +3315,7 @@ function renderControl(c){
   if(c.kind==='photo'){
     var img=state.values[c.key];
     return '<div class="'+fieldClass+'"><label>'+esc(c.label)+'</label>'
-      +(img?'<img src="'+img+'" alt="پیش‌نمایش '+esc(c.label)+'" style="width:100%;height:130px;object-fit:cover;border-radius:14px;margin-bottom:8px">':'')
+      +(img?'<img src="'+esc(img)+'" alt="پیش‌نمایش '+esc(c.label)+'" style="width:100%;height:130px;object-fit:cover;border-radius:14px;margin-bottom:8px">':'')
       +'<label class="btn-secondary" style="height:56px;border-style:dashed;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">'+icon('portfolio',16)+' '+(img?'تغییر عکس':'افزودن عکس')+'<input type="file" accept="image/*" style="display:none" onchange="handlePhotoField(this,\''+c.key+'\')"></label></div>';
   }
   if(c.kind==='toggle'){
@@ -3416,7 +3416,7 @@ function renderCollectionSheet(){
     if(f.kind==='photo'){
       var img=state.draft[f.key];
       return '<div class="'+fieldClass+'"><label>'+esc(f.label)+(f.optional?' <span style="color:var(--muted);font-weight:400">(اختیاری)</span>':'')+'</label>'
-        +(img?'<img src="'+img+'" alt="پیش‌نمایش '+esc(f.label)+'" style="width:100%;height:130px;object-fit:cover;border-radius:14px;margin-bottom:8px">':'')
+        +(img?'<img src="'+esc(img)+'" alt="پیش‌نمایش '+esc(f.label)+'" style="width:100%;height:130px;object-fit:cover;border-radius:14px;margin-bottom:8px">':'')
         +'<label class="btn-secondary" style="height:56px;border-style:dashed;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer">'+icon('portfolio',16)+' '+(img?'تغییر عکس':'انتخاب عکس')+'<input type="file" accept="image/*" style="display:none" onchange="handleDraftPhoto(this,\''+f.key+'\')"></label></div>';
     }
     var options=(f.options||[]).slice();
@@ -3857,7 +3857,7 @@ function renderAdLocationFields(){
 function renderAdAttachmentField(){
   if(state.adDraft.type!=='consult')return '';
   var image=state.adDraft.attachment;
-  return '<div class="ad-attachment"><label>عکس مرتبط با پرسش <span>اختیاری</span></label>'+(image?'<img src="'+image+'" alt="تصویر پیوست پرسش">':'')+'<label class="ad-upload">'+icon('portfolio',16)+' '+(image?'تغییر عکس':'افزودن عکس')+'<input type="file" accept="image/*" onchange="handleAdAttachment(this)"></label></div>';
+  return '<div class="ad-attachment"><label>عکس مرتبط با پرسش <span>اختیاری</span></label>'+(image?'<img src="'+esc(image)+'" alt="تصویر پیوست پرسش">':'')+'<label class="ad-upload">'+icon('portfolio',16)+' '+(image?'تغییر عکس':'افزودن عکس')+'<input type="file" accept="image/*" onchange="handleAdAttachment(this)"></label></div>';
 }
 function adFieldClass(key){return 'field'+(state.adWarnings&&state.adWarnings[key]?' field-warning':'')}
 function requiredMark(){return '<span class="required-mark">ضروری</span>'}
@@ -3866,7 +3866,7 @@ function renderAdReview(){
   var d=state.adDraft,config=activeAdConfig(),roles=adRoleNames(),profile=adProfileSnapshot();
   var location=d.type==='consult'?d.range:d.type==='work'?(profile.city+(profile.province?'، '+profile.province:'')||d.range):(d.city+'، '+d.province),categoryTags=(d.categories||[]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('');
   var projectFacts=d.type==='consult'?'':'<div><span>دستمزد</span><b>'+esc(d.budget||'توافقی')+'</b></div><div><span>'+(d.type==='work'?'شروع همکاری':'زمان شروع')+'</span><b>'+esc(d.startTime||'با هماهنگی')+'</b></div>';
-  return '<div class="ad-preview-card"><span>پیش‌نمایش در اکسپلور</span><h3>'+esc(d.title)+'</h3><p>'+esc(location)+' · '+esc(config.exploreSub)+'</p><div class="ad-preview-tags"><span>'+esc(config.shortLabel)+'</span>'+categoryTags+roles.map(function(role){return '<span>'+esc(role)+'</span>'}).join('')+(d.type!=='consult'&&d.startTime?'<span>'+esc(d.startTime)+'</span>':'')+'</div>'+(d.description?'<div class="ad-preview-description">'+esc(d.description)+'</div>':'')+(d.attachment?'<img class="ad-review-image" src="'+d.attachment+'" alt="تصویر آگهی">':'')+'</div>'
+  return '<div class="ad-preview-card"><span>پیش‌نمایش در اکسپلور</span><h3>'+esc(d.title)+'</h3><p>'+esc(location)+' · '+esc(config.exploreSub)+'</p><div class="ad-preview-tags"><span>'+esc(config.shortLabel)+'</span>'+categoryTags+roles.map(function(role){return '<span>'+esc(role)+'</span>'}).join('')+(d.type!=='consult'&&d.startTime?'<span>'+esc(d.startTime)+'</span>':'')+'</div>'+(d.description?'<div class="ad-preview-description">'+esc(d.description)+'</div>':'')+(d.attachment?'<img class="ad-review-image" src="'+esc(d.attachment)+'" alt="تصویر آگهی">':'')+'</div>'
     +'<div class="ad-review-grid">'+projectFacts+'<div><span>محدوده اعلان</span><b>'+esc(d.range)+'</b></div><div><span>ارتباط</span><b>چت، ویس و تماس با اجازه</b></div><div><span>ثبت‌کننده</span><b>'+esc(profile.name)+'</b></div></div>'
     +'<div class="profile-source-card compact"><i>'+icon('user',17)+'</i><div><b>اطلاعات همراه آگهی از پروفایل</b><p>'+esc(profile.roleLabel)+' · '+esc(profile.profileTitle)+(profile.experience?' · '+esc(profile.experience):'')+'</p></div></div>'
     +'<div class="notify-preview"><i>'+icon('bell',17)+'</i><div><b>اعلان هدفمند برای <strong>'+adAudienceCount()+' کاربر</strong></b><p>پس از انتشار، گروه‌های '+esc(roles.join('، '))+' در محدودهٔ '+esc(d.range)+' اعلان دریافت می‌کنند.</p></div></div>'
@@ -4086,7 +4086,7 @@ notificationSettings:function(){
 
 profilePhoto:function(){
   var role=state.role||'worker',photo=state.values.profilePhoto;
-  return topbar('عکس پروفایل','این مرحله از ثبت‌نام جداست')+'<div class="page"><div class="profile-photo-card"><div class="profile-photo-preview">'+(photo?'<img src="'+photo+'" alt="عکس انتخاب‌شده">':esc(activeRole().initials||'ب'))+'</div><h2>یک عکس روشن از خودتان</h2><p>صورت یا نشان مجموعه واضح باشد. هر زمان خواستید می‌توانید عکس را تغییر دهید.</p><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer">'+icon('portfolio',16)+' '+(photo?'انتخاب عکس دیگر':'انتخاب عکس')+'<input type="file" accept="image/*" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><div style="height:9px"></div><button class="btn-primary" '+(photo?'':'disabled')+' onclick="saveProfilePhoto()">ذخیره عکس</button></div></div>';
+  return topbar('عکس پروفایل','این مرحله از ثبت‌نام جداست')+'<div class="page"><div class="profile-photo-card"><div class="profile-photo-preview">'+(photo?'<img src="'+esc(photo)+'" alt="عکس انتخاب‌شده">':esc(activeRole().initials||'ب'))+'</div><h2>یک عکس روشن از خودتان</h2><p>صورت یا نشان مجموعه واضح باشد. هر زمان خواستید می‌توانید عکس را تغییر دهید.</p><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer">'+icon('portfolio',16)+' '+(photo?'انتخاب عکس دیگر':'انتخاب عکس')+'<input type="file" accept="image/*" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><div style="height:9px"></div><button class="btn-primary" '+(photo?'':'disabled')+' onclick="saveProfilePhoto()">ذخیره عکس</button></div></div>';
 },
 
 portfolio:function(){
@@ -4315,7 +4315,7 @@ adDetail:function(){
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p><div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
     +renderPublicTrustCard(adTrustPerson(ad),'ad')
     +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
-    +(ad.description?'<div class="ad-detail-section"><b>'+(isConsult?'شرح کامل پرسش':isWork?'توضیح کارجو':'توضیحات کار')+'</b><p>'+esc(ad.description)+'</p>'+(ad.attachment?'<img class="ad-detail-image" src="'+ad.attachment+'" alt="تصویر پیوست پرسش">':'')+'</div>':'')
+    +(ad.description?'<div class="ad-detail-section"><b>'+(isConsult?'شرح کامل پرسش':isWork?'توضیح کارجو':'توضیحات کار')+'</b><p>'+esc(ad.description)+'</p>'+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست پرسش">':'')+'</div>':'')
     +'<div class="ad-detail-section profile-context"><b>اطلاعات مرتبط از پروفایل ثبت‌کننده</b><p>حوزه‌ها: '+esc(categories.join('، ')||ad.category)+'</p>'+(profile.experience?'<p>سابقه ثبت‌شده: '+esc(profile.experience)+'</p>':'')+(profile.city?'<p>محل ثبت‌شده: '+esc(profile.city)+'</p>':'')+'</div>'
     +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت امن بلوک</b><p>چت و پیام صوتی فعال است؛ نمایش شماره فقط طبق تنظیم حریم خصوصی صاحب پروفایل انجام می‌شود.</p></div></div>'
     +renderAgreementCard(ad)
@@ -4345,9 +4345,9 @@ chat:function(){
     var date=m.date?'<div class="chat-day">'+esc(m.date)+'</div>':'';
     if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
     var meta='<div class="bubble-meta"><span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>✓✓ '+esc(m.status||'')+'</span>':'')+'</div>';
-    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+m.image+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
+    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
     if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
-    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+m.audioUrl+'" style="width:175px;height:28px"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
+    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
     return date+'<div class="bubble'+(m.mine?'':' other')+'">'+esc(m.text)+meta+'</div>';
   }).join('');
   var context=c.context?'<div class="chat-context-card" onclick="openConversationContext()"><i>'+icon(c.context.icon||'briefcase',17)+'</i><div><b>'+esc(c.context.title)+'</b><p>'+esc(c.context.label+(c.context.meta?' · '+c.context.meta:''))+'</p></div><span>‹</span></div>':'';
