@@ -1580,14 +1580,14 @@ function adMissingForStep(step){
     if(!(d.targetRoles||[]).length)missing.push('targetRole');
     if(!profileAdCategories().length||!(d.categories||[]).length)missing.push('category');
     if(d.type==='consult'&&!(d.title||'').trim())missing.push('title');
-    if(!(d.description||'').trim())missing.push('description');
+    if(d.type!=='work'&&!(d.description||'').trim())missing.push('description');
     if(d.type==='workforce'){if(!(d.province||'').trim())missing.push('province');if(!(d.city||'').trim())missing.push('city')}
   }
   return missing;
 }
 function nextAdStep(){
   var missing=adMissingForStep(state.adStep);
-  if(missing.length){missing.forEach(function(key){state.adWarnings[key]=true});render();toast(state.adDraft.type==='consult'?'عنوان، توضیحات و پاسخ‌دهندگان را کامل کنید':state.adDraft.type==='work'?'مخاطبان، مهارت‌های پروفایل و توضیحات را کامل کنید':'نیروی موردنظر، توضیحات و محل پروژه را کامل کنید');return}
+  if(missing.length){missing.forEach(function(key){state.adWarnings[key]=true});render();toast(state.adDraft.type==='consult'?'عنوان، توضیحات و پاسخ‌دهندگان را کامل کنید':state.adDraft.type==='work'?'مخاطبان را انتخاب و مهارت‌های پروفایل را کامل کنید':'نیروی موردنظر، توضیحات و محل پروژه را کامل کنید');return}
   if(state.adStep<1)state.adStep++;render();
 }
 function previousAdStep(){if(state.adStep>0){state.adStep--;render()}else back()}
@@ -4387,7 +4387,7 @@ createAd:function(){
       +'<div class="field"><label>محدودهٔ اطلاع‌رسانی</label>'+renderAdChoiceChips(isConsult?['داخل شهر','کل استان','تمام استان‌ها']:['داخل شهر','تا ۳۰ کیلومتر','کل استان','تمام استان‌ها'],'range')+'</div>'
       +(isConsult?'':'<div class="field"><label>روش دستمزد</label><p class="field-help">از شرایط دستمزد ثبت‌شده در پروفایل یا گزینهٔ توافقی انتخاب کنید.</p>'+renderAdChoiceChips(profileRateOptions(),'budget')+'</div><div class="field"><label>زمان شروع</label>'+renderAdChoiceChips(['فوری','امروز','این هفته','با هماهنگی'],'startTime')+'</div>')
       +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت بلوک</b><p>پیام متنی و صوتی فعال است؛ شماره فقط وقتی نمایش داده می‌شود که صاحب پروفایل آن را از تنظیمات حریم خصوصی عمومی کرده باشد.</p></div></div>'
-      +'<div class="'+adFieldClass('description')+'"><label>'+(isConsult?'توضیحات پرسش':isWork?'توضیح کوتاه':'توضیحات کار')+' '+requiredMark()+'</label><textarea class="textarea" oninput="setAdField(\'description\',this.value);state.adWarnings.description=false" placeholder="'+(isConsult?'مسئله و شرایطی را که به پاسخ دقیق کمک می‌کند بنویسید…':isWork?'نوع کار، توانایی‌ها یا شرایط همکاری موردنظرتان را کوتاه بنویسید…':'نوع کار، مدت تقریبی و شرایط پروژه را کوتاه بنویسید…')+'">'+esc(d.description||'')+'</textarea></div>'
+      +'<div class="'+adFieldClass('description')+'"><label>'+(isConsult?'توضیحات پرسش':isWork?'توضیح کوتاه':'توضیحات کار')+' '+(isWork?'<span class="optional">اختیاری</span>':requiredMark())+'</label><textarea class="textarea" oninput="setAdField(\'description\',this.value);state.adWarnings.description=false" placeholder="'+(isConsult?'مسئله و شرایطی را که به پاسخ دقیق کمک می‌کند بنویسید…':isWork?'اگر نکته‌ای دربارهٔ نوع کار یا شرایط همکاری دارید بنویسید…':'نوع کار، مدت تقریبی و شرایط پروژه را کوتاه بنویسید…')+'">'+esc(d.description||'')+'</textarea></div>'
       +renderAdAttachmentField();
   }else{
     content='<div class="ad-step-copy"><span>مرحله ۲ از ۲</span><h2>مرور و انتشار</h2><p>اطلاعات زیر در اکسپلور نمایش داده می‌شود و برای مخاطبان انتخاب‌شده اعلان می‌رود.</p></div>'+renderAdReview();
