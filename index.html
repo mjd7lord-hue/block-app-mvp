@@ -1849,7 +1849,7 @@ function renderGuarantorSheet(){
   var html='<h3>افزودن معرف / قیم</h3><p>فردی که شما را می‌شناسد و اعتبار شما را در بلوک تأیید می‌کند.</p>'
     +'<div class="field"><label>نام معرف</label><input class="input" value="'+esc(d.name)+'" oninput="setGuarantorDraft(\'name\',this.value)"></div>'
     +'<div class="field"><label>نسبت</label><input class="input" placeholder="مثلاً استادکار سابق، کارفرمای قبلی" value="'+esc(d.relation)+'" oninput="setGuarantorDraft(\'relation\',this.value)"></div>'
-    +'<div class="field"><label>شماره تماس</label><input class="input" dir="ltr" placeholder="09xx xxx xxxx" value="'+esc(d.phone)+'" oninput="setGuarantorDraft(\'phone\',this.value)"></div>'
+    +'<div class="field"><label>شماره تماس</label><input class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" value="'+esc(d.phone)+'" oninput="setGuarantorDraft(\'phone\',sanitizePhoneInput(this))"></div>'
     +'<button class="btn-primary" onclick="saveGuarantor()">ارسال درخواست تأیید</button>';
   openSheet(html);
 }
@@ -2601,7 +2601,7 @@ function toggleReduceMotion(){state.reduceMotion=!state.reduceMotion;document.ge
 function toggleHelp(index){state.helpOpen=state.helpOpen===index?-1:index;render()}
 function switchAccountRole(role){if(!roleSchemas[role])return;state.role=role;render();toast('نقش فعال به «'+roleSchemas[role].label+'» تغییر کرد')}
 function openSupportChat(){var support=findConversation('block-support');if(support){openConversation('block-support');return}toast('گفت‌وگوی پشتیبانی در دسترس است')}
-function openChangePhoneSheet(){state.phoneChangeDraft='';openSheet('<h3>تغییر شماره موبایل</h3><p>برای حفظ امنیت حساب، شمارهٔ جدید باید با کد یک‌بارمصرف تأیید شود.</p><div class="field"><label>شمارهٔ جدید</label><input id="newPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx" oninput="state.phoneChangeDraft=this.value"></div><button class="btn-primary" onclick="savePhoneChange()">ارسال کد تأیید</button>')}
+function openChangePhoneSheet(){state.phoneChangeDraft='';openSheet('<h3>تغییر شماره موبایل</h3><p>برای حفظ امنیت حساب، شمارهٔ جدید باید با کد یک‌بارمصرف تأیید شود.</p><div class="field"><label>شمارهٔ جدید</label><input id="newPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" oninput="state.phoneChangeDraft=sanitizePhoneInput(this)"></div><button class="btn-primary" onclick="savePhoneChange()">ارسال کد تأیید</button>')}
 function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید','warning');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
 function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;closeSheet();render();toast('شمارهٔ جدید تأیید و ذخیره شد')}
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
@@ -2662,6 +2662,11 @@ function toEnglishDigits(value){
   });
 }
 function normalizePhone(value){return toEnglishDigits(value).replace(/[^\d]/g,'').trim()}
+function sanitizePhoneInput(el){
+  var clean=normalizePhone(el.value).slice(0,11);
+  if(el.value!==clean)el.value=clean;
+  return clean;
+}
 var ROLE_TO_BACKEND={engineer:'ENGINEER',contractor:'CONTRACTOR',company:'COMPANY',specialist:'SPECIALIST',worker:'WORKER',machinery:'MACHINERY',store:'STORE',materialsSupplier:'MATERIALS_SUPPLIER',general:'GENERAL'};
 function toBackendRole(role){return ROLE_TO_BACKEND[role]||String(role||'').toUpperCase()}
 function readOtpCode(){
@@ -3309,7 +3314,7 @@ function renderControl(c){
   }
   if(c.kind==='phones'){
     var arr=state.values[c.key]||(state.values[c.key]=['']);
-    var rows=arr.map(function(v,i){return '<input class="input" style="margin-bottom:8px" dir="ltr" placeholder="09xx xxx xxxx" value="'+esc(v)+'" oninput="setPhone(\''+c.key+'\','+i+',this.value)"'+disabledAttr+'>'}).join('');
+    var rows=arr.map(function(v,i){return '<input class="input" style="margin-bottom:8px" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" value="'+esc(v)+'" oninput="setPhone(\''+c.key+'\','+i+',sanitizePhoneInput(this))"'+disabledAttr+'>'}).join('');
     return '<div class="'+fieldClass+'"><label>'+esc(c.label)+'</label>'+rows+'<button class="btn-ghost" onclick="addPhone(\''+c.key+'\')"'+disabledAttr+'>+ افزودن شماره دیگر</button>'+disabledHint+'</div>';
   }
   if(c.kind==='photo'){
@@ -3901,7 +3906,7 @@ phoneVerify:function(){
   +'<div class="page">'
   +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px"><div class="cicon">'+icon('shield',18)+'</div><div><b style="font-size:.66rem">چرا شماره موبایل لازم است؟</b><p style="font-size:.55rem;margin-top:2px">برای امنیت حساب و اعتماد طرف مقابل، هویت هر کاربر یا کسب‌وکار در بلوک با یک شمارهٔ تأییدشده گره می‌خورد.</p></div></div></div>'
   +(stage==='phone'
-    ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',this.value)" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
+    ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',sanitizePhoneInput(this))" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
     :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
   +'</div>'
   +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage(this)':'confirmSignupOtp(this)')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
@@ -4480,7 +4485,7 @@ settings:function(){
 };
 
 function openLoginSheet(){
-  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" placeholder="09xx xxx xxxx"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button><p style="font-size:.58rem;text-align:center;margin-top:14px">حساب ندارید؟ <button class="legal-link" onclick="closeSheet();go(\'roleSelect\')">ثبت‌نام را شروع کنید</button></p>')
+  openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" oninput="sanitizePhoneInput(this)"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button><p style="font-size:.58rem;text-align:center;margin-top:14px">حساب ندارید؟ <button class="legal-link" onclick="closeSheet();go(\'roleSelect\')">ثبت‌نام را شروع کنید</button></p>')
 }
 function submitLoginPhone(btn){
   var input=document.getElementById('loginPhone');
