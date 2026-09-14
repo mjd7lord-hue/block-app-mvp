@@ -2660,7 +2660,7 @@ function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;cl
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
 function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';render();toast('از حساب خارج شدید')}
+function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
 function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید','warning');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است','warning');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
@@ -3116,6 +3116,10 @@ function isoToJalaliObj(iso){
 }
 function hydrateStateFromUser(user){
   if(!user)return;
+  if(state.loggedInUserId&&state.loggedInUserId!==user.id){
+    state.values={};state.collections={};state.accountPrefs=null;
+  }
+  state.loggedInUserId=user.id;
   getAccountPrefs().publicPhone=!!user.phoneVisible;
   state.values.showPhone=!!user.phoneVisible;
   var roleProfile=(user.roleProfiles||[])[0];
@@ -3331,6 +3335,7 @@ function toggleBool(k){
     else state.values.birthCountry='';
   }
   if(k==='travelReady'&&!state.values[k])state.values.travelRange='';
+  if(k==='showPhone')getAccountPrefs().publicPhone=state.values[k];
   render();
 }
 function setDatePart(k,part,v){var d=state.values[k]||(state.values[k]={day:'',month:'',year:''});d[part]=v;render()}
@@ -4686,7 +4691,7 @@ function showDebugError(text,file,line,col){
     box.appendChild(closeBtn);
   }
 }
-restoreStateSnapshot();
+restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}
 if(getSessionUser()&&!(state.values&&state.values.firstName))hydrateStateFromUser(getSessionUser());
 var savedMode='dark',savedTextSize='large',savedHighContrast=true;
 try{savedMode=localStorage.getItem('block-mode')||'dark';savedTextSize=localStorage.getItem('block-text-size')||'large';savedHighContrast=(localStorage.getItem('block-high-contrast')||'true')!=='false'}catch(e){}
