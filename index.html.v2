@@ -2021,7 +2021,21 @@ function filteredConversations(){
 function markAllMessagesRead(){getConversations().forEach(function(c){c.unread=0});render();toast('همهٔ پیام‌ها خوانده شد')}
 function openConversation(id){
   var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat');
-  if(c.real&&!c.messagesLoaded)loadConversationMessages(c);
+  if(c.real){
+    loadConversationMessages(c);
+    startChatPoll(c);
+  }
+}
+var chatPollTimer=null;
+function stopChatPoll(){if(chatPollTimer){clearInterval(chatPollTimer);chatPollTimer=null}}
+// وب‌سوکت نداریم؛ تا وقتی صفحهٔ چت باز است هر ۴ ثانیه پیام‌های تازه (و وضعیت خوانده‌شدن) را می‌گیریم
+// تا رسیدن پیام واقعاً منتظر رفتن و برگشتن از صفحه نماند.
+function startChatPoll(c){
+  stopChatPoll();
+  chatPollTimer=setInterval(function(){
+    if(state.page!=='chat'||state.currentConversationId!==c.id){stopChatPoll();return}
+    loadConversationMessages(c);
+  },4000);
 }
 function openConversationForPerson(personId){
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
@@ -2985,15 +2999,16 @@ function mapBackendConversation(conv){
     messages:[],messagesLoaded:false
   };
 }
-function mapBackendMessage(m){
+function mapBackendMessage(m,otherReadAt){
   var me=getSessionUser();
   var mine=!!(me&&m.senderId===me.id);
   var time=new Date(m.createdAt).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  var status=(mine&&otherReadAt&&new Date(m.createdAt)<=new Date(otherReadAt))?'خوانده شد':'ارسال شد';
   if(m.type==='SYSTEM')return{type:'system',text:m.text||''};
-  if(m.type==='IMAGE')return{mine:mine,time:time,status:'ارسال شد',image:m.attachmentUrl};
-  if(m.type==='FILE')return{mine:mine,time:time,status:'ارسال شد',file:'فایل پیوست',fileSize:''};
-  if(m.type==='VOICE')return{mine:mine,time:time,status:'ارسال شد',audioUrl:m.attachmentUrl,duration:''};
-  return{mine:mine,time:time,status:'ارسال شد',text:m.text||''};
+  if(m.type==='IMAGE')return{mine:mine,time:time,status:status,image:m.attachmentUrl};
+  if(m.type==='FILE')return{mine:mine,time:time,status:status,file:'فایل پیوست',fileSize:''};
+  if(m.type==='VOICE')return{mine:mine,time:time,status:status,audioUrl:m.attachmentUrl,duration:''};
+  return{mine:mine,time:time,status:status,text:m.text||''};
 }
 function loadRealConversations(){
   apiRequest('/api/conversations')
@@ -3003,9 +3018,13 @@ function loadRealConversations(){
 function loadConversationMessages(c){
   apiRequest('/api/conversations/'+c.backendId+'/messages')
     .then(function(data){
-      c.messages=(data.messages||[]).map(mapBackendMessage);
+      // render() چون کل view را دوباره می‌سازد، هر متن نوشته‌نشده در کادر پیام را هم پاک می‌کند؛
+      // چون این تابع هر چند ثانیه یک‌بار برای پولینگ هم صدا زده می‌شود، باید نگهش داریم.
+      var inputEl=document.getElementById('chatInput'),draft=inputEl?inputEl.value:'';
+      c.messages=(data.messages||[]).map(function(m){return mapBackendMessage(m,data.otherReadAt)});
       c.messagesLoaded=true;
       render();
+      if(draft){var restored=document.getElementById('chatInput');if(restored)restored.value=draft}
     })
     .catch(function(e){console.error('loadConversationMessages failed',e)});
   apiRequest('/api/conversations/'+c.backendId+'/read',{method:'PATCH'}).catch(function(){});
@@ -4474,7 +4493,7 @@ chat:function(){
   var c=activeConversation(),prefs=getMessagePrefs(),bubbles=c.messages.map(function(m){
     var date=m.date?'<div class="chat-day">'+esc(m.date)+'</div>':'';
     if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
-    var meta='<div class="bubble-meta"><span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>✓✓ '+esc(m.status||'')+'</span>':'')+'</div>';
+    var meta='<div class="bubble-meta"><span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'')+'</div>';
     if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
     if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
     if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
