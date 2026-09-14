@@ -1647,6 +1647,20 @@ function viewPublishedAd(){
 function openExploreItem(item){return item.isAd?"openAdDetail('"+item.id+"')":"openPersonProfile('"+item.person+"')"}
 function openAdDetail(id){state.viewingAdId=id;resetTrustPhone();var ad=currentAdDetail();if(ad&&ad.authorUserId)loadRealTrustPhone(ad.authorUserId);go('adDetail')}
 function currentAdDetail(){return EXPLORE_ITEMS.find(function(item){return item.id===state.viewingAdId})||state.lastPublishedAd}
+function isMyAd(ad){var me=getSessionUser();return !!(me&&ad&&ad.authorUserId&&ad.authorUserId===me.id)}
+function openDeleteAdSheet(){openSheet('<h3>حذف آگهی</h3><p>این آگهی از اکسپلور حذف می‌شود و این کار قابل بازگشت نیست.</p><button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="confirmDeleteAd(this)">حذف آگهی</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
+function confirmDeleteAd(btn){
+  var ad=currentAdDetail();
+  if(!ad||!ad.backendId){closeSheet();return}
+  var stopLoading=setButtonLoading(btn,'در حال حذف...');
+  apiRequest('/api/ads/'+ad.backendId,{method:'DELETE'})
+    .then(function(){
+      var idx=EXPLORE_ITEMS.indexOf(ad);if(idx>-1)EXPLORE_ITEMS.splice(idx,1);
+      if(state.lastPublishedAd&&state.lastPublishedAd.id===ad.id)state.lastPublishedAd=null;
+      state.viewingAdId=null;closeSheet();back();toast('آگهی با موفقیت حذف شد');
+    })
+    .catch(function(e){stopLoading();toast(e.message||'حذف آگهی ناموفق بود','warning')});
+}
 function startAdChat(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
   if(ad.real){
@@ -4425,7 +4439,7 @@ adDetail:function(){
     +'<div class="ad-detail-section profile-context"><b>اطلاعات مرتبط از پروفایل ثبت‌کننده</b><p>حوزه‌ها: '+esc(categories.join('، ')||ad.category)+'</p>'+(profile.experience?'<p>سابقه ثبت‌شده: '+esc(profile.experience)+'</p>':'')+(profile.city?'<p>محل ثبت‌شده: '+esc(profile.city)+'</p>':'')+'</div>'
     +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت امن بلوک</b><p>چت و پیام صوتی فعال است؛ نمایش شماره فقط طبق تنظیم حریم خصوصی صاحب پروفایل انجام می‌شود.</p></div></div>'
     +renderAgreementCard(ad)
-    +'</div><div class="dock"><button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button></div>';
+    +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
 
 adPublished:function(){
