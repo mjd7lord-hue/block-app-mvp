@@ -2211,7 +2211,7 @@ function filteredExploreItems(){
   var items=EXPLORE_ITEMS.filter(function(i){
     if(i.status==='matched')return false;
     if(MVP_HIDE_BUSINESS_ROLES&&BUSINESS_ROLES.indexOf(i.role)>-1)return false;
-    var matchesCity=state.exploreCity==='all'||i.city===state.exploreCity;
+    var matchesCity=state.exploreCity==='all'||i.city===state.exploreCity||i.travelReady;
     var matchesRole=state.exploreRole==='all'||i.role===state.exploreRole||(i.targetRoles||[]).indexOf(state.exploreRole)>-1;
     var matchesRange=f.range==='all'||i.distance<=Number(f.range);
     var matchesSkill=!f.skills.length||f.skills.some(function(skill){return i.skills.indexOf(skill)>-1});
@@ -2809,7 +2809,7 @@ function mapBackendAdToItem(ad){
   return{
     id:ad.id,real:true,backendId:ad.id,authorUserId:ad.authorUserId,isAd:true,
     title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
-    city:ad.city||'',province:ad.province||'',
+    city:ad.city||'',province:ad.province||'',travelReady:!!snapshot.travelReady,
     role:role,ownerRole:role,
     targetRoles:(ad.targetRoles||[]).map(function(r){return String(r).toLowerCase()}),
     profile:{name:personName(snapshot),role:role,roleLabel:AD_ROLE_LABELS[role]||'',province:snapshot.workProvince||'',city:snapshot.workCity||'',verified:!!snapshot.verified},
