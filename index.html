@@ -2663,7 +2663,16 @@ function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس ا�
 function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
-function deleteAccount(){if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید','warning');return}if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است','warning');return}clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('درخواست حذف حساب ثبت شد')}
+function deleteAccount(btn){
+  if(!state.deleteReason){toast('دلیل حذف حساب را انتخاب کنید','warning');return}
+  if(!state.deleteConfirm){toast('تأیید نهایی حذف حساب لازم است','warning');return}
+  var stopLoading=setButtonLoading(btn,'در حال حذف...');
+  apiRequest('/api/users/me',{method:'DELETE'})
+    .then(function(){
+      clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.loggedInUserId=null;state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('حساب کاربری با موفقیت حذف شد');
+    })
+    .catch(function(e){stopLoading();toast(e.message||'حذف حساب ناموفق بود','warning')});
+}
 function unblockUser(id){var index=state.blockedUsers.indexOf(id);if(index>-1)state.blockedUsers.splice(index,1);render();toast('مسدودیت کاربر لغو شد')}
 
 /* ---------- block backend integration ---------- */
@@ -4567,7 +4576,7 @@ aboutApp:function(){
 
 accountManagement:function(){
   var reasons=['دیگر استفاده نمی‌کنم','حساب دیگری دارم','نگرانی حریم خصوصی','مشکل فنی','دلیل دیگر'];
-  return topbar('خروج و مدیریت حساب','کنترل نشست و حذف حساب')+'<div class="page"><div class="account-card"><div class="account-card-head"><i>'+icon('logout',16)+'</i><div><b>خروج از حساب</b><span>اطلاعات حساب حذف نمی‌شود.</span></div></div><button class="btn-secondary" style="margin-top:11px" onclick="openLogoutSheet()">خروج از این دستگاه</button></div><div class="danger-zone"><h3>حذف حساب</h3><p>با ثبت این درخواست، پروفایل عمومی غیرفعال و فرایند حذف اطلاعات آغاز می‌شود. این اقدام با خروج ساده متفاوت است.</p><div class="chip-row">'+reasons.map(function(reason){return '<button class="chip '+(state.deleteReason===reason?'active':'')+'" onclick="setDeleteReason(\''+reason+'\')">'+reason+'</button>'}).join('')+'</div><div class="confirm-check '+(state.deleteConfirm?'active':'')+'" role="checkbox" aria-checked="'+(state.deleteConfirm?'true':'false')+'" onclick="toggleDeleteConfirm()"><i>'+(state.deleteConfirm?icon('check',12):'')+'</i><span>می‌دانم که پس از حذف، دسترسی به پروفایل، آگهی‌ها و پیام‌های حساب را از دست می‌دهم.</span></div><button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="deleteAccount()">ثبت درخواست حذف حساب</button></div></div>';
+  return topbar('خروج و مدیریت حساب','کنترل نشست و حذف حساب')+'<div class="page"><div class="account-card"><div class="account-card-head"><i>'+icon('logout',16)+'</i><div><b>خروج از حساب</b><span>اطلاعات حساب حذف نمی‌شود.</span></div></div><button class="btn-secondary" style="margin-top:11px" onclick="openLogoutSheet()">خروج از این دستگاه</button></div><div class="danger-zone"><h3>حذف حساب</h3><p>با ثبت این درخواست، پروفایل عمومی غیرفعال و فرایند حذف اطلاعات آغاز می‌شود. این اقدام با خروج ساده متفاوت است.</p><div class="chip-row">'+reasons.map(function(reason){return '<button class="chip '+(state.deleteReason===reason?'active':'')+'" onclick="setDeleteReason(\''+reason+'\')">'+reason+'</button>'}).join('')+'</div><div class="confirm-check '+(state.deleteConfirm?'active':'')+'" role="checkbox" aria-checked="'+(state.deleteConfirm?'true':'false')+'" onclick="toggleDeleteConfirm()"><i>'+(state.deleteConfirm?icon('check',12):'')+'</i><span>می‌دانم که پس از حذف، دسترسی به پروفایل، آگهی‌ها و پیام‌های حساب را از دست می‌دهم.</span></div><button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="deleteAccount(this)">ثبت درخواست حذف حساب</button></div></div>';
 },
 
 settings:function(){
