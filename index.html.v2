@@ -2220,10 +2220,12 @@ function cycleExploreSort(){
   state.exploreSort=keys[(keys.indexOf(state.exploreSort)+1)%keys.length];render();
 }
 function availabilityRank(value){return {now:0,today:1,week:2,flexible:3}[value]||4}
+var JOB_MODE_AD_TYPES=['workforce','consult'],WORKERS_MODE_AD_TYPES=['work'];
 function filteredExploreItems(){
-  var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters();
+  var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters(),modeAdTypes=ensureExploreMode()==='jobs'?JOB_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
   var items=EXPLORE_ITEMS.filter(function(i){
     if(i.status==='matched')return false;
+    if(i.isAd&&modeAdTypes.indexOf(i.adType)===-1)return false;
     if(MVP_HIDE_BUSINESS_ROLES&&BUSINESS_ROLES.indexOf(i.role)>-1)return false;
     var matchesCity=state.exploreCity==='all'||i.city===state.exploreCity||i.travelReady;
     var matchesRole=state.exploreRole==='all'||i.role===state.exploreRole||(i.targetRoles||[]).indexOf(state.exploreRole)>-1;
@@ -4318,14 +4320,14 @@ explore:function(){
   var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='jobs'?'0':'1')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button></div>';
 
   if(mode==='jobs'){
-    var jobs=filteredJobOpportunities(),jq=ensureJobQuick();
-    var jobBody=jobs.length?'<div class="explore-section-head"><b>فرصت‌های کاری</b><span>'+jobs.length+' مورد</span></div><div class="jobs-grid">'+jobs.map(renderHomeJobCard).join('')+'</div>':'<div class="explore-empty"><i>'+icon('briefcase',22)+'</i><b>فعلاً کاری پیدا نشد</b><p>عبارت جست‌وجو یا فیلترها را تغییر دهید.</p></div>';
+    var jobItems=filteredExploreItems();
+    var jobBody=jobItems.length?'<div class="explore-section-head"><b>فرصت‌های کاری</b><span>'+jobItems.length+' مورد</span></div><div class="discovery-grid">'+jobItems.map(renderExploreCard).join('')+'</div>':'<div class="explore-empty"><i>'+icon('briefcase',22)+'</i><b>فعلاً کاری پیدا نشد</b><p>عبارت جست‌وجو یا فیلترها را تغییر دهید.</p></div>';
     return '<div class="page explore-page">'
     +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>دنبال چه کاری هستید؟</h2></div></div>'
     +modeSwitch
     +'<div class="explore-search">'+icon('search',18)+'<input id="exploreSearchInput" value="'+esc(state.exploreQuery)+'" oninput="setExploreQuery(this.value)" placeholder="مثلاً جوشکاری، اسکلت فلزی یا شهر"></div>'
-    +'<div class="explore-toolbar"><button class="explore-filter-btn" onclick="openJobFilters()">'+icon('gear',15)+' فیلترها و شهر'+(exploreJobFilterCount()?'<span class="explore-filter-count">'+exploreJobFilterCount()+'</span>':'')+'</button><button class="explore-sort-btn" onclick="cycleExploreSort()">↕ '+esc(EXPLORE_SORT_LABELS[state.exploreSort])+'</button></div>'
-    +jobBody
+    +'<div class="explore-toolbar"><button class="explore-filter-btn" onclick="openExploreFilters()">'+icon('gear',15)+' فیلترها و نقش'+(exploreActiveCount()?'<span class="explore-filter-count">'+exploreActiveCount()+'</span>':'')+'</button><button class="explore-sort-btn" onclick="cycleExploreSort()">↕ '+esc(EXPLORE_SORT_LABELS[state.exploreSort])+'</button></div>'
+    +renderExploreActiveFilters()+jobBody
     +'</div>'+bottomNav('explore');
   }
 
