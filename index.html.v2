@@ -2536,7 +2536,7 @@ function setMode(m){state.mode=m;document.getElementById('phone').setAttribute('
 function toggleModeQuick(){setMode(state.mode==='dark'?'light':'dark');toast(state.mode==='dark'?'حالت تیره فعال شد':'حالت روشن فعال شد')}
 function openDataPage(page,label){
   if(!state.online){state.unavailableTarget=page;go('offline');return}
-  if(page==='explore'||page==='messages'){state.stack.push(state.page);state.page=page;state.loadingTarget=null;render();return}
+  if(page==='explore'||page==='messages'){state.stack.push(state.page);state.page=page;state.loadingTarget=null;render();syncRealData(page);return}
   state.loadingTarget=page;state.loadingLabel=label||'در حال دریافت اطلاعات';state.stack.push(state.page);state.page='loading';render();clearTimeout(window._loadPageTimer);window._loadPageTimer=setTimeout(function(){state.page=page;state.loadingTarget=null;render()},420);
 }
 function retryConnection(){state.online=typeof navigator==='undefined'?true:navigator.onLine!==false;if(state.online){var target=state.unavailableTarget&&PAGES[state.unavailableTarget]?state.unavailableTarget:'home';state.unavailableTarget=null;state.stack=[];state.page=target;render();toast('اتصال اینترنت برقرار شد')}else{render();toast('هنوز اتصال اینترنت برقرار نیست')}}
