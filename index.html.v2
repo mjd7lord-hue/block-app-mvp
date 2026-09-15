@@ -2107,7 +2107,11 @@ async function toggleVoiceRecording(){
       var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),c=activeConversation();
       (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];
       if(c.real){
-        var file=new File([blob],'voice.webm',{type:blob.type||'audio/webm'});
+        // آیفون معمولاً audio/mp4 ضبط می‌کند نه webm؛ اسم فایل باید با نوع واقعی‌اش یکی باشد
+        // وگرنه پخش روی همان دستگاهی که ضبط شده هم با خطا مواجه می‌شود.
+        var voiceMime=blob.type||'audio/webm';
+        var voiceExt=(voiceMime.indexOf('mp4')>-1)?'m4a':(voiceMime.indexOf('ogg')>-1)?'ogg':(voiceMime.indexOf('wav')>-1)?'wav':(voiceMime.indexOf('mpeg')>-1)?'mp3':'webm';
+        var file=new File([blob],'voice.'+voiceExt,{type:voiceMime});
         var pending={mine:true,audioUrl:URL.createObjectURL(blob),duration:voiceDuration(duration),time:'در حال ارسال…',status:''};
         c.messages.push(pending);render();
         uploadFileToBackend(file)
@@ -4514,7 +4518,7 @@ chat:function(){
     var meta='<div class="bubble-meta"><span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'')+'</div>';
     if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
     if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
-    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
+    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px" onerror="this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
     return date+'<div class="bubble'+(m.mine?'':' other')+'">'+esc(m.text)+meta+'</div>';
   }).join('');
   var context=c.context?'<div class="chat-context-card" onclick="openConversationContext()"><i>'+icon(c.context.icon||'briefcase',17)+'</i><div><b>'+esc(c.context.title)+'</b><p>'+esc(c.context.label+(c.context.meta?' · '+c.context.meta:''))+'</p></div><span>‹</span></div>':'';
