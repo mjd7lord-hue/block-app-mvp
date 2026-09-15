@@ -3070,7 +3070,17 @@ function pushStatusRow(){
   if(perm==='unsupported')return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p>مرورگر یا دستگاه فعلی از اعلان Push پشتیبانی نمی‌کند'+(isIOSNonStandalone()?'؛ در آیفون ابتدا بلوک را به صفحهٔ اصلی اضافه کنید':'')+'.</p></div></div>';
   if(perm==='denied')return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p style="color:var(--danger)">دسترسی اعلان توسط مرورگر مسدود شده؛ از تنظیمات دستگاه فعال کنید.</p></div></div>';
   var on=!!state.pushSubscribed;
-  return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p>برای پیام و درخواست جدید، حتی وقتی اپ بسته است باخبر شوید.</p></div><div class="switch '+(on?'on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" onclick="togglePushNotifications()"><i></i></div></div>';
+  return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p>برای پیام و درخواست جدید، حتی وقتی اپ بسته است باخبر شوید.</p></div><div class="switch '+(on?'on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" onclick="togglePushNotifications()"><i></i></div></div>'
+    +(on?'<button class="btn-ghost" style="margin:2px 0 10px" onclick="sendTestPush(this)">ارسال اعلان آزمایشی</button>':'');
+}
+function sendTestPush(btn){
+  var stopLoading=setButtonLoading(btn,'در حال ارسال...');
+  apiRequest('/api/push/test',{method:'POST'})
+    .then(function(data){
+      stopLoading();
+      toast((data.sent||0)>0?'به سرویس اعلان مرورگر تحویل داده شد؛ چند ثانیه صبر کنید':'اشتراک فعالی پیدا نشد؛ دوباره اعلان را فعال کنید','warning');
+    })
+    .catch(function(e){stopLoading();toast(e.message||'ارسال اعلان آزمایشی ناموفق بود','warning')});
 }
 function openFromNotificationTarget(targetType,targetId){
   if(!targetType||!getSessionUser())return;
