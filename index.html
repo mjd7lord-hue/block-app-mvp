@@ -218,9 +218,12 @@ p{color:var(--muted);margin:0}
 .state p{font-size:.63rem;line-height:1.8;max-width:270px;margin:0 auto}
 
 .chat-thread{display:flex;flex-direction:column;gap:9px;padding-top:2px}
-.bubble{max-width:75%;padding:10px 12px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--on-accent);font-size:.63rem;line-height:1.7;margin-left:auto}
+.bubble{position:relative;max-width:75%;padding:10px 12px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--on-accent);font-size:.63rem;line-height:1.7;margin-left:auto;box-shadow:0 2px 7px rgba(0,0,0,.1)}
 .bubble.other{margin-left:0;margin-right:auto;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:16px 16px 16px 4px}
 .bubble small{display:block;opacity:.7;font-size:.48rem;margin-top:4px;direction:ltr}
+.bubble-more{position:absolute;top:2px;left:2px;width:20px;height:20px;border:0;border-radius:50%;background:rgba(0,0,0,.12);color:inherit;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:.55}
+.bubble-more:hover,.bubble-more:focus-visible{opacity:1}
+.bubble-deleted{font-style:italic;opacity:.7;background:var(--surface2)!important;color:var(--muted)!important;border:1px dashed var(--line)!important;box-shadow:none!important}
 .message-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.message-head h2{font-size:1rem}.head-actions{display:flex;gap:7px}.icon-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}.icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .inbox-search{height:44px;border:1px solid var(--line);background:var(--surface);border-radius:14px;display:flex;align-items:center;gap:8px;padding:0 12px;margin-bottom:10px}.inbox-search svg{color:var(--muted)}.inbox-search input{border:0;outline:0;background:transparent;color:var(--ink);font-family:inherit;font-size:.62rem;min-width:0;flex:1}.message-tabs{display:flex;gap:7px;overflow:auto;margin:0 -2px 12px;padding:2px}.message-tabs::-webkit-scrollbar{display:none}.message-tab{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:inherit;font-size:.53rem;font-weight:800;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer}.message-tab.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .conversation-card{border:1px solid var(--line);background:var(--surface);border-radius:17px;padding:12px;display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;cursor:pointer;position:relative}.conversation-card.unread{border-color:rgba(52,210,166,.38);background:linear-gradient(135deg,var(--surface),var(--accent-soft))}.conversation-avatar{width:45px;height:45px;border-radius:14px;background:var(--surface2);border:1px solid var(--line-strong);display:flex;align-items:center;justify-content:center;color:var(--accent);font-size:.68rem;font-weight:900;flex:none;position:relative}
@@ -2044,6 +2047,42 @@ function openConversationForPerson(personId){
   getConversations().unshift(c);openConversation(id);
 }
 function activeConversation(){return findConversation(state.currentConversationId)||getConversations()[0]}
+function isMessageDeletable(c,m){
+  if(!c||!m||!m.mine||!m.id)return false;
+  var otherReadAt=c.otherReadAt;
+  var isRead=otherReadAt&&new Date(m.createdAt)<=new Date(otherReadAt);
+  if(!isRead)return true;
+  return (Date.now()-new Date(otherReadAt).getTime())<=10*60*1000;
+}
+function openMessageActions(conversationId,messageId){
+  var c=activeConversation();if(!c||c.backendId!==conversationId)return;
+  var m=c.messages.find(function(x){return x.id===messageId});if(!m)return;
+  var copyBtn=m.text?'<button class="btn-secondary" style="width:100%" onclick="copyMessageText(\''+encodeURIComponent(m.text)+'\')">کپی متن</button><div style="height:8px"></div>':'';
+  var deleteBtn=isMessageDeletable(c,m)?'<button class="btn-secondary" style="width:100%;color:var(--danger);border-color:var(--danger)" onclick="deleteMessageAction(\''+conversationId+'\',\''+messageId+'\')">حذف پیام</button>':'';
+  if(!copyBtn&&!deleteBtn){toast('گزینه‌ای برای این پیام وجود ندارد');return}
+  openSheet('<h3>گزینه‌های پیام</h3>'+copyBtn+deleteBtn+'<div style="height:8px"></div><button class="btn-ghost" style="width:100%" onclick="closeSheet()">بستن</button>');
+}
+function copyMessageText(encoded){
+  var text=decodeURIComponent(encoded);
+  closeSheet();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(function(){toast('متن کپی شد')}).catch(function(){toast('کپی متن ناموفق بود','warning')});
+  }else{toast('کپی در این مرورگر پشتیبانی نمی‌شود','warning')}
+}
+function deleteMessageAction(conversationId,messageId){
+  closeSheet();
+  apiRequest('/api/conversations/'+conversationId+'/messages/'+messageId,{method:'DELETE'})
+    .then(function(){
+      var c=activeConversation();
+      if(c&&c.backendId===conversationId){
+        var m=c.messages.find(function(x){return x.id===messageId});
+        if(m)m.deleted=true;
+        render();
+      }
+      toast('پیام حذف شد');
+    })
+    .catch(function(e){toast(e.message||'حذف پیام ناموفق بود','warning')});
+}
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
   var v=(el.value||'').trim();if(!v)return;
@@ -3024,10 +3063,11 @@ function mapBackendMessage(m,otherReadAt){
   var time=new Date(m.createdAt).toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
   var status=(mine&&otherReadAt&&new Date(m.createdAt)<=new Date(otherReadAt))?'خوانده شد':'ارسال شد';
   if(m.type==='SYSTEM')return{type:'system',text:m.text||''};
-  if(m.type==='IMAGE')return{mine:mine,time:time,status:status,image:m.attachmentUrl};
-  if(m.type==='FILE')return{mine:mine,time:time,status:status,file:'فایل پیوست',fileSize:''};
-  if(m.type==='VOICE')return{mine:mine,time:time,status:status,audioUrl:m.attachmentUrl,duration:''};
-  return{mine:mine,time:time,status:status,text:m.text||''};
+  if(m.deletedAt)return{id:m.id,mine:mine,time:time,status:status,deleted:true,createdAt:m.createdAt};
+  if(m.type==='IMAGE')return{id:m.id,mine:mine,time:time,status:status,image:m.attachmentUrl,createdAt:m.createdAt};
+  if(m.type==='FILE')return{id:m.id,mine:mine,time:time,status:status,file:'فایل پیوست',fileSize:'',createdAt:m.createdAt};
+  if(m.type==='VOICE')return{id:m.id,mine:mine,time:time,status:status,audioUrl:m.attachmentUrl,duration:'',createdAt:m.createdAt};
+  return{id:m.id,mine:mine,time:time,status:status,text:m.text||'',createdAt:m.createdAt};
 }
 function loadRealConversations(){
   apiRequest('/api/conversations')
@@ -3042,6 +3082,7 @@ function loadConversationMessages(c){
       // (و اسکرول/تایپ در حال انجام) هر بار بی‌دلیل بازسازی و «پرش» نکند.
       var changed=mapped.length!==c.messages.length||JSON.stringify(mapped)!==JSON.stringify(c.messages);
       c.messages=mapped;
+      c.otherReadAt=data.otherReadAt||null;
       c.messagesLoaded=true;
       if(!changed)return;
       var inputEl=document.getElementById('chatInput'),draft=inputEl?inputEl.value:'';
@@ -4515,11 +4556,13 @@ chat:function(){
   var c=activeConversation(),prefs=getMessagePrefs(),bubbles=c.messages.map(function(m){
     var date=m.date?'<div class="chat-day">'+esc(m.date)+'</div>':'';
     if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
+    if(m.deleted)return date+'<div class="bubble'+(m.mine?'':' other')+' bubble-deleted">این پیام حذف شد</div>';
     var meta='<div class="bubble-meta"><span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'')+'</div>';
-    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
-    if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
-    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px" onerror="this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
-    return date+'<div class="bubble'+(m.mine?'':' other')+'">'+esc(m.text)+meta+'</div>';
+    var actionsBtn=m.id?'<button class="bubble-more" aria-label="گزینه‌های پیام" onclick="openMessageActions(\''+c.backendId+'\',\''+m.id+'\')">'+icon('more',13)+'</button>':'';
+    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px">'+actionsBtn+'<img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block">'+meta+'</div>';
+    if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'">'+actionsBtn+'<div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
+    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'">'+actionsBtn+'<div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px" onerror="this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
+    return date+'<div class="bubble'+(m.mine?'':' other')+'">'+actionsBtn+esc(m.text)+meta+'</div>';
   }).join('');
   var context=c.context?'<div class="chat-context-card" onclick="openConversationContext()"><i>'+icon(c.context.icon||'briefcase',17)+'</i><div><b>'+esc(c.context.title)+'</b><p>'+esc(c.context.label+(c.context.meta?' · '+c.context.meta:''))+'</p></div><span>‹</span></div>':'';
   var header=topbar(c.name,(c.online?'آنلاین':'آخرین فعالیت '+c.time),'back()');
