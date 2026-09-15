@@ -4582,7 +4582,7 @@ chat:function(){
   var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
   return header+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
   +'<div class="page no-nav" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
-  +'<div class="composer"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label><button class="composer-action '+(state.voiceRecording?'recording':'')+'" aria-label="'+(state.voiceRecording?'پایان و ارسال پیام صوتی':'شروع پیام صوتی')+'" onclick="toggleVoiceRecording()">'+icon('mic',17)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" onkeydown="if(event.key===\'Enter\')sendChatText()"><button class="sendbtn" aria-label="ارسال پیام" onclick="sendChatText()">'+icon('send',16)+'</button></div>'
+  +'<div class="composer"><button class="sendbtn" aria-label="ارسال پیام" onclick="sendChatText()">'+icon('send',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label><button class="composer-action '+(state.voiceRecording?'recording':'')+'" aria-label="'+(state.voiceRecording?'پایان و ارسال پیام صوتی':'شروع پیام صوتی')+'" onclick="toggleVoiceRecording()">'+icon('mic',17)+'</button></div>'
 },
 
 messageSettings:function(){
