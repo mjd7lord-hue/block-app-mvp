@@ -413,14 +413,13 @@ p{color:var(--muted);margin:0}
 .discovery-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .discovery-card{border:1px solid var(--line);border-radius:15px;background:var(--surface);overflow:hidden;cursor:pointer;min-width:0;transition:transform .16s,border-color .16s}
 .discovery-card:active{transform:scale(.985);border-color:var(--card-tone)}
-.discovery-card-head{display:flex;align-items:flex-start;gap:7px;padding:10px 11px 0}
-.discovery-card-icon{width:25px;height:25px;min-width:25px;border-radius:9px;background:var(--card-soft);color:var(--card-tone);display:flex;align-items:center;justify-content:center}
-.discovery-card-title{flex:1;min-width:0}
-.discovery-card-title h3{font-size:.63rem;font-weight:900;line-height:1.45;color:var(--ink);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.discovery-card-title>span{display:block;font-size:.41rem;font-weight:800;color:var(--card-tone);margin-top:2px}
-.discover-verified{width:16px;height:16px;min-width:16px;border-radius:6px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;margin-top:1px}
-.discovery-card-copy{padding:7px 11px 11px}
-.discovery-card-copy p{font-size:.48rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.discovery-card-art{height:58px;background:radial-gradient(circle at 82% 18%,rgba(255,255,255,.12) 0 6px,transparent 7px),linear-gradient(145deg,var(--card-soft),var(--surface2));display:flex;align-items:center;justify-content:center;color:var(--card-tone);position:relative}
+.discovery-card-art>svg{width:20px;height:20px}
+.discover-type{position:absolute;right:7px;top:7px;font-size:.4rem;font-weight:900;padding:3px 5px;border-radius:6px;background:var(--surface);color:var(--card-tone)}
+.discover-verified{position:absolute;left:7px;top:7px;width:16px;height:16px;border-radius:6px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center}
+.discovery-card-copy{padding:9px 11px 11px}
+.discovery-card-copy h3{font-size:.62rem;font-weight:900;line-height:1.5;height:37px;overflow:hidden;color:var(--ink)}
+.discovery-card-copy p{font-size:.48rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:4px;color:var(--muted)}
 .discover-skill{display:inline-block;max-width:100%;font-size:.45rem;font-weight:800;color:var(--card-tone);background:var(--card-soft);border-radius:7px;padding:4px 7px;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .discover-card-foot{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--line);padding-top:7px;margin-top:8px;color:var(--muted);font-size:.45rem}
 .discover-card-foot strong{color:var(--ink);font-size:.52rem}
@@ -4402,10 +4401,8 @@ function renderExploreMini(item){
   return '<div class="discovery-mini tone-'+item.tone+'" onclick="'+openExploreItem(item)+'"><div class="discovery-mini-art"><span>'+esc(item.availabilityLabel)+'</span>'+icon(item.icon,27)+'</div><div class="discovery-mini-copy"><b>'+esc(item.title)+'</b><span>'+esc(exploreLocationLabel(item))+(item.rating?' · ★ '+esc(item.rating):'')+'</span></div></div>';
 }
 function renderExploreCard(item){
-  var verifiedBadge=item.verified?'<i class="discover-verified" aria-label="تأییدشده">'+icon('check',10)+'</i>':'';
-  return '<div class="discovery-card tone-'+item.tone+'" onclick="'+openExploreItem(item)+'">'
-    +'<div class="discovery-card-head"><i class="discovery-card-icon">'+icon(item.icon,15)+'</i><div class="discovery-card-title"><h3>'+esc(item.title)+'</h3><span>'+esc(item.resultLabel)+'</span></div>'+verifiedBadge+'</div>'
-    +'<div class="discovery-card-copy"><p>'+esc(item.city)+' · '+esc(item.availabilityLabel)+'</p><span class="discover-skill">'+esc(item.skills[0])+'</span>'+(item.isAd?'<p class="discover-ad-summary">'+esc(item.description)+'</p>':'')+'<div class="discover-card-foot">'+(item.rating?'<strong>★ '+esc(item.rating)+'</strong>':'<strong>'+esc(item.profile&&item.profile.roleLabel||'آگهی تازه')+'</strong>')+'<span>'+esc(exploreLocationLabel(item))+'</span></div></div></div>';
+  return '<div class="discovery-card tone-'+item.tone+'" onclick="'+openExploreItem(item)+'"><div class="discovery-card-art"><span class="discover-type">'+esc(item.resultLabel)+'</span>'+(item.verified?'<i class="discover-verified" aria-label="تأییدشده">'+icon('check',10)+'</i>':'')+icon(item.icon,20)+'</div>'
+    +'<div class="discovery-card-copy"><h3>'+esc(item.title)+'</h3><p>'+esc(item.city)+' · '+esc(item.availabilityLabel)+'</p><span class="discover-skill">'+esc(item.skills[0])+'</span>'+(item.isAd?'<p class="discover-ad-summary">'+esc(item.description)+'</p>':'')+'<div class="discover-card-foot">'+(item.rating?'<strong>★ '+esc(item.rating)+'</strong>':'<strong>'+esc(item.profile&&item.profile.roleLabel||'آگهی تازه')+'</strong>')+'<span>'+esc(exploreLocationLabel(item))+'</span></div></div></div>';
 }
 function renderExploreSearchBar(placeholder){
   return '<div class="explore-search">'+icon('search',18)+'<input id="exploreSearchInput" value="'+esc(state.exploreQuery)+'" oninput="setExploreQuery(this.value)" placeholder="'+esc(placeholder)+'"><button class="explore-filter-icon-btn" aria-label="فیلترها و مرتب‌سازی" onclick="openExploreFilters()">'+icon('gear',16)+(exploreActiveCount()?'<span class="explore-filter-count">'+exploreActiveCount()+'</span>':'')+'</button></div>';
@@ -4778,8 +4775,11 @@ explore:function(){
   var mode=ensureExploreMode();
   var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='jobs'?'0':'1')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button></div>';
   var items=filteredExploreItems(),active=exploreActiveCount()>0||Boolean((state.exploreQuery||'').trim());
+  var toggleBtn='<button class="explore-view-btn" onclick="setExploreView(\''+(state.exploreView==='cards'?'map':'cards')+'\')">'+icon(state.exploreView==='cards'?'eye':'building',14)+(state.exploreView==='cards'?'نقشه':'کارت‌ها')+'</button>';
   var body;
-  if(!items.length){
+  if(state.exploreView==='map'){
+    body='<div class="explore-section-head"><b>'+items.length+' نتیجه روی نقشه</b><span>برای مشاهده لمس کنید</span></div>'+(items.length?'<div id="exploreLeafletMap" class="mapbox"></div>':renderExploreEmpty());
+  }else if(!items.length){
     body=renderExploreEmpty();
   }else if(!active){
     var featured=items[0],ready=items.filter(function(item){return item.availability==='now'||item.availability==='today'}).slice(0,4);
@@ -4790,7 +4790,7 @@ explore:function(){
     body='<div class="explore-section-head"><b>نتایج جست‌وجو</b><span>'+items.length+' گزینه پیدا شد</span></div><div class="discovery-grid">'+items.map(renderExploreCard).join('')+'</div>';
   }
   return '<div class="page explore-page">'
-  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':'دنبال چه نیرویی هستید؟')+'</h2></div></div>'
+  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>'
   +modeSwitch
   +renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':'مثلاً جوشکار، پروژه یا شهر')
   +renderExploreActiveFilters()+body
