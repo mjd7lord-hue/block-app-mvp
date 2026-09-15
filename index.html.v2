@@ -228,6 +228,9 @@ p{color:var(--muted);margin:0}
 .bubble small{display:block;opacity:.7;font-size:.48rem;margin-top:4px;direction:ltr}
 .bubble-copy{border:0;background:transparent;color:inherit;padding:0;margin-left:2px;display:inline-flex;align-items:center;cursor:pointer;opacity:.6}
 .bubble-copy:hover,.bubble-copy:focus-visible{opacity:1}
+.bubble-pending{display:inline-flex;align-items:center;opacity:.75}
+.bubble-pending svg{animation:pendingSpin 1.1s linear infinite}
+@keyframes pendingSpin{to{transform:rotate(360deg)}}
 .bubble-deleted{font-style:italic;opacity:.7;background:var(--surface2)!important;color:var(--muted)!important;border:1px dashed var(--line)!important;box-shadow:none!important}
 .message-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.message-head h2{font-size:1rem}.head-actions{display:flex;gap:7px}.icon-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}.icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .inbox-search{height:44px;border:1px solid var(--line);background:var(--surface);border-radius:14px;display:flex;align-items:center;gap:8px;padding:0 12px;margin-bottom:10px}.inbox-search svg{color:var(--muted)}.inbox-search input{border:0;outline:0;background:transparent;color:var(--ink);font-family:inherit;font-size:.62rem;min-width:0;flex:1}.message-tabs{display:flex;gap:7px;overflow:auto;margin:0 -2px 12px;padding:2px}.message-tabs::-webkit-scrollbar{display:none}.message-tab{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:inherit;font-size:.53rem;font-weight:800;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer}.message-tab.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
@@ -643,7 +646,8 @@ var ICONS={
   mic:'<path d="M12 2a3 3 0 00-3 3v7a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v3M8 22h8"/>',
   play:'<path d="M8 5v14l11-7z"/>',
   copy:'<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>',
-  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>'
+  image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+  clock:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'
 };
 function icon(name,size){size=size||18;return '<svg class="icon" viewBox="0 0 24 24" width="'+size+'" height="'+size+'">'+(ICONS[name]||ICONS.doc)+'</svg>'}
 var ICON_MAP={calculator:'drafting',loader:'gear',material:'truck',building:'building',tools:'wrench',users:'users',user:'user',project:'building',document:'doc',calendar:'calendar',contract:'doc',wallet:'wallet',alert:'alert',eye:'eye',check:'check',shield:'shield',portfolio:'portfolio',briefcase:'briefcase',truck:'truck',helmet:'helmet'};
@@ -2095,33 +2099,51 @@ function deleteMessageAction(conversationId,messageId){
     })
     .catch(function(e){toast(e.message||'حذف پیام ناموفق بود','warning')});
 }
+function scrollChatToBottom(){
+  requestAnimationFrame(function(){
+    var el=document.querySelector('#view .page');
+    if(el)el.scrollTop=el.scrollHeight;
+  });
+}
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
   var v=(el.value||'').trim();if(!v)return;
   var c=activeConversation();
   if(c.real){
     el.value='';
+    var pending={mine:true,text:v,time:'اکنون',status:'',pending:true};
+    c.messages.push(pending);
+    c.lastMessage=v;c.time='اکنون';c.archived=false;
+    render();
+    scrollChatToBottom();
     apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{text:v}})
       .then(function(data){
-        c.messages.push(mapBackendMessage(data.message));
-        c.lastMessage=v;c.time='اکنون';c.archived=false;
+        var idx=c.messages.indexOf(pending);
+        var mapped=mapBackendMessage(data.message);
+        if(idx>-1)c.messages.splice(idx,1,mapped);else c.messages.push(mapped);
         render();
+        scrollChatToBottom();
       })
-      .catch(function(e){toast(e.message||'ارسال پیام ناموفق بود','warning')});
+      .catch(function(e){
+        var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1);
+        render();
+        toast(e.message||'ارسال پیام ناموفق بود','warning');
+      });
     return;
   }
   c.messages.push({mine:true,text:v,time:'اکنون',status:'ارسال شد'});c.lastMessage=v;c.time='اکنون';c.archived=false;
   el.value='';render();
+  scrollChatToBottom();
 }
 function handleChatPhoto(input){
   var f=input.files&&input.files[0];if(!f)return;
   var c=activeConversation();
   if(c.real){
-    var pending={mine:true,image:URL.createObjectURL(f),time:'در حال ارسال…',status:''};
-    c.messages.push(pending);render();
+    var pending={mine:true,image:URL.createObjectURL(f),time:'اکنون',status:'',pending:true};
+    c.messages.push(pending);render();scrollChatToBottom();
     uploadFileToBackend(f)
       .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'IMAGE',attachmentUrl:data.url}})})
-      .then(function(res){var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1,mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render()})
+      .then(function(res){var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1,mapBackendMessage(res.message));c.lastMessage='تصویر ارسال شد';c.time='اکنون';render();scrollChatToBottom()})
       .catch(function(e){var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1);render();toast(e.message||'ارسال تصویر ناموفق بود','warning')});
     return;
   }
@@ -2165,13 +2187,13 @@ async function toggleVoiceRecording(){
         var voiceMime=blob.type||'audio/webm';
         var voiceExt=(voiceMime.indexOf('mp4')>-1)?'m4a':(voiceMime.indexOf('ogg')>-1)?'ogg':(voiceMime.indexOf('wav')>-1)?'wav':(voiceMime.indexOf('mpeg')>-1)?'mp3':'webm';
         var file=new File([blob],'voice.'+voiceExt,{type:voiceMime});
-        var pending={mine:true,audioUrl:URL.createObjectURL(blob),duration:voiceDuration(duration),time:'در حال ارسال…',status:''};
-        c.messages.push(pending);render();
+        var pending={mine:true,audioUrl:URL.createObjectURL(blob),duration:voiceDuration(duration),time:'اکنون',status:'',pending:true};
+        c.messages.push(pending);render();scrollChatToBottom();
         uploadFileToBackend(file)
           .then(function(data){return apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{type:'VOICE',attachmentUrl:data.url}})})
           .then(function(res){
             var mapped=mapBackendMessage(res.message);mapped.duration=voiceDuration(duration);
-            var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1,mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
+            var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1,mapped);c.lastMessage='پیام صوتی';c.time='اکنون';render();scrollChatToBottom();toast('پیام صوتی ارسال شد');
           })
           .catch(function(e){var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1);render();toast(e.message||'ارسال پیام صوتی ناموفق بود','warning')});
         return;
@@ -3096,6 +3118,7 @@ function loadConversationMessages(c){
       var mapped=(data.messages||[]).map(function(m){return mapBackendMessage(m,data.otherReadAt)});
       // پولینگ هر ۴ ثانیه صدا زده می‌شود؛ اگه چیزی واقعاً عوض نشده، render() نزنیم تا صفحه
       // (و اسکرول/تایپ در حال انجام) هر بار بی‌دلیل بازسازی و «پرش» نکند.
+      var hasNewMessage=mapped.length>c.messages.length;
       var changed=mapped.length!==c.messages.length||JSON.stringify(mapped)!==JSON.stringify(c.messages);
       c.messages=mapped;
       c.otherReadAt=data.otherReadAt||null;
@@ -3103,6 +3126,7 @@ function loadConversationMessages(c){
       if(!changed)return;
       var inputEl=document.getElementById('chatInput'),draft=inputEl?inputEl.value:'';
       render();
+      if(hasNewMessage)scrollChatToBottom();
       if(draft){var restored=document.getElementById('chatInput');if(restored)restored.value=draft}
     })
     .catch(function(e){console.error('loadConversationMessages failed',e)});
@@ -4574,7 +4598,8 @@ chat:function(){
     if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
     if(m.deleted)return date+'<div class="bubble'+(m.mine?'':' other')+' bubble-deleted">این پیام حذف شد</div>';
     var actionsBtn=m.id?'<button class="bubble-copy" aria-label="گزینه‌های پیام" onclick="openMessageActions(\''+c.backendId+'\',\''+m.id+'\')">'+icon('copy',12)+'</button>':'';
-    var meta='<div class="bubble-meta">'+actionsBtn+'<span>'+esc(m.time||'')+'</span>'+(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'')+'</div>';
+    var statusSpan=m.pending?'<span class="bubble-pending">'+icon('clock',9)+'</span>':(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'');
+    var meta='<div class="bubble-meta">'+actionsBtn+'<span>'+esc(m.time||'')+'</span>'+statusSpan+'</div>';
     if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block;cursor:zoom-in" onclick="openImageViewer(\''+esc(m.image).replace(/'/g,"\\'")+'\')">'+meta+'</div>';
     if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
     if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><i>'+icon('play',14)+'</i><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio controls preload="metadata" src="'+esc(m.audioUrl)+'" style="width:175px;height:28px" onerror="this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
