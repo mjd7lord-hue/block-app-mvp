@@ -536,8 +536,9 @@ p{color:var(--muted);margin:0}
 .home-msg-copy>p{font-size:.52rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:3px}
 .home-msg-badge{min-width:16px;height:16px;padding:0 5px;border-radius:99px;background:var(--accent);color:var(--on-accent);font-size:.42rem;font-weight:900;display:flex;align-items:center;justify-content:center}
 .home-msg-time{font-size:.44rem;color:var(--muted);flex:none}
-.home-activity-rail{display:flex;flex-direction:column;gap:8px}
-.home-activity-card{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:15px;padding:10px;cursor:pointer;overflow:hidden;max-height:80px;transition:max-height .26s ease,opacity .26s ease,padding .26s ease,margin .26s ease,transform .26s ease}
+.home-activity-stack{position:relative;height:86px}
+.home-activity-card{position:absolute;inset:0;display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:11px;cursor:grab;box-shadow:0 8px 20px rgba(10,12,20,.14);touch-action:pan-y;user-select:none;transform:translateY(calc(var(--i)*7px)) scale(calc(1 - var(--i)*0.045));z-index:calc(10 - var(--i));opacity:calc(1 - var(--i)*0.22);transition:transform .24s ease,opacity .24s ease,box-shadow .2s ease}
+.home-activity-card.dragging{transition:none;cursor:grabbing;box-shadow:0 14px 28px rgba(10,12,20,.22)}
 .home-activity-card .ricon{width:34px;height:34px;min-width:34px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}
 .home-activity-card.tone-b .ricon{background:var(--tone-blue-soft);color:var(--tone-blue)}
 .home-activity-card.tone-c .ricon{background:var(--accent2-soft);color:var(--accent2)}
@@ -546,7 +547,7 @@ p{color:var(--muted);margin:0}
 .home-activity-card .rcopy p{font-size:.51rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:3px 0 0}
 .activity-dismiss{width:26px;height:26px;min-width:26px;border-radius:9px;border:1px solid var(--line-strong);background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer}
 .activity-dismiss:active{transform:scale(.88)}
-.activity-leave{max-height:0!important;opacity:0!important;padding-top:0!important;padding-bottom:0!important;margin-bottom:-8px!important;transform:scale(.9)!important;border-width:0;pointer-events:none}
+.activity-leave{transition:transform .26s ease,opacity .26s ease!important;transform:translateX(60px) scale(.92)!important;opacity:0!important;pointer-events:none}
 .delivery-day-row{display:flex;flex-wrap:wrap;gap:6px}
 .delivery-day-chip{font-family:inherit;font-size:.54rem;font-weight:800;padding:8px 12px;border-radius:11px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);cursor:pointer}
 .delivery-day-chip.active{border-color:var(--accent);background:var(--accent);color:var(--on-accent)}
@@ -1934,7 +1935,14 @@ function markAllNotificationsRead(){
 function openNotification(idx){
   var item=getNotifications()[idx];if(!item)return;item.read=true;
   if(item.real)apiRequest('/api/notifications/'+item.backendId+'/read',{method:'PATCH'}).catch(function(){});
-  if(item.conversationId){openConversation(item.conversationId);return}
+  if(item.conversationId){
+    if(findConversation(item.conversationId)){openConversation(item.conversationId);return}
+    apiRequest('/api/conversations').then(function(data){
+      mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));
+      openConversation(item.conversationId);
+    }).catch(function(){toast('بازکردن گفت‌وگو ناموفق بود','warning')});
+    return;
+  }
   if(item.target){go(item.target);return}
   render();toast('جزئیات اعلان نمایش داده شد');
 }
@@ -2871,6 +2879,7 @@ function completeLogin(btn){
       saveSession(data.token,data.user);
       hydrateStateFromUser(data.user);
       closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
+      setTimeout(maybePromptPushPermission,900);
     })
     .catch(function(e){
       stopLoading();
@@ -2897,7 +2906,7 @@ function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;cl
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
 function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){clearSession();closeSheet();state.stack=[];state.page='splash';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
+function performLogout(){disablePushNotifications();clearSession();closeSheet();state.stack=[];state.page='splash';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
 function deleteAccount(btn){
@@ -2962,6 +2971,127 @@ function saveSession(token,user){
 function clearSession(){
   localStorage.removeItem('block_token');
   localStorage.removeItem('block_user');
+}
+
+/* ---------- push notifications (web push) ---------- */
+function urlBase64ToUint8Array(base64String){
+  var padding='='.repeat((4-base64String.length%4)%4);
+  var base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  var raw=atob(base64),output=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++)output[i]=raw.charCodeAt(i);
+  return output;
+}
+function pushSupported(){return 'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window}
+function isIOSNonStandalone(){
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent||'');
+  var standalone=window.navigator.standalone||(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches);
+  return isIOS&&!standalone;
+}
+function registerPushServiceWorker(){
+  if(!pushSupported())return Promise.resolve(null);
+  return navigator.serviceWorker.register('/sw.js').catch(function(e){console.error('sw register failed',e);return null});
+}
+function pushPermissionState(){
+  if(!pushSupported())return 'unsupported';
+  return Notification.permission;
+}
+function getCurrentPushSubscription(){
+  if(!pushSupported())return Promise.resolve(null);
+  return navigator.serviceWorker.ready.then(function(reg){return reg.pushManager.getSubscription()}).catch(function(){return null});
+}
+function subscriptionToPayload(sub){
+  var json=sub.toJSON();
+  return{endpoint:json.endpoint,keys:json.keys,userAgent:navigator.userAgent};
+}
+function enablePushNotifications(silent){
+  if(!pushSupported()){
+    if(!silent)toast(isIOSNonStandalone()?'برای اعلان در آیفون، بلوک را از سافاری به صفحهٔ اصلی اضافه و از همان‌جا باز کنید':'اعلان روی این مرورگر پشتیبانی نمی‌شود','warning');
+    return Promise.resolve(false);
+  }
+  return registerPushServiceWorker().then(function(reg){
+    if(!reg)throw new Error('sw-failed');
+    return Notification.requestPermission().then(function(permission){
+      if(permission!=='granted'){
+        if(!silent)toast('اجازهٔ اعلان داده نشد؛ از تنظیمات مرورگر قابل تغییر است','warning');
+        return false;
+      }
+      return apiRequest('/api/push/public-key').then(function(data){
+        return reg.pushManager.getSubscription().then(function(existing){
+          if(existing)return existing;
+          return reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(data.publicKey)});
+        });
+      }).then(function(sub){
+        return apiRequest('/api/push/subscribe',{method:'POST',body:subscriptionToPayload(sub)}).then(function(){
+          if(!silent)toast('اعلان‌ها روی این دستگاه فعال شد');
+          return true;
+        });
+      });
+    });
+  }).catch(function(e){
+    if(!silent)toast('فعال‌سازی اعلان ناموفق بود؛ دوباره تلاش کنید','warning');
+    return false;
+  });
+}
+function disablePushNotifications(){
+  return getCurrentPushSubscription().then(function(sub){
+    if(!sub)return true;
+    var endpoint=sub.endpoint;
+    return sub.unsubscribe().then(function(){
+      return apiRequest('/api/push/unsubscribe',{method:'POST',body:{endpoint:endpoint}}).catch(function(){});
+    }).then(function(){return true});
+  }).catch(function(){return false});
+}
+function togglePushNotifications(){
+  var permState=pushPermissionState();
+  if(permState==='unsupported'){toast(isIOSNonStandalone()?'برای اعلان در آیفون، بلوک را از سافاری به صفحهٔ اصلی اضافه و از همان‌جا باز کنید':'اعلان روی این مرورگر پشتیبانی نمی‌شود','warning');return}
+  if(permState==='denied'){toast('دسترسی اعلان مسدود است؛ از تنظیمات مرورگر/دستگاه فعال کنید','warning');return}
+  getCurrentPushSubscription().then(function(sub){
+    if(sub)return disablePushNotifications().then(function(){state.pushSubscribed=false;toast('اعلان‌ها روی این دستگاه غیرفعال شد');render()});
+    return enablePushNotifications(false).then(function(ok){state.pushSubscribed=!!ok;render()});
+  });
+}
+function maybePromptPushPermission(){
+  if(!pushSupported()||Notification.permission!=='default')return;
+  openSheet('<h3>باخبر شدن از پیام و درخواست تازه</h3><p>وقتی از بلوک بیرونید هم، با اعلان روی گوشی یا مرورگر از پیام‌های جدید و درخواست‌های همکاری باخبر شوید.</p><button class="btn-primary" onclick="closeSheet();enablePushNotifications(false).then(function(ok){state.pushSubscribed=!!ok;render()})">فعال کردن اعلان</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">شاید بعداً</button>');
+}
+function silentlyRefreshPushSubscription(){
+  if(!pushSupported()||Notification.permission!=='granted')return;
+  enablePushNotifications(true).then(function(ok){state.pushSubscribed=!!ok});
+}
+function refreshPushSubscribedCache(){
+  if(!pushSupported()){state.pushSubscribed=false;return}
+  getCurrentPushSubscription().then(function(sub){
+    var was=state.pushSubscribed;state.pushSubscribed=!!sub;
+    if(was!==state.pushSubscribed&&state.page==='notificationSettings')render();
+  });
+}
+function pushStatusRow(){
+  var perm=pushPermissionState();
+  if(perm==='unsupported')return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p>مرورگر یا دستگاه فعلی از اعلان Push پشتیبانی نمی‌کند'+(isIOSNonStandalone()?'؛ در آیفون ابتدا بلوک را به صفحهٔ اصلی اضافه کنید':'')+'.</p></div></div>';
+  if(perm==='denied')return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p style="color:var(--danger)">دسترسی اعلان توسط مرورگر مسدود شده؛ از تنظیمات دستگاه فعال کنید.</p></div></div>';
+  var on=!!state.pushSubscribed;
+  return '<div class="notification-pref"><div><b>اعلان روی این دستگاه</b><p>برای پیام و درخواست جدید، حتی وقتی اپ بسته است باخبر شوید.</p></div><div class="switch '+(on?'on':'')+'" role="switch" aria-checked="'+(on?'true':'false')+'" onclick="togglePushNotifications()"><i></i></div></div>';
+}
+function openFromNotificationTarget(targetType,targetId){
+  if(!targetType||!getSessionUser())return;
+  if(targetType==='chat'&&targetId){
+    apiRequest('/api/conversations').then(function(data){
+      mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));
+      openConversation(targetId);
+    }).catch(function(){});
+    return;
+  }
+  if(PAGES[targetType]){state.stack=[];go(targetType)}
+}
+function checkNotificationDeepLink(){
+  var params=new URLSearchParams(window.location.search);
+  var notif=params.get('notif');
+  if(!notif)return;
+  var parts=notif.split(':');
+  openFromNotificationTarget(parts[0],parts[1]);
+  params.delete('notif');
+  var qs=params.toString();
+  history.replaceState(null,'',window.location.pathname+(qs?'?'+qs:''));
 }
 var PERSIAN_DIGITS='۰۱۲۳۴۵۶۷۸۹',ARABIC_INDIC_DIGITS='٠١٢٣٤٥٦٧٨٩';
 function toEnglishDigits(value){
@@ -3141,7 +3271,8 @@ function mapBackendNotification(n){
     real:true,backendId:n.id,
     title:n.title,sub:n.body||'',time:timeAgoFa(n.createdAt),day:recent?'امروز':'قبل‌تر',
     read:n.read,icon:NOTIF_ICONS[n.type]||'bell',type:String(n.type).toLowerCase(),
-    target:n.targetType||null
+    target:n.targetType||null,
+    conversationId:n.targetType==='chat'?n.targetId:null
   };
 }
 function loadRealNotifications(){
@@ -4071,7 +4202,7 @@ function homeActivityItems(role){
   getNotifications().forEach(function(n,index){
     if(!n.read)items.push({kind:'notification',icon:n.icon||'bell',tone:'c',title:n.title,sub:n.sub||'',action:n.target?"go('"+n.target+"')":"go('notifications')",seenKey:'n'+index});
   });
-  return items.slice(0,6);
+  return items;
 }
 function markHomeActivitySeen(kind,seenKey){
   if(kind==='request'){var r=getIncomingRequests().find(function(x){return x.id===seenKey});if(r)r.seenOnHome=true}
@@ -4088,15 +4219,60 @@ function openHomeActivity(kind,seenKey){
   }
 }
 function dismissHomeActivity(el,kind,seenKey){
-  if(el)el.classList.add('activity-leave');
-  setTimeout(function(){markHomeActivitySeen(kind,seenKey);render()},260);
+  if(el){el.classList.add('activity-leave');setTimeout(function(){markHomeActivitySeen(kind,seenKey);render()},240);return}
+  markHomeActivitySeen(kind,seenKey);render();
 }
 function renderHomeActivityFeed(role){
   var items=homeActivityItems(role);
   if(!items.length)return '';
-  return '<div class="home-section-head"><div><b>تمام رخدادها</b><span>درخواست، پیام و اعلان‌های تازه</span></div><button onclick="go(\'notifications\')">همه</button></div><div class="home-activity-rail">'+items.map(function(it){
-    return '<div class="home-activity-card tone-'+it.tone+'" onclick="openHomeActivity(\''+it.kind+'\',\''+it.seenKey+'\')"><div class="ricon">'+icon(it.icon,16)+'</div><div class="rcopy"><b>'+esc(it.title)+'</b><p>'+esc(it.sub)+'</p></div><button class="activity-dismiss" aria-label="دیده شد" onclick="event.stopPropagation();dismissHomeActivity(this.closest(\'.home-activity-card\'),\''+it.kind+'\',\''+it.seenKey+'\')">'+icon('check',13)+'</button></div>';
-  }).join('')+'</div>';
+  var visible=items.slice(0,3),restCount=items.length-visible.length;
+  var cards=visible.map(function(it,i){
+    return '<div class="home-activity-card tone-'+it.tone+'" style="--i:'+i+'" data-kind="'+esc(it.kind)+'" data-key="'+esc(it.seenKey)+'"><div class="ricon">'+icon(it.icon,16)+'</div><div class="rcopy"><b>'+esc(it.title)+'</b><p>'+esc(it.sub)+'</p></div><button class="activity-dismiss" aria-label="دیده شد" onclick="event.stopPropagation();dismissHomeActivity(this.closest(\'.home-activity-card\'),\''+it.kind+'\',\''+esc(it.seenKey)+'\')">'+icon('x',13)+'</button></div>';
+  }).join('');
+  return '<div class="home-section-head"><div><b>تمام رخدادها</b><span>'+(restCount>0?restCount+' مورد دیگر · ':'')+'بکشید تا کنار برود، لمس کنید تا باز شود</span></div><button onclick="go(\'notifications\')">همه</button></div><div class="home-activity-stack">'+cards+'</div>';
+}
+/* حذف با کشیدن (swipe) روی پشتهٔ رخدادهای خانه؛ چون #view هیچ‌وقت جایگزین نمی‌شود
+   (فقط innerHTML آن رندر می‌شود)، یک‌بار روی همان و با event delegation سوار می‌شود. */
+function initActivitySwipe(){
+  var view=document.getElementById('view');
+  if(!view||view._activitySwipeBound)return;
+  view._activitySwipeBound=true;
+  var drag=null;
+  view.addEventListener('pointerdown',function(e){
+    var card=e.target.closest&&e.target.closest('.home-activity-card');
+    if(!card||(e.target.closest&&e.target.closest('.activity-dismiss')))return;
+    drag={card:card,startX:e.clientX,startY:e.clientY,dx:0,moved:false,pointerId:e.pointerId,kind:card.dataset.kind,key:card.dataset.key};
+    try{card.setPointerCapture(e.pointerId)}catch(err){}
+  });
+  view.addEventListener('pointermove',function(e){
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    var dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+    if(!drag.moved){
+      if(Math.abs(dx)<6&&Math.abs(dy)<6)return;
+      drag.moved=true;drag.card.classList.add('dragging');
+    }
+    drag.dx=dx;
+    var rotate=Math.max(-16,Math.min(16,dx/8));
+    drag.card.style.transform='translate('+dx+'px, calc(var(--i)*7px)) rotate('+rotate+'deg)';
+    drag.card.style.opacity=String(Math.max(.2,1-Math.abs(dx)/220));
+  });
+  function endDrag(e){
+    if(!drag||drag.pointerId!==e.pointerId)return;
+    var d=drag;drag=null;
+    d.card.classList.remove('dragging');
+    if(!d.moved){openHomeActivity(d.kind,d.key);return}
+    if(Math.abs(d.dx)>90){
+      d.card.style.transition='transform .26s ease,opacity .26s ease';
+      d.card.style.transform='translate('+(d.dx>0?130:-130)+'%, calc(var(--i)*7px)) rotate('+(d.dx>0?18:-18)+'deg)';
+      d.card.style.opacity='0';
+      setTimeout(function(){dismissHomeActivity(null,d.kind,d.key)},210);
+    }else{
+      d.card.style.transition='transform .22s ease,opacity .22s ease';
+      d.card.style.transform='';d.card.style.opacity='';
+    }
+  }
+  view.addEventListener('pointerup',endDrag);
+  view.addEventListener('pointercancel',endDrag);
 }
 function renderHomeShortcuts(role){return '<div class="home-shortcuts">'+homeShortcutItems(role).map(function(item){return '<button class="home-shortcut" onclick="'+item[2]+'"><i>'+icon(item[0],15)+'</i><b>'+esc(item[1])+'</b></button>'}).join('')+'</div>'}
 /* Rich "at a glance" profile dashboard for the home page: trust score ring, key stats, skill levels, and free-day/booking count — all derived from real profile data. */
@@ -4452,8 +4628,9 @@ notifications:function(){
 },
 
 notificationSettings:function(){
+  refreshPushSubscribedCache();
   var prefs=getNotificationPrefs(),items=[['messages','پیام‌های تازه','برای پیام‌های خوانده‌نشده و پاسخ‌های جدید'],['projects','پروژه و آگهی','پیشنهاد، رزرو، تغییر وضعیت و پاسخ به آگهی'],['profile','پروفایل و اعتبار','تأیید مدارک، امتیاز و تکمیل پروفایل'],['system','اعلان‌های ضروری بلوک','امنیت حساب و تغییرات مهم سرویس'],['sound','صدا و لرزش','هشدار صوتی برای اعلان‌های تازه']];
-  return topbar('تنظیمات اعلان‌ها','انتخاب کنید چه چیزی شما را باخبر کند')+'<div class="page"><div class="chat-safety">'+icon('shield',15)+'<span>اعلان‌های امنیتی مهم همیشه داخل برنامه نمایش داده می‌شوند.</span></div><div class="setting-section-title">موضوع اعلان‌ها</div>'+items.map(function(item,idx){return '<div class="notification-pref"><div><b>'+item[1]+'</b><p>'+item[2]+'</p></div><div class="switch '+(prefs[item[0]]?'on':'')+'" role="switch" aria-checked="'+(prefs[item[0]]?'true':'false')+'" onclick="toggleNotificationPref(\''+item[0]+'\')"><i></i></div></div>'}).join('')+'</div>';
+  return topbar('تنظیمات اعلان‌ها','انتخاب کنید چه چیزی شما را باخبر کند')+'<div class="page"><div class="chat-safety">'+icon('shield',15)+'<span>اعلان‌های امنیتی مهم همیشه داخل برنامه نمایش داده می‌شوند.</span></div><div class="setting-section-title">اعلان روی گوشی/مرورگر</div>'+pushStatusRow()+'<div class="setting-section-title">موضوع اعلان‌ها</div>'+items.map(function(item,idx){return '<div class="notification-pref"><div><b>'+item[1]+'</b><p>'+item[2]+'</p></div><div class="switch '+(prefs[item[0]]?'on':'')+'" role="switch" aria-checked="'+(prefs[item[0]]?'true':'false')+'" onclick="toggleNotificationPref(\''+item[0]+'\')"><i></i></div></div>'}).join('')+'</div>';
 },
 
 profilePhoto:function(){
@@ -4997,5 +5174,12 @@ state.textSize=savedTextSize;state.highContrast=savedHighContrast;
 document.documentElement.style.fontSize=textSizePx(savedTextSize);
 document.getElementById('phone').setAttribute('data-contrast',savedHighContrast?'high':'normal');
 setMode(savedMode);
+registerPushServiceWorker();
+if(getSessionUser())silentlyRefreshPushSubscription();
+initActivitySwipe();
+if('serviceWorker' in navigator)navigator.serviceWorker.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='blook-notification-click')openFromNotificationTarget(e.data.targetType,e.data.targetId);
+});
+checkNotificationDeepLink();
 </script>
 </body></html>
