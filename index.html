@@ -2040,6 +2040,7 @@ function filteredConversations(){
 function markAllMessagesRead(){getConversations().forEach(function(c){c.unread=0});render();toast('همهٔ پیام‌ها خوانده شد')}
 function openConversation(id){
   var c=findConversation(id);if(!c)return;c.unread=0;state.currentConversationId=id;state.adChatId=c.adId||null;go('chat');
+  scrollChatToBottom();
   if(c.real){
     loadConversationMessages(c);
     startChatPoll(c);
@@ -2100,10 +2101,18 @@ function deleteMessageAction(conversationId,messageId){
     .catch(function(e){toast(e.message||'حذف پیام ناموفق بود','warning')});
 }
 function scrollChatToBottom(){
+  // دو requestAnimationFrame پشت هم تا مطمئن شویم بعد از ریست اسکرول به بالا که render() موقع
+  // تغییر صفحه با rAF خودش انجام می‌دهد اجرا می‌شود، نه قبلش (وگرنه دوباره رو می‌شود).
   requestAnimationFrame(function(){
-    var el=document.querySelector('#view .page');
-    if(el)el.scrollTop=el.scrollHeight;
+    requestAnimationFrame(function(){
+      var el=document.querySelector('#view .page');
+      if(el)el.scrollTop=el.scrollHeight;
+    });
   });
+}
+function focusChatInput(){
+  var el=document.getElementById('chatInput');
+  if(el)el.focus({preventScroll:true});
 }
 function sendChatText(){
   var el=document.getElementById('chatInput');if(!el)return;
@@ -2116,6 +2125,7 @@ function sendChatText(){
     c.lastMessage=v;c.time='اکنون';c.archived=false;
     render();
     scrollChatToBottom();
+    focusChatInput();
     apiRequest('/api/conversations/'+c.backendId+'/messages',{method:'POST',body:{text:v}})
       .then(function(data){
         var idx=c.messages.indexOf(pending);
@@ -2123,10 +2133,12 @@ function sendChatText(){
         if(idx>-1)c.messages.splice(idx,1,mapped);else c.messages.push(mapped);
         render();
         scrollChatToBottom();
+        focusChatInput();
       })
       .catch(function(e){
         var idx=c.messages.indexOf(pending);if(idx>-1)c.messages.splice(idx,1);
         render();
+        focusChatInput();
         toast(e.message||'ارسال پیام ناموفق بود','warning');
       });
     return;
@@ -4611,7 +4623,7 @@ chat:function(){
   var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
   return header+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
   +'<div class="page no-nav" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
-  +'<div class="composer"><button class="sendbtn" aria-label="ارسال پیام" onclick="sendChatText()">'+icon('send',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label><button class="composer-action '+(state.voiceRecording?'recording':'')+'" aria-label="'+(state.voiceRecording?'پایان و ارسال پیام صوتی':'شروع پیام صوتی')+'" onclick="toggleVoiceRecording()">'+icon('mic',17)+'</button></div>'
+  +'<div class="composer"><button class="sendbtn" aria-label="ارسال پیام" onmousedown="event.preventDefault()" onclick="sendChatText()">'+icon('send',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label><button class="composer-action '+(state.voiceRecording?'recording':'')+'" aria-label="'+(state.voiceRecording?'پایان و ارسال پیام صوتی':'شروع پیام صوتی')+'" onclick="toggleVoiceRecording()">'+icon('mic',17)+'</button></div>'
 },
 
 messageSettings:function(){
