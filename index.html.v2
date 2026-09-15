@@ -218,8 +218,8 @@ p{color:var(--muted);margin:0}
 .state p{font-size:.63rem;line-height:1.8;max-width:270px;margin:0 auto}
 
 .chat-thread{display:flex;flex-direction:column;gap:9px;padding-top:2px}
-.bubble{max-width:75%;padding:10px 12px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--on-accent);font-size:.63rem;line-height:1.7;margin-right:auto}
-.bubble.other{margin-right:0;margin-left:auto;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:16px 16px 16px 4px}
+.bubble{max-width:75%;padding:10px 12px;border-radius:16px 16px 4px 16px;background:var(--accent);color:var(--on-accent);font-size:.63rem;line-height:1.7;margin-left:auto}
+.bubble.other{margin-left:0;margin-right:auto;background:var(--surface);border:1px solid var(--line);color:var(--ink);border-radius:16px 16px 16px 4px}
 .bubble small{display:block;opacity:.7;font-size:.48rem;margin-top:4px;direction:ltr}
 .message-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.message-head h2{font-size:1rem}.head-actions{display:flex;gap:7px}.icon-btn{width:36px;height:36px;border-radius:11px;border:1px solid var(--line);background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}.icon-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .inbox-search{height:44px;border:1px solid var(--line);background:var(--surface);border-radius:14px;display:flex;align-items:center;gap:8px;padding:0 12px;margin-bottom:10px}.inbox-search svg{color:var(--muted)}.inbox-search input{border:0;outline:0;background:transparent;color:var(--ink);font-family:inherit;font-size:.62rem;min-width:0;flex:1}.message-tabs{display:flex;gap:7px;overflow:auto;margin:0 -2px 12px;padding:2px}.message-tabs::-webkit-scrollbar{display:none}.message-tab{border:1px solid var(--line);background:var(--surface);color:var(--muted);font-family:inherit;font-size:.53rem;font-weight:800;padding:8px 12px;border-radius:999px;white-space:nowrap;cursor:pointer}.message-tab.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
@@ -3033,11 +3033,14 @@ function loadRealConversations(){
 function loadConversationMessages(c){
   apiRequest('/api/conversations/'+c.backendId+'/messages')
     .then(function(data){
-      // render() چون کل view را دوباره می‌سازد، هر متن نوشته‌نشده در کادر پیام را هم پاک می‌کند؛
-      // چون این تابع هر چند ثانیه یک‌بار برای پولینگ هم صدا زده می‌شود، باید نگهش داریم.
-      var inputEl=document.getElementById('chatInput'),draft=inputEl?inputEl.value:'';
-      c.messages=(data.messages||[]).map(function(m){return mapBackendMessage(m,data.otherReadAt)});
+      var mapped=(data.messages||[]).map(function(m){return mapBackendMessage(m,data.otherReadAt)});
+      // پولینگ هر ۴ ثانیه صدا زده می‌شود؛ اگه چیزی واقعاً عوض نشده، render() نزنیم تا صفحه
+      // (و اسکرول/تایپ در حال انجام) هر بار بی‌دلیل بازسازی و «پرش» نکند.
+      var changed=mapped.length!==c.messages.length||JSON.stringify(mapped)!==JSON.stringify(c.messages);
+      c.messages=mapped;
       c.messagesLoaded=true;
+      if(!changed)return;
+      var inputEl=document.getElementById('chatInput'),draft=inputEl?inputEl.value:'';
       render();
       if(draft){var restored=document.getElementById('chatInput');if(restored)restored.value=draft}
     })
