@@ -462,7 +462,10 @@ p{color:var(--muted);margin:0}
 .ad-success-flow{display:flex;align-items:center;justify-content:center;margin:18px 0}.ad-success-flow span{font-size:.45rem;color:var(--muted);text-align:center}.ad-success-flow i{width:30px;height:2px;background:var(--accent);margin:0 6px}
 .ad-success-audience{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0}.ad-success-audience b{font-size:.58rem;color:var(--ink)}.ad-success-audience p{font-size:.49rem;line-height:1.75;margin-top:4px}
 
-.composer-action.recording{color:var(--danger);background:var(--danger-soft);border-radius:10px;animation:voicePulse 1s infinite}
+.composer-action.recording,.sendbtn.recording{color:var(--danger);background:var(--danger-soft);animation:voicePulse 1s infinite}
+.voice-recording-bar{flex:1;display:flex;align-items:center;gap:7px;padding:0 10px;font-size:.62rem;color:var(--ink)}
+.voice-rec-dot{width:9px;height:9px;border-radius:50%;background:var(--danger);flex:none;animation:voicePulse 1s infinite}
+.voice-recording-bar #voiceRecTimer{direction:ltr;color:var(--muted)}
 .voice-message{display:flex;align-items:center;gap:8px;min-width:174px}.voice-message i{width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center}.voice-message>div{flex:1}.voice-wave{height:18px;display:flex;align-items:center;gap:2px;direction:ltr}.voice-wave span{display:block;width:2px;border-radius:9px;background:currentColor;opacity:.7}.voice-message small{margin:0!important;direction:rtl!important;font-size:.4rem!important}.chat-contact-card{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:11px;margin-bottom:10px}.chat-contact-head{display:flex;align-items:center;gap:8px}.chat-contact-head>i{width:34px;height:34px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center}.chat-contact-head div{flex:1}.chat-contact-head b{display:block;color:var(--ink);font-size:.56rem}.chat-contact-head p{font-size:.46rem;line-height:1.6;margin-top:2px}.chat-contact-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}.chat-contact-actions button{min-height:38px;border-radius:11px;font-family:inherit;font-size:.49rem;font-weight:900;cursor:pointer}.chat-contact-actions .share{border:0;background:var(--accent);color:var(--on-accent)}.chat-contact-actions .request{border:1px solid var(--line-strong);background:transparent;color:var(--ink)}.shared-phone{display:flex;align-items:center;gap:9px;margin-top:9px;padding:9px;border-radius:12px;background:var(--accent-soft);border:1px solid rgba(52,210,166,.28)}.shared-phone div{flex:1}.shared-phone a{font-size:.64rem;font-weight:900;color:var(--accent);text-decoration:none;direction:ltr;display:inline-block}.shared-phone span{display:block;color:var(--muted);font-size:.43rem;margin-top:2px}.shared-phone button{border:0;background:transparent;color:var(--danger);font-family:inherit;font-size:.44rem;font-weight:800;cursor:pointer}
 .agreement-card{border:1px solid rgba(52,210,166,.34);background:linear-gradient(145deg,var(--surface),var(--accent-soft));border-radius:17px;padding:12px;margin-bottom:11px}.agreement-card-head{display:flex;align-items:flex-start;gap:9px}.agreement-card-head>i{width:35px;height:35px;border-radius:11px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.agreement-card-head div{flex:1}.agreement-card-head b{display:block;color:var(--ink);font-size:.59rem}.agreement-card-head p{font-size:.46rem;line-height:1.7;margin-top:2px}.agreement-parties{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:10px}.agreement-party{border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:8px}.agreement-party span{display:block;color:var(--muted);font-size:.4rem}.agreement-party b{display:flex;align-items:center;gap:4px;color:var(--ink);font-size:.47rem;margin-top:4px}.agreement-party.confirmed b{color:var(--accent)}.agreement-card .btn-primary{height:42px;margin-top:10px;font-size:.6rem}.agreement-complete{margin-top:10px;border-radius:11px;padding:9px;background:var(--accent);color:var(--on-accent);font-size:.48rem;font-weight:900;text-align:center}
 .trust-skills-label{display:flex;align-items:center;gap:5px;margin:12px 1px 7px;color:var(--ink);font-size:.52rem;font-weight:900}.trust-skills-label i{color:var(--accent)}.trust-skills-label em{font-style:normal;font-size:.4rem;color:var(--muted);font-weight:700;margin-right:auto}.trust-card .trust-skills{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:0;overflow:visible}.trust-card .trust-skills span{min-height:34px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.51rem;font-weight:900;line-height:1.5;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:10px;padding:7px 8px;white-space:normal}.trust-card .trust-comment{margin-top:10px;padding-top:9px}.trust-card .trust-card-action{font-size:.48rem;padding-top:10px}
@@ -2076,9 +2079,23 @@ function openMessageActions(conversationId,messageId){
   var c=activeConversation();if(!c||c.backendId!==conversationId)return;
   var m=c.messages.find(function(x){return x.id===messageId});if(!m)return;
   var copyBtn=m.text?'<button class="btn-secondary" style="width:100%" onclick="copyMessageText(\''+encodeURIComponent(m.text)+'\')">کپی متن</button><div style="height:8px"></div>':'';
-  var deleteBtn=isMessageDeletable(c,m)?'<button class="btn-secondary" style="width:100%;color:var(--danger);border-color:var(--danger)" onclick="deleteMessageAction(\''+conversationId+'\',\''+messageId+'\')">حذف پیام</button>':'';
-  if(!copyBtn&&!deleteBtn){toast('گزینه‌ای برای این پیام وجود ندارد');return}
-  openSheet('<h3>گزینه‌های پیام</h3>'+copyBtn+deleteBtn+'<div style="height:8px"></div><button class="btn-ghost" style="width:100%" onclick="closeSheet()">بستن</button>');
+  var hideBtn='<button class="btn-secondary" style="width:100%" onclick="hideMessageForMeAction(\''+conversationId+'\',\''+messageId+'\')">حذف برای من</button><div style="height:8px"></div>';
+  var deleteBtn=isMessageDeletable(c,m)?'<button class="btn-secondary" style="width:100%;color:var(--danger);border-color:var(--danger)" onclick="deleteMessageAction(\''+conversationId+'\',\''+messageId+'\')">حذف برای همه</button>':'';
+  openSheet('<h3>گزینه‌های پیام</h3>'+copyBtn+hideBtn+deleteBtn+'<div style="height:8px"></div><button class="btn-ghost" style="width:100%" onclick="closeSheet()">بستن</button>');
+}
+function hideMessageForMeAction(conversationId,messageId){
+  closeSheet();
+  apiRequest('/api/conversations/'+conversationId+'/messages/'+messageId+'/hide',{method:'POST'})
+    .then(function(){
+      var c=activeConversation();
+      if(c&&c.backendId===conversationId){
+        var idx=c.messages.findIndex(function(x){return x.id===messageId});
+        if(idx>-1)c.messages.splice(idx,1);
+        render();
+      }
+      toast('پیام از فهرست شما حذف شد');
+    })
+    .catch(function(e){toast(e.message||'حذف پیام ناموفق بود','warning')});
 }
 function copyMessageText(encoded){
   var text=decodeURIComponent(encoded);
@@ -2201,6 +2218,8 @@ function handleChatDocument(input){
   c.messages.push({mine:true,file:f.name,fileSize:Math.max(1,Math.round(f.size/1024))+' کیلوبایت',time:'اکنون',status:'ارسال شد'});c.lastMessage='فایل: '+f.name;c.time='اکنون';render();
 }
 function voiceDuration(seconds){seconds=Math.max(1,Math.round(seconds||1));return Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')}
+var voiceRecTimerInterval=null;
+function stopVoiceRecTimer(){if(voiceRecTimerInterval){clearInterval(voiceRecTimerInterval);voiceRecTimerInterval=null}}
 async function toggleVoiceRecording(){
   if(state.voiceRecording){if(state.voiceRecorder&&state.voiceRecorder.state!=='inactive')state.voiceRecorder.stop();return}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||typeof MediaRecorder==='undefined'){toast('ضبط صدا در این دستگاه پشتیبانی نمی‌شود','warning');return}
@@ -2209,6 +2228,7 @@ async function toggleVoiceRecording(){
     var recorder=new MediaRecorder(state.voiceStream);state.voiceRecorder=recorder;state.voiceStartedAt=Date.now();state.voiceRecording=true;
     recorder.ondataavailable=function(event){if(event.data&&event.data.size)state.voiceChunks.push(event.data)};
     recorder.onstop=function(){
+      stopVoiceRecTimer();
       var duration=(Date.now()-state.voiceStartedAt)/1000,blob=new Blob(state.voiceChunks,{type:recorder.mimeType||'audio/webm'}),c=activeConversation();
       (state.voiceStream&&state.voiceStream.getTracks()||[]).forEach(function(track){track.stop()});state.voiceRecording=false;state.voiceRecorder=null;state.voiceStream=null;state.voiceChunks=[];
       if(c.real){
@@ -2231,7 +2251,14 @@ async function toggleVoiceRecording(){
       var url=URL.createObjectURL(blob);
       c.messages.push({mine:true,audioUrl:url,duration:voiceDuration(duration),time:'اکنون',status:'ارسال شد'});c.lastMessage='پیام صوتی';c.time='اکنون';render();toast('پیام صوتی ارسال شد');
     };
-    recorder.start();render();toast('ضبط شروع شد؛ برای ارسال دوباره میکروفن را لمس کنید');
+    recorder.start();render();
+    stopVoiceRecTimer();
+    voiceRecTimerInterval=setInterval(function(){
+      var el=document.getElementById('voiceRecTimer');
+      if(!el){stopVoiceRecTimer();return}
+      el.textContent=voiceDuration((Date.now()-state.voiceStartedAt)/1000);
+    },500);
+    toast('ضبط شروع شد؛ برای پایان و ارسال، دوباره دکمه را لمس کنید');
   }catch(error){state.permissionPrefs.microphone='denied';render();toast('برای پیام صوتی، دسترسی میکروفن را فعال کنید')}
 }
 function chatPhoneNumber(){var value=state.values.signupPhone||(state.values.phones&&state.values.phones[0])||'۰۹۱۲ ۳۴۵ ۶۷۸۹';return String(value)}
@@ -4642,7 +4669,9 @@ chat:function(){
   var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
   return header+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
   +'<div class="page no-nav" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
-  +'<div class="composer"><button id="sendMicBtn" class="sendbtn '+(state.voiceRecording?'recording':'')+'" data-mode="'+(state.voiceRecording?'recording':'mic')+'" aria-label="'+(state.voiceRecording?'پایان و ارسال پیام صوتی':'ارسال پیام یا شروع پیام صوتی')+'" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('mic',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" oninput="updateSendMicButton()" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label></div>'
+  +(state.voiceRecording
+    ? '<div class="composer"><button id="sendMicBtn" class="sendbtn recording" data-mode="recording" aria-label="پایان و ارسال پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('send',16)+'</button><div class="voice-recording-bar"><span class="voice-rec-dot"></span>در حال ضبط صدا… <span id="voiceRecTimer" class="mono">0:00</span></div></div>'
+    : '<div class="composer"><button id="sendMicBtn" class="sendbtn" data-mode="mic" aria-label="ارسال پیام یا شروع پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('mic',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" oninput="updateSendMicButton()" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label></div>')
 },
 
 messageSettings:function(){
