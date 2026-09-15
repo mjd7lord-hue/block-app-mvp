@@ -63,7 +63,8 @@ body{display:flex;align-items:center;justify-content:center;padding:26px 10px}
 .hexlogo-mini{width:14px;height:14px;position:relative;flex:none;display:block}
 .hexlogo-mini img,.hexlogo-mini svg{width:100%;height:100%;object-fit:contain;display:block}
 
-.page{flex:1;overflow:auto;padding:18px 20px 110px;animation:pageIn .32s cubic-bezier(.22,1,.36,1)}
+.page{flex:1;overflow:auto;padding:18px 20px 110px}
+.page-anim{animation:pageIn .32s cubic-bezier(.22,1,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 button,.chip,.quick-filter,.list-row,.choice,.home-shortcut{transition:transform .12s ease}
 button:active,.chip:active,.quick-filter:active,.list-row:active,.choice:active,.home-shortcut:active{transform:scale(.96)}
@@ -583,6 +584,9 @@ p{color:var(--muted);margin:0}
   .statusbar{padding-top:env(safe-area-inset-top);height:calc(30px + env(safe-area-inset-top))}
   #view{top:calc(30px + env(safe-area-inset-top))}
   .bottom-nav{bottom:max(10px,env(safe-area-inset-bottom))}
+  /* روی موبایل، اگه فونت فیلدهای فرم از 16px کمتر باشه، سافاری/کروم موبایل هنگام فوکوس خودکار
+     زوم می‌کنن و باید دستی برگردونی؛ این‌جا برای همهٔ ورودی‌ها 16px رو تضمین می‌کنیم. */
+  input,textarea,select{font-size:16px!important}
 }
 </style>
 </head>
@@ -4788,6 +4792,7 @@ function render(){
   var scroller=view.querySelector('.page');
   var phone=document.getElementById('phone');
   if(pageChanged){
+    if(scroller)scroller.classList.add('page-anim');
     if(scroller)scroller.scrollTop=0;
     if(phone)phone.scrollTop=0;
     requestAnimationFrame(function(){if(scroller)scroller.scrollTop=0;if(phone)phone.scrollTop=0});
