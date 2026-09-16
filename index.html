@@ -759,6 +759,7 @@ const BUSINESS_ROLES=["machinery","store","materialsSupplier"];
 /* MVP: hide the 3 business/supplier roles from every user-facing entry point (role picker, explore).
    All their logic/schemas/pages stay intact — flip this back to false to bring them back for a future update. */
 const MVP_HIDE_BUSINESS_ROLES=true;
+const MVP_HIDE_DEMO_CONTENT=true;
 const mvpVisibleRoles=roleOrder.filter(function(k){return !MVP_HIDE_BUSINESS_ROLES||BUSINESS_ROLES.indexOf(k)===-1});
 const roleSchemas={
   engineer:{label:"مهندس",summary:"طراحی، نظارت و محاسبات",icon:"calculator",professional:true,initials:"ر.ت",name:"رضا توکلی",profileTitle:"مهندس عمران · طراحی و نظارت",location:"قشم و بندرعباس",completion:86,stats:[["4.9","اعتبار"],["18","پروژه"],["94%","پاسخ"]],actions:[["صلاحیت‌های مهندسی","طراحی، نظارت و اجرا","shield"],["پروژه‌های مهندسی","18 پروژه مستند","project"],["پروانه و مدارک","اعتبار تا 1407","document"],["برنامه بازدید","3 بازدید این هفته","calendar"]],proofs:[["پروانه حرفه‌ای","تأیید"],["صلاحیت‌ها","3 مورد"],["سوابق پروژه","18 مورد"]],steps:[{title:"هویت و پروانه مهندسی",desc:"اطلاعاتی که برای یک مهندس معنا دارد ثبت می‌شود.",fields:["نام و نام خانوادگی|مثلاً رضا توکلی","رشته مهندسی|عمران، معماری، برق یا مکانیک","شماره عضویت نظام مهندسی|شماره عضویت|ltr","پایه و صلاحیت|مثلاً پایه 2 نظارت"]},{title:"حوزه خدمات مهندسی",desc:"خدماتی را انتخاب کنید که صلاحیت ارائه آن‌ها را دارید.",options:["طراحی","نظارت","محاسبات","اجرا","متره و برآورد","مدیریت پروژه"]},{title:"سابقه و محدوده فعالیت",desc:"پروژه‌ها و محل ارائه خدمات مهندسی را مشخص کنید.",fields:["سابقه مهندسی|تعداد سال سابقه|ltr","پروژه شاخص|نام یا نوع پروژه","شهرهای فعالیت|قشم، بندرعباس و...","اعتبار پروانه|تاریخ پایان اعتبار|ltr"]}],dashboard:{title:"بازدید سازه بلوک B",live:"بازدید امروز",progress:72,facts:[["زمان بازدید","10:30"],["نقشه‌های باز","3 فایل"],["گزارش منتظر","1 مورد"]],actions:[["پروژه‌ها","project"],["بازدیدها","calendar"],["نقشه‌ها","document"],["گزارش‌ها","check"]],feed:[["گزارش سازه آماده ارسال است","پروژه ساحل · 25 دقیقه پیش","document"],["نقشه اصلاح‌شده دریافت شد","بلوک B · امروز","project"]]}},
@@ -2472,6 +2473,7 @@ function filteredExploreItems(){
     if(i.status==='matched')return false;
     if(i.isAd&&modeAdTypes.indexOf(i.adType)===-1)return false;
     if(MVP_HIDE_BUSINESS_ROLES&&BUSINESS_ROLES.indexOf(i.role)>-1)return false;
+    if(MVP_HIDE_DEMO_CONTENT&&!i.real)return false;
     var matchesCity=state.exploreCity==='all'||i.city===state.exploreCity||i.travelReady;
     var matchesRole=state.exploreRole==='all'||i.role===state.exploreRole||(i.targetRoles||[]).indexOf(state.exploreRole)>-1;
     var matchesRange=f.range==='all'||i.distance==null||i.distance<=Number(f.range);
@@ -4165,6 +4167,7 @@ function jobMatchScore(job){
   return score-Math.min(job.distance||0,20)/10;
 }
 function relevantJobItems(limit){
+  if(MVP_HIDE_DEMO_CONTENT)return [];
   var role=state.role||'worker';
   if(!jobFeedRole(role))return [];
   var items=JOB_OPPORTUNITIES.filter(function(job){return job.targetRoles.indexOf(role)>-1}).sort(function(a,b){return jobMatchScore(b)-jobMatchScore(a)});
