@@ -1443,7 +1443,8 @@ var AD_CONFIG={
 var AD_ROLE_LABELS={general:'کارفرما و مشتری',engineer:'مهندس',contractor:'پیمانکار',company:'شرکت ساختمانی',specialist:'متخصص',worker:'کارگر',machinery:'خدمات ماشین‌آلات'};
 var AD_ROLE_COUNTS={general:24,engineer:14,contractor:9,company:6,specialist:28,worker:46,machinery:8};
 
-function calendarType(role){return CALENDAR_TYPE[role]||null}
+const MVP_LITE_HIDE_CALENDAR=true;
+function calendarType(role){return MVP_LITE_HIDE_CALENDAR?null:(CALENDAR_TYPE[role]||null)}
 /* Independent per-machine day calendar (machinery role): each machine gets its own bookable strip, shown right on the public profile. */
 function getMachineCalendar(idx){
   var machine=(state.collections.machines||[])[idx];
@@ -1551,6 +1552,21 @@ function submitProject(){
   go('projectDone');
 }
 
+const MVP_LITE_HIDE_CONSULT_ADS=true;
+function newRequestOptions(role){
+  var allOptions=[
+    {type:'work',tone:'orange',icon:'briefcase',title:'پیدا کردن کار',desc:'مهارت‌ها و سابقهٔ من نمایش داده شود تا کارفرماها بتوانند با من گفتگو کنند'},
+    {type:'workforce',tone:'mint',icon:'users',title:'پیدا کردن نیروی کار',desc:'برای پروژه به کارگر، متخصص، مهندس، پیمانکار یا خدمات ماشین‌آلات نیاز دارم'},
+    {type:'consult',tone:'violet',icon:'drafting',title:'پرسش تخصصی و مشاوره',desc:'برای مطرح‌کردن سؤال، شرح مسئله و دریافت پاسخ از گروه مرتبط'}
+  ];
+  if(MVP_LITE_HIDE_CONSULT_ADS)allOptions=allOptions.filter(function(o){return o.type!=='consult'});
+  return allOptions.filter(function(o){return (AD_CONFIG[o.type].roles||[]).indexOf(role)>-1});
+}
+function openNewRequestSmart(){
+  var options=newRequestOptions(state.role||'worker');
+  if(options.length===1){startAd(options[0].type);return}
+  go('newRequest');
+}
 function startAd(type){
   type=AD_CONFIG[type]?type:'work';
   state.adStep=0;
@@ -2514,26 +2530,22 @@ function openJobFilters(){
 }
 function openExploreFilters(){
   var f=ensureExploreFilters();
-  var sorts=['recommended','nearest','rating','experience','available'].map(function(key){return exploreOptionChip(EXPLORE_SORT_LABELS[key],state.exploreSort===key,"setExploreSort('"+key+"',true)")}).join('');
+  var sorts=['recommended','rating','experience','available'].map(function(key){return exploreOptionChip(EXPLORE_SORT_LABELS[key],state.exploreSort===key,"setExploreSort('"+key+"',true)")}).join('');
   var roles=['all'].concat(mvpVisibleRoles).map(function(key){return exploreOptionChip(EXPLORE_ROLE_LABELS[key],state.exploreRole===key,"setExploreRole('"+key+"',true)")}).join('');
   var cities=['all','قشم','بندرعباس'].map(function(key){return exploreOptionChip(key==='all'?'همه شهرها':key,state.exploreCity===key,"setExploreCity('"+key+"',true)")}).join('');
-  var ranges=[['all','همه فاصله‌ها'],['5','تا ۵ کیلومتر'],['15','تا ۱۵ کیلومتر'],['30','تا ۳۰ کیلومتر']].map(function(item){return exploreOptionChip(item[1],f.range===item[0],"setExploreFilter('range','"+item[0]+"',true)")}).join('');
   var skills=EXPLORE_SKILLS.map(function(skill){return exploreOptionChip(skill,f.skills.indexOf(skill)>-1,"toggleExploreSkill('"+skill+"')")}).join('');
   var experience=[['all','همه'],['junior','کمتر از ۳ سال'],['mid','۳ تا ۷ سال'],['senior','بیش از ۷ سال']].map(function(item){return exploreOptionChip(item[1],f.experience===item[0],"setExploreFilter('experience','"+item[0]+"',true)")}).join('');
   var availability=[['all','هر زمان'],['now','همین حالا'],['today','امروز'],['week','این هفته'],['flexible','با هماهنگی']].map(function(item){return exploreOptionChip(item[1],f.availability===item[0],"setExploreFilter('availability','"+item[0]+"',true)")}).join('');
-  var types=[['all','همه نتایج'],['provider','متخصص و مجری'],['opportunity','فرصت پروژه'],['store','فروشگاه']].map(function(item){return exploreOptionChip(item[1],f.resultType===item[0],"setExploreFilter('resultType','"+item[0]+"',true)")}).join('');
   var trust=exploreOptionChip('فقط تأییدشده‌ها',f.verified,"setExploreFilter('verified',"+(!f.verified)+",true)")+exploreOptionChip('امتیاز ۴٫۵ به بالا',f.rating==='4.5',"setExploreFilter('rating','"+(f.rating==='4.5'?'all':'4.5')+"',true)");
   var html='<div class="filter-sheet-head"><div><h3>فیلترهای جست‌وجو</h3><p>'+exploreActiveCount()+' فیلتر فعال · انتخاب دقیق‌تر، نتیجهٔ بهتر</p></div><button class="sheet-close" aria-label="بستن" onclick="closeSheet()">×</button></div>'
     +'<div class="explore-filter-scroll">'
     +'<div class="filter-group"><b>مرتب‌سازی</b><div class="filter-options">'+sorts+'</div></div>'
     +'<div class="filter-group"><b>نقش کاربران</b><div class="filter-options">'+roles+'</div></div>'
     +'<div class="filter-group"><b>شهر</b><div class="filter-options">'+cities+'</div></div>'
-    +'<div class="filter-group"><b>محدوده</b><div class="filter-options">'+ranges+'</div></div>'
     +'<div class="filter-group"><b>مهارت‌ها</b><div class="filter-options">'+skills+'</div></div>'
     +'<div class="filter-group"><b>سابقه</b><div class="filter-options">'+experience+'</div></div>'
     +'<div class="filter-group"><b>در دسترس بودن</b><div class="filter-options">'+availability+'</div></div>'
-    +'<div class="filter-group"><b>نوع نتیجه <span>پیشنهاد بلوک</span></b><div class="filter-options">'+types+'</div></div>'
-    +'<div class="filter-group"><b>اعتبار <span>پیشنهاد بلوک</span></b><div class="filter-options">'+trust+'</div></div>'
+    +'<div class="filter-group"><b>اعتبار</b><div class="filter-options">'+trust+'</div></div>'
     +'</div><div class="filter-sheet-actions"><button class="filter-clear" onclick="clearExploreFilters()">پاک کردن</button><button class="filter-apply" onclick="closeSheet();render()">نمایش '+filteredExploreItems().length+' نتیجه</button></div>';
   openSheet(html);
 }
@@ -2823,7 +2835,7 @@ function bottomNav(active){
   var items=[['home','home','خانه'],secondItem,addItem,['messages','message','پیام‌ها'],['profile','user','من']];
   return '<div class="bottom-nav">'+items.map(function(i){
     var unread=i[0]==='messages'?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
-    var action=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":"state.stack=[];go('"+i[0]+"')";
+    var action=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":i[0]==='newRequest'?"state.stack=[];openNewRequestSmart()":"state.stack=[];go('"+i[0]+"')";
     return '<button class="nav-btn '+(active===i[0]?'active':'')+'" '+(active===i[0]?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],21)+'<span>'+i[2]+'</span></button>';
   }).join('')+'</div>'
 }
@@ -4220,7 +4232,7 @@ function homePrimary(role){
   if(role==='store')return {icon:'truck',eyebrow:'فروشگاه من',title:'سفارش‌ها و استعلام‌ها',desc:'سفارش‌های تازه و درخواست‌های قیمت.',action:"go('orders')",cta:'دیدن سفارش‌ها'};
   if(role==='machinery')return {icon:'truck',eyebrow:'ارائه‌دهندهٔ خدمات من',title:'سفارش‌ها و درخواست‌های خدمت',desc:'درخواست‌های تازه برای ماشین‌آلات و رزروهای هماهنگ‌شده.',action:"go('orders')",cta:'دیدن سفارش‌ها'};
   if(jobFeedRole(role))return {icon:'briefcase',eyebrow:'پیشنهاد برای شما',title:'کارهای مناسب من',desc:'کارهای هماهنگ با مهارت و شهر شما.',action:'openRelevantJobs()',cta:'دیدن کارها'};
-  return {icon:'search',eyebrow:'شروع سریع',title:'چه چیزی لازم دارید؟',desc:'فرد مناسب را پیدا کنید یا نیازتان را ثبت کنید.',action:"go('newRequest')",cta:'شروع'};
+  return {icon:'search',eyebrow:'شروع سریع',title:'چه چیزی لازم دارید؟',desc:'فرد مناسب را پیدا کنید یا نیازتان را ثبت کنید.',action:"openNewRequestSmart()",cta:'شروع'};
 }
 function renderHomePrimaryCard(role){
   var p=homePrimary(role);
@@ -4235,7 +4247,7 @@ function homeShortcutItems(role){
   if(role==='materialsSupplier')return [['calendar','نوبت‌های تحویل',"go('calendar')"],['check',requests,"go('requestsCenter')"],['message','پیام‌ها',"openDataPage('messages','در حال دریافت پیام‌ها')"],['more','همه امکانات',"go('featureHub')"]];
   if(role==='store')return [['truck','سفارش‌ها',"go('orders')"],['check',requests,"go('requestsCenter')"],['message','پیام‌ها',"openDataPage('messages','در حال دریافت پیام‌ها')"],['more','همه امکانات',"go('featureHub')"]];
   if(role==='machinery')return [['truck','سفارش‌ها',"go('orders')"],['calendar','تقویم رزرو',"go('calendar')"],['check',requests,"go('requestsCenter')"],['more','همه امکانات',"go('featureHub')"]];
-  if(role==='general')return [['search','جست‌وجو',"openDataPage('explore','در حال آماده‌کردن نتایج مرتبط')"],['plus','ثبت نیاز',"go('newRequest')"],['check',requests,"go('requestsCenter')"],['more','همه امکانات',"go('featureHub')"]];
+  if(role==='general')return [['search','جست‌وجو',"openDataPage('explore','در حال آماده‌کردن نتایج مرتبط')"],['plus','ثبت نیاز',"openNewRequestSmart()"],['check',requests,"go('requestsCenter')"],['more','همه امکانات',"go('featureHub')"]];
   return [['briefcase','فرصت‌ها','openRelevantJobs()'],['check',requests,"go('requestsCenter')"],['calendar','تقویم',"go('calendar')"],['more','همه امکانات',"go('featureHub')"]];
 }
 function homeActivityItems(role){
@@ -4612,12 +4624,8 @@ home:function(){
 featureHub:function(){
   var role=state.role||'worker',items=[];
   if(jobFeedRole(role))items.push(['briefcase','فرصت‌های مناسب من','فقط کارهای مرتبط با پروفایل',"go('relevantJobs')"]);
-  if(role==='store')items.push(['truck','سفارش‌ها و استعلام‌ها','پیگیری درخواست‌های مشتریان',"go('orders')"],['plus','ثبت کالای تازه','افزودن کالا یا به‌روزرسانی موجودی',"go('myProducts')"]);
-  else if(role==='materialsSupplier')items.push(['truck','سفارش‌ها و استعلام‌ها','پیگیری درخواست‌های مشتریان',"go('orders')"],['plus','ثبت محصول جدید','افزودن محصول یا به‌روزرسانی موجودی',"go('myProducts')"]);
-  else if(role==='machinery')items.push(['truck','سفارش‌ها و استعلام‌ها','پیگیری درخواست‌های مشتریان',"go('orders')"],['plus','ثبت خدمت جدید','افزودن دستگاه یا خدمت تازه',"go('myProducts')"]);
-  else items.push(['plus','ثبت آگهی عمومی','پیدا کردن کار، نیرو یا مشاور',"go('newRequest')"]);
-  if(calendarType(role))items.push(['calendar',calendarType(role)==='availability'?'تقویم دسترسی':'تقویم و رزروها','ثبت روز آزاد و برنامه‌های هماهنگ‌شده',"go('calendar')"]);
-  items=items.concat([['check','درخواست‌ها','تأیید، رد و پیگیری درخواست‌های ارسالی و دریافتی',"go('requestsCenter')"],['shield','کارت اعتبار من','سن، سابقه، پروژه‌ها، نظرها و امتیاز بلوک',"openTrustCard('self')"],['building','کارهای من','همکاری‌ها و پروژه‌های در حال پیگیری',"go('myProjects')"],['search','جست‌وجو و اکسپلور','پیدا کردن افراد و خدمات نزدیک',"openDataPage('explore','در حال آماده‌کردن نتایج مرتبط')"],['message','پیام‌ها','گفتگوها و هماهنگی‌های امن',"openDataPage('messages','در حال دریافت پیام‌ها')"],['bell','اعلان‌ها','پاسخ‌ها و تغییر وضعیت‌ها',"go('notifications')"],['portfolio','نمونه‌کارها','مدیریت عکس‌ها و سابقهٔ اجرا',"go('portfolio')"],['wrench','وضعیت برنامه','اینترنت، همگام‌سازی و دسترسی‌ها',"go('systemStatus')"],['user','پروفایل من','اطلاعات، تنظیمات و حساب',"go('profile')"]]);
+  items.push(['plus','ثبت آگهی','پیدا کردن کار یا نیرو',"openNewRequestSmart()"]);
+  items=items.concat([['check','درخواست‌ها','تأیید، رد و پیگیری درخواست‌های ارسالی و دریافتی',"go('requestsCenter')"],['shield','کارت اعتبار من','سن، سابقه، پروژه‌ها، نظرها و امتیاز بلوک',"openTrustCard('self')"],['building','کارهای من','همکاری‌ها و پروژه‌های در حال پیگیری',"go('myProjects')"],['portfolio','نمونه‌کارها','مدیریت عکس‌ها و سابقهٔ اجرا',"go('portfolio')"]]);
   return topbar('همه امکانات','هر کاری را از یک جای ساده شروع کنید')+'<div class="page"><div class="feature-hub-grid">'+items.map(function(item){return '<button class="feature-tile" onclick="'+item[3]+'"><i>'+icon(item[0],17)+'</i><b>'+esc(item[1])+'</b><span>'+esc(item[2])+'</span></button>'}).join('')+'</div></div>';
 },
 
@@ -4851,12 +4859,7 @@ viewProfile:function(){
 
 newRequest:function(){
   var role=state.role||'worker',roleLabel=roleSchemas[role]?roleSchemas[role].label:'کاربر بلوک';
-  var allOptions=[
-    {type:'work',tone:'orange',icon:'briefcase',title:'پیدا کردن کار',desc:'مهارت‌ها و سابقهٔ من نمایش داده شود تا کارفرماها بتوانند با من گفتگو کنند'},
-    {type:'workforce',tone:'mint',icon:'users',title:'پیدا کردن نیروی کار',desc:'برای پروژه به کارگر، متخصص، مهندس، پیمانکار یا خدمات ماشین‌آلات نیاز دارم'},
-    {type:'consult',tone:'violet',icon:'drafting',title:'پرسش تخصصی و مشاوره',desc:'برای مطرح‌کردن سؤال، شرح مسئله و دریافت پاسخ از گروه مرتبط'}
-  ];
-  var options=allOptions.filter(function(o){return (AD_CONFIG[o.type].roles||[]).indexOf(role)>-1});
+  var options=newRequestOptions(role);
   return '<div class="page publish-page">'
   +'<div class="publish-head"><span>ثبت آگهی عمومی</span><h2>چه کاری می‌خواهید انجام دهید؟</h2><p>فقط یکی از گزینه‌ها را انتخاب کنید. اطلاعات ثبت‌شدهٔ '+esc(roleLabel)+' به‌صورت خودکار استفاده می‌شود.</p></div>'
   +'<div class="publish-section-title"><b>یک گزینه را انتخاب کنید</b><span>ساده و سریع</span></div>'
