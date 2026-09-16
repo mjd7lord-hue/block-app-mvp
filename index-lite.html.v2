@@ -512,6 +512,15 @@ p{color:var(--muted);margin:0}
 .dash-top-copy{flex:1;min-width:0}
 .dash-top-copy>b{font-size:.68rem;font-weight:900;color:var(--ink);display:block}
 .dash-top-copy>p{font-size:.5rem;color:var(--accent);margin-top:2px;font-weight:700}
+.home-primary-card{display:flex;align-items:center;gap:12px;width:100%;border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:20px;background:linear-gradient(140deg,var(--accent-soft),var(--surface) 130%);padding:16px;cursor:pointer;font-family:inherit;text-align:right;margin-top:12px}
+.home-primary-icon{width:46px;height:46px;min-width:46px;border-radius:14px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center}
+.home-primary-copy{flex:1;min-width:0}
+.home-primary-copy>span{display:block;font-size:.46rem;font-weight:900;color:var(--accent);margin-bottom:3px}
+.home-primary-copy h2{font-size:.85rem;line-height:1.5;color:var(--ink)}
+.home-primary-copy p{font-size:.5rem;color:var(--muted);margin-top:3px;line-height:1.6}
+.home-primary-cta{font-size:.5rem;font-weight:900;color:var(--accent);white-space:nowrap}
+.home-trust-badge{display:flex;align-items:center;gap:10px;width:100%;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:10px 12px;cursor:pointer;font-family:inherit;text-align:right;margin-top:10px}
+.home-trust-badge .rarrow{color:var(--muted);font-size:.7rem}
 .dash-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .dash-badge{display:flex;align-items:center;gap:3px;font-size:.42rem;font-weight:800;color:var(--ink);background:var(--accent-soft);border-radius:999px;padding:3px 7px;position:relative;overflow:hidden;opacity:0;transform:translateY(4px) scale(.9);animation:dashBadgeIn .45s cubic-bezier(.22,1.4,.36,1) forwards;animation-delay:calc(var(--i,0)*90ms)}
 .dash-badge:nth-child(2){background:var(--accent2-soft)}
@@ -4213,6 +4222,14 @@ function homePrimary(role){
   if(jobFeedRole(role))return {icon:'briefcase',eyebrow:'پیشنهاد برای شما',title:'کارهای مناسب من',desc:'کارهای هماهنگ با مهارت و شهر شما.',action:'openRelevantJobs()',cta:'دیدن کارها'};
   return {icon:'search',eyebrow:'شروع سریع',title:'چه چیزی لازم دارید؟',desc:'فرد مناسب را پیدا کنید یا نیازتان را ثبت کنید.',action:"go('newRequest')",cta:'شروع'};
 }
+function renderHomePrimaryCard(role){
+  var p=homePrimary(role);
+  return '<button class="home-primary-card" onclick="'+p.action+'"><div class="home-primary-icon">'+icon(p.icon,22)+'</div><div class="home-primary-copy"><span>'+esc(p.eyebrow)+'</span><h2>'+esc(p.title)+'</h2><p>'+esc(p.desc)+'</p></div><span class="home-primary-cta">'+esc(p.cta)+' ‹</span></button>';
+}
+function renderHomeTrustBadge(role){
+  var trust=myTrustPerson(role),score=blockTrustScore(trust),tier=trustTier(score);
+  return '<button class="home-trust-badge" onclick="openTrustCard(\'self\')"><div class="dash-score-ring" style="width:44px;height:44px;min-width:44px;--pct:'+score+'"><b style="font-size:.58rem">'+score+'</b></div><div class="dash-top-copy"><b>'+esc(tier)+'</b><p>'+(trust.completed||0)+' پروژهٔ تکمیل‌شده · '+(trust.rating||0)+' ★</p></div><span class="rarrow">‹</span></button>';
+}
 function homeShortcutItems(role){
   var requests='درخواست‌ها'+(pendingRequestCount()?' ('+pendingRequestCount()+')':'');
   if(role==='materialsSupplier')return [['calendar','نوبت‌های تحویل',"go('calendar')"],['check',requests,"go('requestsCenter')"],['message','پیام‌ها',"openDataPage('messages','در حال دریافت پیام‌ها')"],['more','همه امکانات',"go('featureHub')"]];
@@ -4585,12 +4602,10 @@ setupDone:function(){
 },
 
 home:function(){
-  var role=state.role||'worker',r=activeRole(),unreadN=unreadNotifCount(),displayName=displayNameFor(role),projects=getProjects(role).filter(function(project){return project.stage!=='done'&&project.stage!=='declined'}),jobs=relevantJobItems(3),firstProject=projects[0];
-  var opportunitySection=jobs.length?'<div class="home-section-head"><div><b>کارهای مناسب شما</b><span>هماهنگ با پروفایل شما</span></div><button onclick="openRelevantJobs()">دیدن همه</button></div><div class="home-opportunity-rail">'+jobs.map(renderHomeJobCard).join('')+'</div>':'';
-  var activeSection=firstProject?'<div class="home-section-head"><div><b>کار در حال پیگیری</b><span>'+projects.length+' مورد فعال</span></div><button onclick="go(\'myProjects\')">همه</button></div><div class="home-active-card" onclick="openProjectDetail('+getProjects(role).indexOf(firstProject)+')"><i>'+icon('building',17)+'</i><div><b>'+esc(firstProject.title)+'</b><p>'+esc(firstProject.who)+'</p></div><span>'+esc(STAGE_LABELS[firstProject.stage])+'</span></div>':'';
+  var role=state.role||'worker',r=activeRole(),unreadN=unreadNotifCount(),displayName=displayNameFor(role);
   return '<div class="page home-page">'
     +'<header class="home-header">'+renderMyAvatar(role)+'<div class="home-welcome"><b>سلام '+esc((displayName||'کاربر بلوک').split(' ')[0])+'</b><span>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</span></div><button class="home-theme" aria-label="تغییر حالت روشن و تیره" onclick="toggleModeQuick()">'+icon(state.mode==='dark'?'moon':'sun',13)+'<span>'+(state.mode==='dark'?'تیره':'روشن')+'</span></button><button class="home-alert" aria-label="اعلان‌ها" onclick="go(\'notifications\')">'+(unreadN?'<span class="dot-indicator"></span>':'')+icon('bell',16)+'</button></header>'
-    +renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderHomeActivityFeed(role)+renderProfileSetupNudge(role)+renderHomeSchedule(role)+opportunitySection+activeSection
+    +renderHomePrimaryCard(role)+renderHomeTrustBadge(role)+renderHomeActivityFeed(role)+renderProfileSetupNudge(role)
     +'</div>'+bottomNav('home')
 },
 
