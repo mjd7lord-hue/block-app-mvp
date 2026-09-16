@@ -129,12 +129,11 @@ p{color:var(--muted);margin:0}
   .input,.textarea,.search input,.price-edit-input{font-size:16px}
 }
 
-.choice-grid{display:flex;flex-direction:column;gap:8px}
-.choice{border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:9px 10px;cursor:pointer;text-align:right;position:relative;min-width:0;display:flex;align-items:center;gap:8px}
-.choice .cicon{width:30px;height:30px;min-width:30px;border-radius:10px;background:var(--surface2);color:var(--accent);display:flex;align-items:center;justify-content:center}
-.choice-copy{flex:1;min-width:0}
-.choice-copy b{display:block;font-size:.6rem;color:var(--ink);overflow-wrap:break-word;line-height:1.4}
-.choice-copy p{font-size:.47rem;line-height:1.45;margin-top:1px;color:var(--muted)}
+.choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.choice{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:12px;cursor:pointer;text-align:right;position:relative;min-width:0}
+.choice .cicon{width:36px;height:36px;border-radius:11px;background:var(--surface2);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.choice b{display:block;font-size:.68rem;color:var(--ink);overflow-wrap:break-word}
+.choice p{font-size:.53rem;line-height:1.6;margin-top:2px}
 .choice.active{border-color:var(--accent);background:var(--accent-soft)}
 .choice.active .cicon{background:var(--accent);color:var(--on-accent)}
 .choice-business{border-color:var(--tone-violet-soft)}
@@ -153,14 +152,14 @@ p{color:var(--muted);margin:0}
 .role-section-label{margin:18px 2px 9px;padding-top:14px;border-top:1px solid var(--line)}
 .role-section-label span{display:block;font-size:.56rem;font-weight:800;color:var(--tone-violet)}
 .role-section-label p{font-size:.56rem;color:var(--muted);margin-top:3px}
-.choice-check{position:absolute;left:8px;top:8px;width:14px;height:14px;border:1.5px solid var(--line-strong);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.44rem;color:var(--on-accent)}
+.choice-check{position:absolute;left:10px;top:10px;width:16px;height:16px;border:1.5px solid var(--line-strong);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.48rem;color:var(--on-accent)}
 .choice.active .choice-check{background:var(--accent);border-color:var(--accent)}
 
-.chip-row{display:flex;flex-wrap:wrap;gap:6px}
-.chip-row .chip{flex:0 1 auto;text-align:center}
-.chip{border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font-size:.52rem;font-weight:700;padding:6px 10px;border-radius:999px;cursor:pointer}
+.chip-row{display:flex;flex-wrap:wrap;gap:7px}
+.chip-row .chip{flex:1 1 auto;text-align:center}
+.chip{border:1px solid var(--line-strong);background:var(--surface);color:var(--muted);font-size:.6rem;font-weight:700;padding:8px 13px;border-radius:999px;cursor:pointer}
 .chip.active{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
-.chip-compact{padding:4px 8px;font-size:.48rem}
+.chip-compact{padding:6px 10px;font-size:.56rem}
 
 .progress{display:flex;gap:5px;margin-bottom:16px}
 .progress i{flex:1;height:4px;border-radius:99px;background:var(--line)}
@@ -448,10 +447,10 @@ p{color:var(--muted);margin:0}
 .publish-hero i{width:42px;height:42px;border-radius:14px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.publish-hero b{display:block;color:var(--ink);font-size:.65rem}.publish-hero p{font-size:.5rem;line-height:1.75;margin-top:3px}
 .publish-section-title{display:flex;align-items:center;justify-content:space-between;margin:18px 1px 9px}.publish-section-title b{font-size:.7rem;color:var(--ink)}.publish-section-title span{font-size:.46rem;color:var(--muted)}
 .publish-option-list{display:flex;flex-direction:column;gap:8px}
-.publish-option{border:1px solid var(--line);border-radius:13px;background:var(--surface);padding:9px 10px;display:flex;align-items:center;gap:9px;cursor:pointer;position:relative;overflow:hidden}
+.publish-option{border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:13px;display:flex;align-items:center;gap:11px;cursor:pointer;position:relative;overflow:hidden}
 .publish-option:after{content:"";position:absolute;right:0;top:0;bottom:0;width:3px;background:var(--option-tone)}
 .publish-option.mint{--option-tone:var(--tone-mint);--option-soft:var(--tone-mint-soft)}.publish-option.orange{--option-tone:var(--accent2);--option-soft:var(--accent2-soft)}.publish-option.violet{--option-tone:var(--tone-violet);--option-soft:var(--tone-violet-soft)}
-.publish-option>i{width:32px;height:32px;border-radius:10px;background:var(--option-soft);color:var(--option-tone);display:flex;align-items:center;justify-content:center;flex:none}.publish-option-copy{flex:1;min-width:0}.publish-option-copy b{display:block;color:var(--ink);font-size:.58rem}.publish-option-copy p{font-size:.46rem;line-height:1.5;margin-top:2px;color:var(--muted)}.publish-option>span{color:var(--muted);font-size:1rem}
+.publish-option>i{width:42px;height:42px;border-radius:13px;background:var(--option-soft);color:var(--option-tone);display:flex;align-items:center;justify-content:center;flex:none}.publish-option-copy{flex:1;min-width:0}.publish-option-copy b{display:block;color:var(--ink);font-size:.64rem}.publish-option-copy p{font-size:.49rem;line-height:1.65;margin-top:3px}.publish-option>span{color:var(--muted);font-size:1rem}
 .publish-route-note{display:flex;gap:9px;align-items:flex-start;background:var(--accent2-soft);border:1px solid rgba(255,159,67,.28);border-radius:15px;padding:11px;margin-top:12px}.publish-route-note i{color:var(--accent2);display:flex}.publish-route-note b{display:block;font-size:.56rem;color:var(--ink)}.publish-route-note p{font-size:.47rem;line-height:1.7;margin-top:2px}
 .direct-route-card{border:1px solid var(--line);border-radius:17px;background:var(--surface2);padding:12px;display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:8px}.direct-route-card>i{width:38px;height:38px;border-radius:12px;background:var(--surface);color:var(--accent);display:flex;align-items:center;justify-content:center}.direct-route-card div{flex:1}.direct-route-card b{display:block;color:var(--ink);font-size:.6rem}.direct-route-card p{font-size:.47rem;margin-top:2px}.direct-route-card>span{font-size:.8rem;color:var(--muted)}
 .ad-page{padding:10px 16px 105px}
@@ -464,12 +463,10 @@ p{color:var(--muted);margin:0}
 .ad-chip-wrap{display:flex;gap:6px;flex-wrap:wrap}.ad-chip{min-height:31px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.49rem;font-weight:800;cursor:pointer}.ad-chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .ad-form-note{border:1px solid var(--accent2);background:var(--accent2-soft);border-radius:13px;padding:10px;margin-bottom:12px}.ad-form-note b{display:block;font-size:.54rem;color:var(--accent2)}.ad-form-note p{font-size:.47rem;line-height:1.7;margin-top:2px;color:var(--ink)}
 .ad-preview-card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(140deg,var(--accent-soft),var(--surface));padding:16px;margin-bottom:11px}.ad-preview-card>span{display:inline-flex;font-size:.44rem;font-weight:900;color:var(--accent);background:var(--accent-soft);padding:5px 8px;border-radius:8px}.ad-preview-card h3{font-size:.78rem;line-height:1.65;margin-top:10px}.ad-preview-card p{font-size:.52rem;line-height:1.7;margin-top:4px}.ad-preview-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:11px}.ad-preview-tags span{font-size:.44rem;color:var(--ink);background:var(--surface2);border:1px solid var(--line);padding:5px 7px;border-radius:8px}
-.required-mark{display:inline;font-size:.66rem;font-weight:900;color:var(--accent2);margin-right:2px;vertical-align:middle;line-height:1}.optional{color:var(--muted);font-size:.4rem;font-weight:600}.profile-source-card{display:flex;align-items:flex-start;gap:10px;border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;margin-bottom:10px}.profile-source-card>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.profile-source-card>div{flex:1;min-width:0}.profile-source-card b{display:block;color:var(--ink);font-size:.6rem}.profile-source-card p{font-size:.48rem;line-height:1.7;margin:3px 0 8px}.profile-source-card.missing{border-color:var(--accent2);background:var(--accent2-soft)}.profile-source-card.missing>i{background:var(--accent2);color:#211203}.profile-source-card.compact{margin:0 0 10px}.profile-source-card.compact p{margin-bottom:0}.profile-category-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:11px 12px;margin-bottom:14px}.profile-category-inline span{font-size:.49rem;color:var(--muted)}.profile-category-inline b{font-size:.55rem;color:var(--accent)}
+.required-mark{display:inline-flex;font-size:.38rem;font-weight:900;color:var(--accent2);background:var(--accent2-soft);border-radius:6px;padding:2px 5px;margin-right:4px;vertical-align:middle}.optional{color:var(--muted);font-size:.4rem;font-weight:600}.profile-source-card{display:flex;align-items:flex-start;gap:10px;border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;margin-bottom:10px}.profile-source-card>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.profile-source-card>div{flex:1;min-width:0}.profile-source-card b{display:block;color:var(--ink);font-size:.6rem}.profile-source-card p{font-size:.48rem;line-height:1.7;margin:3px 0 8px}.profile-source-card.missing{border-color:var(--accent2);background:var(--accent2-soft)}.profile-source-card.missing>i{background:var(--accent2);color:#211203}.profile-source-card.compact{margin:0 0 10px}.profile-source-card.compact p{margin-bottom:0}.profile-category-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:11px 12px;margin-bottom:14px}.profile-category-inline span{font-size:.49rem;color:var(--muted)}.profile-category-inline b{font-size:.55rem;color:var(--accent)}
 .ad-location-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ad-location-grid .field{min-width:0}.field-help{font-size:.46rem;line-height:1.7;margin:-2px 0 8px}.ad-attachment{border:1px dashed var(--line-strong);background:var(--surface);border-radius:15px;padding:11px;margin-bottom:14px}.ad-attachment>label:first-child{display:block;font-size:.56rem;font-weight:800;color:var(--ink);margin-bottom:8px}.ad-attachment>label:first-child span{font-size:.42rem;color:var(--muted);font-weight:500}.ad-attachment>img,.ad-review-image,.ad-detail-image{display:block;width:100%;max-height:190px;object-fit:cover;border-radius:12px;margin:0 0 9px}.ad-upload{height:42px;border:1px solid var(--line);border-radius:12px;color:var(--accent);display:flex;align-items:center;justify-content:center;gap:6px;font-size:.52rem;font-weight:900;cursor:pointer;background:var(--surface2)}.ad-upload input{display:none}.ad-review-image{margin-top:11px;margin-bottom:0}.ad-detail-image{margin-top:10px;margin-bottom:0}
 .chat-only-card{border:1px solid rgba(52,210,166,.28);background:var(--surface);border-radius:15px;padding:11px;display:flex;align-items:flex-start;gap:9px;margin-bottom:14px}.chat-only-card>i{width:34px;height:34px;border-radius:11px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}.chat-only-card b{display:block;font-size:.56rem;color:var(--ink)}.chat-only-card p{font-size:.46rem;line-height:1.7;margin-top:2px}.ad-preview-description{font-size:.5rem;line-height:1.85;color:var(--ink);border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.ad-review-grid,.ad-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}.ad-review-grid>div,.ad-detail-grid>div{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px}.ad-review-grid span,.ad-detail-grid span{display:block;font-size:.42rem;color:var(--muted)}.ad-review-grid b,.ad-detail-grid b{display:block;font-size:.52rem;color:var(--ink);margin-top:3px;line-height:1.55}.dashboard-profile-signal{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);background:var(--surface);border-radius:15px;padding:11px;margin-bottom:14px}.dashboard-profile-signal>i{width:31px;height:31px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}.dashboard-profile-signal b{display:block;font-size:.55rem;color:var(--ink)}.dashboard-profile-signal p{font-size:.46rem;margin-top:2px;color:var(--accent)}
 .discover-ad-summary{font-size:.44rem!important;line-height:1.6!important;white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:7px!important}.ad-detail-page{padding-top:10px}.ad-detail-hero{border:1px solid var(--line);background:linear-gradient(140deg,var(--accent-soft),var(--surface));border-radius:21px;padding:16px;margin-bottom:11px}.ad-detail-hero>span{font-size:.43rem;font-weight:900;color:var(--accent)}.ad-detail-hero h2{font-size:.9rem;line-height:1.7;margin-top:5px}.ad-detail-hero p{font-size:.52rem;margin-top:3px}.ad-owner-card{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:11px;margin-bottom:11px}.ad-owner-card>.avatar{width:38px;height:38px;border-radius:12px;font-size:.58rem}.ad-owner-card>div:nth-child(2){flex:1;min-width:0}.ad-owner-card b{display:block;font-size:.58rem;color:var(--ink)}.ad-owner-card p{font-size:.45rem;margin-top:2px}.ad-owner-card>span{display:flex;align-items:center;gap:3px;font-size:.4rem;color:var(--accent);white-space:nowrap}.ad-detail-section{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:13px;margin-bottom:10px}.ad-detail-section>b{display:block;font-size:.6rem;color:var(--ink);margin-bottom:6px}.ad-detail-section p{font-size:.5rem;line-height:1.85;color:var(--ink)}.ad-detail-section.profile-context{background:var(--accent-soft);border-color:rgba(52,210,166,.25)}.ad-detail-section.description-main{padding:15px;border-color:color-mix(in srgb,var(--accent) 32%,var(--line))}.ad-detail-section.description-main>b{font-size:.68rem}.ad-detail-section.description-main p{font-size:.56rem;line-height:2;color:var(--ink)}
-.ad-detail-safety-note{display:flex;align-items:center;gap:5px;font-size:.46rem;color:var(--muted);margin:2px 2px 12px}
-.ad-detail-safety-note svg{color:var(--accent);flex:none}
 .notify-preview{border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;display:flex;align-items:flex-start;gap:10px}.notify-preview>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.notify-preview b{display:block;color:var(--ink);font-size:.62rem}.notify-preview strong{color:var(--accent);font-size:.76rem}.notify-preview p{font-size:.48rem;line-height:1.7;margin-top:3px}
 .ad-dock{position:absolute;right:0;left:0;bottom:0;padding:12px 16px 20px;background:linear-gradient(0deg,var(--bg) 72%,transparent)}
 .ad-success-flow{display:flex;align-items:center;justify-content:center;margin:18px 0}.ad-success-flow span{font-size:.45rem;color:var(--muted);text-align:center}.ad-success-flow i{width:30px;height:2px;background:var(--accent);margin:0 6px}
@@ -761,7 +758,6 @@ const BUSINESS_ROLES=["machinery","store","materialsSupplier"];
 /* MVP: hide the 3 business/supplier roles from every user-facing entry point (role picker, explore).
    All their logic/schemas/pages stay intact — flip this back to false to bring them back for a future update. */
 const MVP_HIDE_BUSINESS_ROLES=true;
-const MVP_HIDE_DEMO_CONTENT=true;
 const mvpVisibleRoles=roleOrder.filter(function(k){return !MVP_HIDE_BUSINESS_ROLES||BUSINESS_ROLES.indexOf(k)===-1});
 const roleSchemas={
   engineer:{label:"مهندس",summary:"طراحی، نظارت و محاسبات",icon:"calculator",professional:true,initials:"ر.ت",name:"رضا توکلی",profileTitle:"مهندس عمران · طراحی و نظارت",location:"قشم و بندرعباس",completion:86,stats:[["4.9","اعتبار"],["18","پروژه"],["94%","پاسخ"]],actions:[["صلاحیت‌های مهندسی","طراحی، نظارت و اجرا","shield"],["پروژه‌های مهندسی","18 پروژه مستند","project"],["پروانه و مدارک","اعتبار تا 1407","document"],["برنامه بازدید","3 بازدید این هفته","calendar"]],proofs:[["پروانه حرفه‌ای","تأیید"],["صلاحیت‌ها","3 مورد"],["سوابق پروژه","18 مورد"]],steps:[{title:"هویت و پروانه مهندسی",desc:"اطلاعاتی که برای یک مهندس معنا دارد ثبت می‌شود.",fields:["نام و نام خانوادگی|مثلاً رضا توکلی","رشته مهندسی|عمران، معماری، برق یا مکانیک","شماره عضویت نظام مهندسی|شماره عضویت|ltr","پایه و صلاحیت|مثلاً پایه 2 نظارت"]},{title:"حوزه خدمات مهندسی",desc:"خدماتی را انتخاب کنید که صلاحیت ارائه آن‌ها را دارید.",options:["طراحی","نظارت","محاسبات","اجرا","متره و برآورد","مدیریت پروژه"]},{title:"سابقه و محدوده فعالیت",desc:"پروژه‌ها و محل ارائه خدمات مهندسی را مشخص کنید.",fields:["سابقه مهندسی|تعداد سال سابقه|ltr","پروژه شاخص|نام یا نوع پروژه","شهرهای فعالیت|قشم، بندرعباس و...","اعتبار پروانه|تاریخ پایان اعتبار|ltr"]}],dashboard:{title:"بازدید سازه بلوک B",live:"بازدید امروز",progress:72,facts:[["زمان بازدید","10:30"],["نقشه‌های باز","3 فایل"],["گزارش منتظر","1 مورد"]],actions:[["پروژه‌ها","project"],["بازدیدها","calendar"],["نقشه‌ها","document"],["گزارش‌ها","check"]],feed:[["گزارش سازه آماده ارسال است","پروژه ساحل · 25 دقیقه پیش","document"],["نقشه اصلاح‌شده دریافت شد","بلوک B · امروز","project"]]}},
@@ -2475,7 +2471,6 @@ function filteredExploreItems(){
     if(i.status==='matched')return false;
     if(i.isAd&&modeAdTypes.indexOf(i.adType)===-1)return false;
     if(MVP_HIDE_BUSINESS_ROLES&&BUSINESS_ROLES.indexOf(i.role)>-1)return false;
-    if(MVP_HIDE_DEMO_CONTENT&&!i.real)return false;
     var matchesCity=state.exploreCity==='all'||i.city===state.exploreCity||i.travelReady;
     var matchesRole=state.exploreRole==='all'||i.role===state.exploreRole||(i.targetRoles||[]).indexOf(state.exploreRole)>-1;
     var matchesRange=f.range==='all'||i.distance==null||i.distance<=Number(f.range);
@@ -2633,19 +2628,15 @@ function blockTrustScore(person){
 }
 function trustTier(score){if(score>=90)return 'اعتبار عالی';if(score>=78)return 'همکار قابل اعتماد';if(score>=62)return 'سابقهٔ رو به رشد';return 'عضو تازهٔ بلوک'}
 function trustStatus(status){var labels={pending:'در انتظار پاسخ',accepted:'تأیید شده',declined:'رد شده'},ic=status==='accepted'?'check':status==='declined'?'alert':'calendar';return '<span class="status-icon '+status+'">'+icon(ic,10)+esc(labels[status]||status)+'</span>'}
-function renderPublicTrustCard(person,personId,full){
+function renderPublicTrustCard(person,personId){
   if(!person)return '';
-  var score=blockTrustScore(person),reviews=person.reviews||[],skills=person.skills||[],latest=reviews[0];
-  var action=personId==='ad'?'openAdTrustCard()':"openTrustCard('"+personId+"')";
-  var actionButton=(full||state.page==='trustCard')?'':'<button class="trust-card-action" onclick="'+action+'">کارت کامل و '+reviews.length+' نظر ‹</button>';
-  var skillChips=skills.slice(0,3).map(function(skill){return '<span>'+esc(skill)+'</span>'}).join('');
-  var phoneFact=(full&&person.phone)?'<div class="trust-fact trust-fact-phone"><span>شمارهٔ تماس</span>'+(state.trustPhone&&state.trustPhone.revealed?'<b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b>':'<button class="btn-ghost" style="display:flex;align-items:center;gap:3px;padding:0;margin-top:3px;font-size:.5rem" onclick="revealTrustPhone()">'+icon('eye',10)+' نمایش شماره</button>')+'</div>':'';
-  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+(person.photo?'<img src="'+esc(person.photo)+'" alt="عکس پروفایل">':esc(person.initials||'ب'))+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p></div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div>'
-    +'<div class="trust-tier"><b>'+trustTier(score)+'</b><span>'+esc(person.completed||0)+' پروژهٔ تکمیل‌شده</span></div>'
-    +phoneFact
-    +(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی</div><div class="trust-skills">'+skillChips+'</div>':'')
-    +(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'')
-    +actionButton+'</section>';
+  var score=blockTrustScore(person),reviews=person.reviews||[],skills=person.skills||[],org=person.entityType==='organization',latest=reviews[0],action=personId==='ad'?'openAdTrustCard()':"openTrustCard('"+personId+"')",actionButton=state.page==='trustCard'?'':'<button class="trust-card-action" onclick="'+action+'">دیدن کارت کامل، '+reviews.length+' نظر و جزئیات اعتبار ‹</button>';
+  var canRequest=personId&&personId!=='self'&&personId!=='ad'&&!isBlocked(personId);
+  var skillChips=skills.slice(0,4).map(function(skill){
+    var safe=String(skill).replace(/'/g,"\\'");
+    return canRequest?'<span class="skill-tap" onclick="openTargetedProject(\''+personId+'\',\''+safe+'\')">'+esc(skill)+'<i>‹</i></span>':'<span>'+esc(skill)+'</span>';
+  }).join('');
+  return '<section class="trust-card"><div class="trust-card-head"><div class="avatar">'+(person.photo?'<img src="'+esc(person.photo)+'" alt="عکس پروفایل">':esc(person.initials||'ب'))+'</div><div class="trust-card-person"><b>'+esc(person.name||'کاربر بلوک')+(person.verified?'<i class="trust-verified" aria-label="هویت تأییدشده">'+icon('check',10)+'</i>':'')+'</b><p>'+esc(person.role||'عضو بلوک')+' · '+esc(person.location||'')+'</p>'+(person.code?'<span class="trust-code">کد کاربری: '+esc(person.code)+'</span>':'')+'</div><div class="trust-score"><strong>'+score+'</strong><span>اعتبار از ۱۰۰</span></div></div><div class="trust-tier"><b>'+trustTier(score)+'</b><span>براساس سابقهٔ واقعی در بلوک</span></div><div class="trust-facts"><div class="trust-fact"><span>'+(org?'قدمت مجموعه':'سن')+'</span><b>'+esc(person.age||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>'+(org?'محل ثبت':'محل تولد')+'</span><b>'+esc(person.birthPlace||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>سابقهٔ کلی</span><b>'+esc(person.experience||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>محدودهٔ فعالیت</span><b>'+esc(person.activityRange||'ثبت‌نشده')+'</b></div><div class="trust-fact"><span>پروژهٔ تکمیل‌شده در بلوک</span><b>'+esc(person.completed||0)+' پروژه</b></div>'+(person.phone?'<div class="trust-fact trust-fact-phone"><span>شمارهٔ تماس</span>'+(state.trustPhone&&state.trustPhone.revealed?'<b dir="ltr" style="unicode-bidi:plaintext">'+esc(person.phone)+'</b>':'<button class="btn-ghost" style="display:flex;align-items:center;gap:3px;padding:0;margin-top:3px;font-size:.5rem" onclick="revealTrustPhone()">'+icon('eye',10)+' نمایش شماره</button>')+'</div>':'')+(canRequest?'<div class="trust-fact trust-fact-phone"><span>ارتباط مستقیم</span><button class="btn-ghost" style="display:flex;align-items:center;gap:3px;padding:0;margin-top:3px;font-size:.5rem" onclick="'+("openConversationForPerson('"+personId+"')")+'">'+icon('message',10)+' شروع چت در بلوک</button></div>':'')+'</div>'+(skills.length?'<div class="trust-skills-label"><i>'+icon('wrench',12)+'</i>مهارت‌های اصلی'+(canRequest?'<em>برای درخواست لمس کنید</em>':'')+'</div><div class="trust-skills">'+skillChips+'</div>':'')+(latest?'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>«'+esc(latest.comment)+'» · '+esc(latest.from)+'</p></div>':'<div class="trust-comment"><i>'+icon('message',13)+'</i><p>هنوز نظری برای این حساب ثبت نشده است.</p></div>')+actionButton+'<div class="trust-card-brand"><i class="hexlogo-mini">'+appLogo()+'</i><span>صادرشده و تأییدشده در <strong>بلوک</strong></span></div></section>';
 }
 function resetTrustPhone(){state.trustPhone={loading:false,value:null,revealed:false,code:''}}
 function loadRealTrustPhone(userId){
@@ -4173,7 +4164,6 @@ function jobMatchScore(job){
   return score-Math.min(job.distance||0,20)/10;
 }
 function relevantJobItems(limit){
-  if(MVP_HIDE_DEMO_CONTENT)return [];
   var role=state.role||'worker';
   if(!jobFeedRole(role))return [];
   var items=JOB_OPPORTUNITIES.filter(function(job){return job.targetRoles.indexOf(role)>-1}).sort(function(a,b){return jobMatchScore(b)-jobMatchScore(a)});
@@ -4449,7 +4439,7 @@ function renderAdAttachmentField(){
   return '<div class="ad-attachment"><label>عکس مرتبط با پرسش <span>اختیاری</span></label>'+(image?'<img src="'+esc(image)+'" alt="تصویر پیوست پرسش">':'')+'<label class="ad-upload">'+icon('portfolio',16)+' '+(image?'تغییر عکس':'افزودن عکس')+'<input type="file" accept="image/*" onchange="handleAdAttachment(this)"></label></div>';
 }
 function adFieldClass(key){return 'field'+(state.adWarnings&&state.adWarnings[key]?' field-warning':'')}
-function requiredMark(){return '<span class="required-mark" aria-label="ضروری">*</span>'}
+function requiredMark(){return '<span class="required-mark">ضروری</span>'}
 function adAudienceTitle(type){return type==='work'?'چه کسانی آگهی کار شما را ببینند؟':type==='workforce'?'به چه نیرویی نیاز دارید؟':'چه کسانی به پرسش شما پاسخ بدهند؟'}
 function renderAdReview(){
   var d=state.adDraft,config=activeAdConfig(),roles=adRoleNames(),profile=adProfileSnapshot();
@@ -4504,8 +4494,8 @@ legalGate:function(){
 pathChoice:function(){
   return topbar('چطور شروع می‌کنید؟')
   +'<div class="page">'
-  +'<div class="choice" style="margin-bottom:12px" onclick="choosePathQuick()"><div class="cicon">'+icon('plus',18)+'</div><div class="choice-copy"><b>شروع سریع</b><p>همین الان با نام و شهر وارد بلوک شوید؛ تکمیل اطلاعات را بعداً از داشبورد انجام دهید.</p></div></div>'
-  +'<div class="choice active" onclick="choosePathFull()"><div class="cicon">'+icon('shield',18)+'</div><div class="choice-copy"><b>تکمیل کامل اطلاعات <span style="color:var(--accent);font-weight:400">(پیشنهاد بلوک)</span></b><p>بلوک بر پایهٔ همین اطلاعاته — هرچه پروفایل شما کامل‌تر باشد، پیشنهادها و اعتماد طرف مقابل دقیق‌تر خواهد بود.</p></div></div>'
+  +'<div class="choice" style="margin-bottom:12px" onclick="choosePathQuick()"><div class="cicon">'+icon('plus',18)+'</div><b>شروع سریع</b><p>همین الان با نام و شهر وارد بلوک شوید؛ تکمیل اطلاعات را بعداً از داشبورد انجام دهید.</p></div>'
+  +'<div class="choice active" onclick="choosePathFull()"><div class="cicon">'+icon('shield',18)+'</div><b>تکمیل کامل اطلاعات <span style="color:var(--accent);font-weight:400">(پیشنهاد بلوک)</span></b><p>بلوک بر پایهٔ همین اطلاعاته — هرچه پروفایل شما کامل‌تر باشد، پیشنهادها و اعتماد طرف مقابل دقیق‌تر خواهد بود.</p></div>'
   +'</div>'
 },
 
@@ -4525,7 +4515,7 @@ roleSelect:function(){
   var businessKeys=MVP_HIDE_BUSINESS_ROLES?[]:roleOrder.filter(function(k){return BUSINESS_ROLES.indexOf(k)>-1});
   var buildCard=function(k,variant){
     var r=roleSchemas[k];
-    return '<div class="choice '+variant+' '+(state.role===k?'active':'')+'" onclick="pickRole(\''+k+'\')"><span class="choice-check">'+(state.role===k?icon('check',10):'')+'</span><div class="cicon">'+icon(mapIcon(r.icon),18)+'</div><div class="choice-copy"><b>'+esc(r.label)+'</b><p>'+esc(r.summary)+'</p></div></div>';
+    return '<div class="choice '+variant+' '+(state.role===k?'active':'')+'" onclick="pickRole(\''+k+'\')"><span class="choice-check">'+(state.role===k?icon('check',10):'')+'</span><div class="cicon">'+icon(mapIcon(r.icon),18)+'</div><b>'+esc(r.label)+'</b><p>'+esc(r.summary)+'</p></div>';
   };
   var personCards=personKeys.map(function(k){return buildCard(k,'')}).join('');
   var businessCards=businessKeys.map(function(k){return buildCard(k,'choice-business')}).join('');
@@ -4546,8 +4536,8 @@ contractorTypeChoice:function(){
   +'<div class="eyebrow">قبل از ادامه</div>'
   +'<h2 style="margin:8px 0 4px;font-size:1rem">چه نوع حسابی می‌سازید؟</h2>'
   +'<p style="font-size:.62rem;margin-bottom:16px">مسیر ثبت‌نام و پروفایل شرکت و پیمانکار مستقل از هم است.</p>'
-  +'<div class="choice" style="margin-bottom:10px" onclick="pickContractorType(\'company\')"><div class="cicon">'+icon('building',18)+'</div><div class="choice-copy"><b>شرکت ساختمانی</b><p>دارای ثبت رسمی؛ تیم اجرایی و پروژه‌های بزرگ‌تر.</p></div></div>'
-  +'<div class="choice" onclick="pickContractorType(\'contractor\')"><div class="cicon">'+icon('briefcase',18)+'</div><div class="choice-copy"><b>پیمانکار</b><p>پیمانکار حقیقی با اکیپ اجرایی خودتان.</p></div></div>'
+  +'<div class="choice" style="margin-bottom:10px" onclick="pickContractorType(\'company\')"><div class="cicon">'+icon('building',18)+'</div><b>شرکت ساختمانی</b><p>دارای ثبت رسمی؛ تیم اجرایی و پروژه‌های بزرگ‌تر.</p></div>'
+  +'<div class="choice" onclick="pickContractorType(\'contractor\')"><div class="cicon">'+icon('briefcase',18)+'</div><b>پیمانکار</b><p>پیمانکار حقیقی با اکیپ اجرایی خودتان.</p></div>'
   +'</div>'
 },
 
@@ -4628,7 +4618,7 @@ jobDetail:function(){
 
 trustCard:function(){
   var trustCardId=state.trustPersonId||'self',person=currentTrustPerson(),score=blockTrustScore(person),reviews=person.reviews||[],rating=Math.round((Number(person.rating)||0)/5*55),project=Math.round(Math.min(Number(person.completed)||0,40)/40*25),review=Math.round(Math.min(reviews.length,5)/5*10),identity=person.verified?10:0;
-  return topbar('کارت هویت و اعتبار بلوک','اطلاعات عمومی و سابقهٔ واقعی')+'<div class="page">'+renderPublicTrustCard(person,state.trustPersonId||'self',true)+renderPublicSkillDetails(person,state.trustPersonId||'self')+'<div class="trust-explain"><h3>اعتبار '+score+' از ۱۰۰ چگونه محاسبه شده؟</h3><p>این امتیاز از میانگین نظرها، تعداد پروژه‌های تکمیل‌شده، تأیید هویت و فعالیت واقعی حساب در بلوک ساخته می‌شود. امتیاز بالا تضمین انجام کار نیست؛ شرایط قرارداد و ایمنی را جدا بررسی کنید.</p><div class="trust-meter"><i style="width:'+score+'%"></i></div><div class="trust-breakdown"><div><span>امتیاز همکاری‌ها</span><b>'+rating+' از ۵۵</b></div><div><span>پروژه‌های تکمیل‌شده</span><b>'+project+' از ۲۵</b></div><div><span>نظرهای ثبت‌شده</span><b>'+review+' از ۱۰</b></div><div><span>تأیید هویت</span><b>'+identity+' از ۱۰</b></div></div></div><div class="sec-head"><b>نظرها دربارهٔ این حساب</b><span style="font-size:.46rem;color:var(--muted)">'+reviews.length+' نظر</span></div>'+renderReviews(reviews)
+  return topbar('کارت هویت و اعتبار بلوک','اطلاعات عمومی و سابقهٔ واقعی')+'<div class="page">'+renderPublicTrustCard(person,state.trustPersonId||'self')+renderPublicSkillDetails(person,state.trustPersonId||'self')+'<div class="trust-explain"><h3>اعتبار '+score+' از ۱۰۰ چگونه محاسبه شده؟</h3><p>این امتیاز از میانگین نظرها، تعداد پروژه‌های تکمیل‌شده، تأیید هویت و فعالیت واقعی حساب در بلوک ساخته می‌شود. امتیاز بالا تضمین انجام کار نیست؛ شرایط قرارداد و ایمنی را جدا بررسی کنید.</p><div class="trust-meter"><i style="width:'+score+'%"></i></div><div class="trust-breakdown"><div><span>امتیاز همکاری‌ها</span><b>'+rating+' از ۵۵</b></div><div><span>پروژه‌های تکمیل‌شده</span><b>'+project+' از ۲۵</b></div><div><span>نظرهای ثبت‌شده</span><b>'+review+' از ۱۰</b></div><div><span>تأیید هویت</span><b>'+identity+' از ۱۰</b></div></div></div><div class="sec-head"><b>نظرها دربارهٔ این حساب</b><span style="font-size:.46rem;color:var(--muted)">'+reviews.length+' نظر</span></div>'+renderReviews(reviews)+'<div class="chat-safety">'+icon('lock',14)+'<span>شماره فقط وقتی روی این کارت نمایش داده می‌شود که صاحب پروفایل «نمایش شمارهٔ تماس» را در تنظیمات حریم خصوصی فعال کرده باشد.</span></div>'
   +'<div class="chat-safety">'+icon('alert',14)+'<span>اسم یکسان به‌معنی فرد یکسان نیست. پیش از هر پیش‌پرداخت یا واریز، کد کاربری («'+esc(person.code||'—')+'») و شمارهٔ تماس این کارت را با آنچه طرف مقابل می‌گوید مطابقت دهید. بلوک واسطهٔ مالی نیست و مسئولیتی در قبال پرداخت خارج از برنامه ندارد.</span></div></div>'
   +(trustCardId&&trustCardId!=='self'&&trustCardId!=='ad'&&!isBlocked(trustCardId)?'<button class="chat-fab" aria-label="شروع گفتگو" onclick="openConversationForPerson(\''+trustCardId+'\')">'+icon('message',21)+'</button>':'');
 },
@@ -4886,15 +4876,16 @@ createAd:function(){
 adDetail:function(){
   var ad=currentAdDetail();
   if(!ad||!ad.isAd)return topbar('جزئیات آگهی')+'<div class="page"><div class="explore-empty"><b>این آگهی در دسترس نیست</b><p>ممکن است حذف یا ویرایش شده باشد.</p></div></div>';
-  var target=(ad.targetRoles||[]).map(function(role){return AD_ROLE_LABELS[role]||role}).join('، '),isConsult=ad.adType==='consult',isWork=ad.adType==='work';
+  var profile=ad.profile||{},categories=profile.categories||[],target=(ad.targetRoles||[]).map(function(role){return AD_ROLE_LABELS[role]||role}).join('، '),isConsult=ad.adType==='consult',isWork=ad.adType==='work';
   var audienceLabel=isConsult?'پاسخ‌دهندگان':isWork?'مخاطبان آگهی':'نیروی موردنظر';
   var projectDetails=isConsult?'':'<div><span>روش دستمزد</span><b>'+esc(ad.budget||'توافقی')+'</b></div><div><span>'+(isWork?'شروع همکاری':'زمان شروع')+'</span><b>'+esc(ad.startTime||'با هماهنگی')+'</b></div><div><span>'+(isWork?'محل فعالیت':'محل پروژه')+'</span><b>'+esc(ad.city)+(ad.province?'، '+esc(ad.province):'')+'</b></div>';
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p><div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
-    +(projectDetails?'<div class="ad-detail-grid">'+projectDetails+'</div>':'')
+    +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
     +(ad.description?'<div class="ad-detail-section description-main"><b>'+(isConsult?'شرح کامل پرسش':isWork?'توضیح کارجو':'توضیحات کار و نیازمندی‌ها')+'</b><p>'+esc(ad.description)+'</p>'+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست پرسش">':'')+'</div>':'')
-    +'<p class="ad-detail-safety-note">'+icon('shield',11)+' ارتباط فقط از طریق چت امن بلوک؛ نمایش شماره طبق تنظیم حریم خصوصی صاحب پروفایل است.</p>'
+    +'<div class="ad-detail-section profile-context"><b>اطلاعات مرتبط از پروفایل ثبت‌کننده</b><p>حوزه‌ها: '+esc(categories.join('، ')||ad.category)+'</p>'+(profile.experience?'<p>سابقه ثبت‌شده: '+esc(profile.experience)+'</p>':'')+(profile.city?'<p>محل ثبت‌شده: '+esc(profile.city)+'</p>':'')+'</div>'
+    +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت امن بلوک</b><p>چت و پیام صوتی فعال است؛ نمایش شماره فقط طبق تنظیم حریم خصوصی صاحب پروفایل انجام می‌شود.</p></div></div>'
     +renderAgreementCard(ad)
     +renderPublicTrustCard(adTrustPerson(ad),'ad')
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
