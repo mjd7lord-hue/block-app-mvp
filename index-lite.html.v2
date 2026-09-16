@@ -3653,7 +3653,7 @@ function confirmSignupOtp(btn){
       saveSession(data.token,data.user);
       hydrateStateFromUser(data.user);
       state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION;state.otpStage='phone';
-      if(data.isNewUser){go('pathChoice')}
+      if(data.isNewUser){choosePathQuick()}
       else{state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();toast('خوش برگشتید')}
     })
     .catch(function(e){stopLoading();toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning')});
