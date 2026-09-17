@@ -1700,6 +1700,7 @@ function confirmDeleteAd(btn){
     .catch(function(e){stopLoading();toast(e.message||'حذف آگهی ناموفق بود','warning')});
 }
 function startAdChat(id){
+  if(!getSessionUser()){requireAuth(function(){startAdChat(id)});return}
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
   if(ad.real){
     apiRequest('/api/conversations',{method:'POST',body:{otherUserId:ad.authorUserId,adId:ad.backendId}})
@@ -1720,6 +1721,7 @@ function startAdChat(id){
 
 function agreementForAd(ad){return ad&&ad.agreement||null}
 function requestAdAgreement(id){
+  if(!getSessionUser()){requireAuth(function(){requestAdAgreement(id)});return}
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad||ad.status==='matched')return;
   if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است','warning');return}
   if(ad.real){
@@ -2084,6 +2086,7 @@ function startChatPoll(c){
   },4000);
 }
 function openConversationForPerson(personId){
+  if(!getSessionUser()){requireAuth(function(){openConversationForPerson(personId)});return}
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
   var person=PEOPLE_SEED[personId];if(!person)return;
   var id='person-'+personId,c={id:id,personId:personId,name:person.name,initials:person.initials,verified:!!person.verified,online:false,type:person.personType==='store'?'service':'project',unread:0,pinned:false,muted:false,archived:false,time:'اکنون',lastMessage:'گفت‌وگوی تازه',context:{icon:'user',label:'پروفایل',title:person.role,meta:person.location||'',target:'viewProfile'},messages:[{type:'system',text:'این گفت‌وگو از پروفایل «'+person.name+'» شروع شد. برای هماهنگی امن، اطلاعات پروژه را داخل بلوک ثبت کنید.'}]};
@@ -2646,7 +2649,7 @@ function loadRealTrustPhone(userId){
     .then(function(res){state.trustPhone={loading:false,value:(res.user&&res.user.phoneNumber)||null,revealed:false,code:(res.user&&res.user.code)||''};render()})
     .catch(function(){state.trustPhone={loading:false,value:null,revealed:false,code:''}});
 }
-function revealTrustPhone(){if(state.trustPhone)state.trustPhone.revealed=true;render()}
+function revealTrustPhone(){if(!getSessionUser()){requireAuth(revealTrustPhone);return}if(state.trustPhone)state.trustPhone.revealed=true;render()}
 function openTrustCard(id){state.trustPersonId=id;resetTrustPhone();if(id!=='self'&&id!=='ad'&&!PEOPLE_SEED[id])loadRealTrustPhone(id);go('trustCard')}
 function openAdTrustCard(){state.trustPersonId='ad';resetTrustPhone();var ad=currentAdDetail();if(ad&&ad.authorUserId)loadRealTrustPhone(ad.authorUserId);go('trustCard')}
 function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[]}}
@@ -2660,11 +2663,13 @@ function renderPortfolioCards(items){
   }).join('')+'</div>';
 }
 function openTargetedProject(personId,prefillTitle){
+  if(!getSessionUser()){requireAuth(function(){openTargetedProject(personId,prefillTitle)});return}
   state.projectTarget=personId;
   state.projectDraft=prefillTitle?{title:prefillTitle}:{};
   go('postProject');
 }
 function openBookingRequestSheet(personId,slotIdx){
+  if(!getSessionUser()){requireAuth(function(){openBookingRequestSheet(personId,slotIdx)});return}
   var p=PEOPLE_SEED[personId],slot=p.slots[slotIdx];
   state.bookingRequestDraft={note:''};
   var requestLabel=p.requestKind==='service'?'درخواست خدمت':'درخواست رزرو';
@@ -2812,9 +2817,12 @@ function bottomNav(active){
   var addItem=isBusiness?['myProducts','plus','افزودن']:['newRequest','plus','ثبت'];
   var secondItem=isBusiness?['orders','truck','سفارش‌ها']:['explore','search','جست‌وجو'];
   var items=[['home','home','خانه'],secondItem,addItem,['messages','message','پیام‌ها'],['profile','user','من']];
+  var guest=!getSessionUser();
+  var guestProtected=['home','newRequest','myProducts','orders','messages','profile'];
   return '<div class="bottom-nav">'+items.map(function(i){
     var unread=i[0]==='messages'?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
-    var action=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":"state.stack=[];go('"+i[0]+"')";
+    var normalAction=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":"state.stack=[];go('"+i[0]+"')";
+    var action=(guest&&guestProtected.indexOf(i[0])>-1)?"requireAuth(function(){"+normalAction+"})":normalAction;
     return '<button class="nav-btn '+(active===i[0]?'active':'')+'" '+(active===i[0]?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],21)+'<span>'+i[2]+'</span></button>';
   }).join('')+'</div>'
 }
@@ -2898,7 +2906,8 @@ function completeLogin(btn){
     .then(function(data){
       saveSession(data.token,data.user);
       hydrateStateFromUser(data.user);
-      closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
+      closeSheet();state.stack=[];
+      if(isLegalCurrent()){resumeOrGoHome()}else{state.page='legalGate';render()}
       setTimeout(maybePromptPushPermission,900);
     })
     .catch(function(e){
@@ -2912,14 +2921,14 @@ function completeLogin(btn){
       toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning');
     });
 }
-function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
+function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}resumeOrGoHome()}
 function textSizePx(value){return {large:'17.5px',larger:'19px',largest:'21px'}[value]||'16px'}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=textSizePx(value);try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
 function toggleReduceMotion(){state.reduceMotion=!state.reduceMotion;document.getElementById('phone').setAttribute('data-reduce-motion',state.reduceMotion?'true':'false');render()}
 function toggleHelp(index){state.helpOpen=state.helpOpen===index?-1:index;render()}
 function switchAccountRole(role){if(!roleSchemas[role])return;state.role=role;render();toast('نقش فعال به «'+roleSchemas[role].label+'» تغییر کرد')}
-function openSupportChat(){var support=findConversation('block-support');if(support){openConversation('block-support');return}toast('گفت‌وگوی پشتیبانی در دسترس است')}
+function openSupportChat(){if(!getSessionUser()){requireAuth(openSupportChat);return}var support=findConversation('block-support');if(support){openConversation('block-support');return}toast('گفت‌وگوی پشتیبانی در دسترس است')}
 function openChangePhoneSheet(){state.phoneChangeDraft='';openSheet('<h3>تغییر شماره موبایل</h3><p>برای حفظ امنیت حساب، شمارهٔ جدید باید با کد یک‌بارمصرف تأیید شود.</p><div class="field"><label>شمارهٔ جدید</label><input id="newPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" oninput="state.phoneChangeDraft=sanitizePhoneInput(this)"></div><button class="btn-primary" onclick="savePhoneChange()">ارسال کد تأیید</button>')}
 function savePhoneChange(){var value=(state.phoneChangeDraft||'').trim();if(value.length<10){toast('شماره موبایل معتبر وارد کنید','warning');return}openSheet('<h3>تأیید شمارهٔ جدید</h3><p>کد ۴ رقمی ارسال‌شده به '+esc(value)+' را وارد کنید.</p><div class="otp-row"><input maxlength="1"><input maxlength="1"><input maxlength="1"><input maxlength="1"></div><button class="btn-primary" onclick="confirmPhoneChange()">تأیید و ذخیره</button>')}
 function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;closeSheet();render();toast('شمارهٔ جدید تأیید و ذخیره شد')}
@@ -3311,8 +3320,8 @@ function loadRealNotifications(){
     .catch(function(e){console.error('loadRealNotifications failed',e)});
 }
 function syncRealData(page){
+  if(page==='explore'){loadRealAds();return}
   if(!getSessionUser())return;
-  if(page==='explore')loadRealAds();
   if(page==='requestsCenter')loadRealRequests();
   if(page==='myProjects')loadRealProjects();
   if(page==='notifications'||page==='home')loadRealNotifications();
@@ -3650,7 +3659,7 @@ function submitQuickSetup(btn){
     .then(function(){
       stopLoading();
       state.step=0;state.collections={};
-      state.stack=[];state.page='home';render();
+      resumeOrGoHome();
       toast('تبریک! به بلوک خوش آمدید 🎉');
       setTimeout(promptProfilePhotoIfNeeded,600);
     })
@@ -4036,7 +4045,7 @@ function finishSetup(btn){
   syncProfileToBackend(true)
     .then(function(){
       stopLoading();
-      state.profileComplete=true;state.stack=[];state.page='home';render();
+      state.profileComplete=true;resumeOrGoHome();
       toast('تبریک! به بلوک خوش آمدید 🎉');
       setTimeout(promptProfilePhotoIfNeeded,600);
     })
@@ -4195,6 +4204,7 @@ function openRelevantJobs(){if(!jobFeedRole(state.role||'worker')){openAccessDen
 function openJobOpportunity(id){state.viewingJobId=id;go('jobDetail')}
 function currentJobOpportunity(){return JOB_OPPORTUNITIES.find(function(job){return job.id===state.viewingJobId})||JOB_OPPORTUNITIES[0]}
 function sendJobInterest(id){
+  if(!getSessionUser()){requireAuth(function(){sendJobInterest(id)});return}
   var job=JOB_OPPORTUNITIES.find(function(item){return item.id===id});if(!job)return;
   if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است','warning');return}
   state.jobInterestIds.push(id);
@@ -4789,8 +4799,9 @@ explore:function(){
   }else{
     body='<div class="explore-section-head"><b>نتایج جست‌وجو</b><span>'+items.length+' گزینه پیدا شد</span></div><div class="discovery-grid">'+items.map(renderExploreCard).join('')+'</div>';
   }
+  var guestCta=getSessionUser()?'':'<button class="explore-view-btn" onclick="openLoginSheet()">'+icon('user',14)+'ورود / ثبت‌نام</button>';
   return '<div class="page explore-page">'
-  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>'
+  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+guestCta+toggleBtn+'</div>'
   +modeSwitch
   +renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':'مثلاً جوشکار، پروژه یا شهر')
   +renderExploreActiveFilters()+body
@@ -5054,6 +5065,18 @@ settings:function(){
 
 };
 
+function requireAuth(action){
+  if(getSessionUser()){action();return}
+  state.pendingAction=action;
+  openLoginSheet();
+}
+function resumeOrGoHome(){
+  var action=state.pendingAction;
+  state.pendingAction=null;
+  state.stack=[];
+  if(action){action()}
+  else{state.page='home';render()}
+}
 function openLoginSheet(){
   openSheet('<h3>ورود امن به بلوک</h3><p>کد یک‌بارمصرف فقط برای ورود شما پیامک می‌شود.</p><div class="field"><label>شماره موبایل</label><input id="loginPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" placeholder="09xx xxx xxxx" oninput="sanitizePhoneInput(this)"></div><button class="btn-primary" onclick="submitLoginPhone(this)">دریافت کد ورود</button><p style="font-size:.58rem;text-align:center;margin-top:14px">حساب ندارید؟ <button class="legal-link" onclick="closeSheet();go(\'roleSelect\')">ثبت‌نام را شروع کنید</button></p>')
 }
@@ -5180,7 +5203,9 @@ function showDebugError(text,file,line,col){
     box.appendChild(closeBtn);
   }
 }
-restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}
+restoreStateSnapshot();
+if(getSessionUser()&&state.page==='splash'){state.page='home'}
+else if(!getSessionUser()&&state.page==='splash'){state.page='explore';syncRealData('explore')}
 apiRequest('/api/analytics/visit',{method:'POST'}).catch(function(){});
 setInterval(function(){if(getSessionUser())apiRequest('/api/analytics/heartbeat',{method:'POST'}).catch(function(){})},60000);
 if(getSessionUser()&&!(state.values&&state.values.firstName))hydrateStateFromUser(getSessionUser());
