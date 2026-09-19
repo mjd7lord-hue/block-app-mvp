@@ -203,6 +203,10 @@ p{color:var(--muted);margin:0}
 .nav-btn span:last-child{white-space:nowrap}
 .nav-btn.active{color:var(--accent);background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 26%,transparent)}
 .nav-btn.active span:last-child{color:var(--ink)}
+.nav-btn.nav-btn-raised{position:relative;margin-top:-30px;width:56px;height:56px;min-height:56px;padding:0;border-radius:50%;background:var(--accent);color:var(--on-accent);border:4px solid var(--surface);box-shadow:0 10px 22px rgba(0,0,0,.3);justify-self:center}
+.nav-btn.nav-btn-raised svg{width:24px;height:24px;stroke-width:2.2}
+.nav-btn.nav-btn-raised.active{background:var(--accent);color:var(--on-accent)}
+.bottom-nav-guest{grid-template-columns:repeat(3,1fr)}
 
 .avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(155deg,var(--accent-soft),var(--surface2));border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex:none;position:relative}
 .avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;filter:grayscale(1)}
@@ -1535,6 +1539,7 @@ function setProjectField(k,v){state.projectDraft[k]=v}
 function setProjectCategory(v){state.projectDraft.category=v;render()}
 function setProjectProvince(v){state.projectDraft.province=v;state.projectDraft.city='';render()}
 function submitProject(){
+  if(!getSessionUser()){promptGuestAuth('project',{resume:submitProject});return}
   if(!state.projectDraft.title){toast('لطفاً عنوان را وارد کنید','warning');return}
   var who=state.projectTarget?PEOPLE_SEED[state.projectTarget].name:'در انتظار پیشنهاد';
   getProjects(state.role).push({title:state.projectDraft.title,who:who,personId:state.projectTarget||null,stage:'proposed',rating:0,direction:'outgoing'});
@@ -1543,6 +1548,7 @@ function submitProject(){
 }
 
 function startAd(type){
+  if(!getSessionUser()){promptGuestAuth('postAd');return}
   type=AD_CONFIG[type]?type:'work';
   state.adStep=0;
   state.adWarnings={};
@@ -1643,6 +1649,7 @@ function openMaterialDiscovery(){
   go('explore');setTimeout(function(){toast('فروشگاه‌های نزدیک و تأییدشده نمایش داده شدند')},80);
 }
 function publishAd(btn){
+  if(!getSessionUser()){promptGuestAuth('postAd');return}
   var missing=adMissingForStep(0);
   if(missing.length){missing.forEach(function(key){state.adWarnings[key]=true});state.adStep=0;render();toast(state.adDraft.type==='consult'?'عنوان، توضیحات و پاسخ‌دهندگان را کامل کنید':state.adDraft.type==='work'?'مخاطبان را انتخاب و اطلاعات تخصصی پروفایل را کامل کنید':'نیروی موردنظر، توضیحات و محل پروژه را کامل کنید');return}
   var d=state.adDraft,roles=(d.targetRoles||[]).slice(),profile=adProfileSnapshot();
@@ -1701,6 +1708,7 @@ function confirmDeleteAd(btn){
 }
 function startAdChat(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad)return;
+  if(!getSessionUser()){promptGuestAuth('chat',{name:(ad.profile&&ad.profile.name)||ad.title,resume:function(){startAdChat(id)}});return}
   if(ad.real){
     apiRequest('/api/conversations',{method:'POST',body:{otherUserId:ad.authorUserId,adId:ad.backendId}})
       .then(function(data){
@@ -1721,6 +1729,7 @@ function startAdChat(id){
 function agreementForAd(ad){return ad&&ad.agreement||null}
 function requestAdAgreement(id){
   var ad=EXPLORE_ITEMS.find(function(item){return item.id===id});if(!ad||ad.status==='matched')return;
+  if(!getSessionUser()){promptGuestAuth('agreement',{name:ad.title,resume:function(){requestAdAgreement(id)}});return}
   if(ad.agreement&&ad.agreement.viewerConfirmed){toast('تأیید شما قبلاً ثبت شده است','warning');return}
   if(ad.real){
     apiRequest('/api/ads/'+ad.backendId+'/agreement-requests',{method:'POST',body:{}})
@@ -2084,6 +2093,7 @@ function startChatPoll(c){
   },4000);
 }
 function openConversationForPerson(personId){
+  if(!getSessionUser()){var seed=PEOPLE_SEED[personId];promptGuestAuth('chat',{name:seed&&seed.name,resume:function(){openConversationForPerson(personId)}});return}
   var existing=getConversations().find(function(c){return c.personId===personId&&!c.adId});if(existing){openConversation(existing.id);return}
   var person=PEOPLE_SEED[personId];if(!person)return;
   var id='person-'+personId,c={id:id,personId:personId,name:person.name,initials:person.initials,verified:!!person.verified,online:false,type:person.personType==='store'?'service':'project',unread:0,pinned:false,muted:false,archived:false,time:'اکنون',lastMessage:'گفت‌وگوی تازه',context:{icon:'user',label:'پروفایل',title:person.role,meta:person.location||'',target:'viewProfile'},messages:[{type:'system',text:'این گفت‌وگو از پروفایل «'+person.name+'» شروع شد. برای هماهنگی امن، اطلاعات پروژه را داخل بلوک ثبت کنید.'}]};
@@ -2350,7 +2360,7 @@ function renderPhoneShareSheet(){
   openSheet(html);
 }
 function openPhoneShareSheet(){state.phoneShareDraft={phone:chatPhoneNumber(),hours:'فقط با هماهنگی قبلی در چت'};renderPhoneShareSheet()}
-function requestPhoneShare(){var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است','warning');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
+function requestPhoneShare(){if(!getSessionUser()){promptGuestAuth('phone',{resume:requestPhoneShare});return}var c=activeConversation();c.phoneShare=c.phoneShare||{};if(c.phoneShare.status==='requested'){toast('درخواست شماره قبلاً ارسال شده است','warning');return}c.phoneShare.status='requested';c.messages.push({type:'system',text:'درخواست نمایش شماره تماس ارسال شد. شماره فقط پس از اجازهٔ صاحب شماره نمایش داده می‌شود.'});c.lastMessage='درخواست شماره تماس';render();toast('درخواست شماره ارسال شد')}
 function confirmPhoneShare(){var c=activeConversation();c.phoneShare={status:'shared',phone:state.phoneShareDraft.phone||chatPhoneNumber(),hours:state.phoneShareDraft.hours||'فقط با هماهنگی قبلی در چت'};c.messages.push({type:'system',text:'شماره تماس با اجازهٔ صاحب شماره در همین گفتگو نمایش داده شد. تماس فقط در بازهٔ تعیین‌شده انجام شود.'});closeSheet();render();toast('شماره فقط در همین گفتگو نمایش داده شد')}
 function revokePhoneShare(){var c=activeConversation();if(!c.phoneShare)return;c.phoneShare.status='hidden';c.phoneShare.phone='';c.messages.push({type:'system',text:'نمایش شماره تماس توسط صاحب شماره متوقف شد.'});render();toast('نمایش شماره متوقف شد')}
 function approveRequestedPhoneShare(){openPhoneShareSheet()}
@@ -2646,7 +2656,7 @@ function loadRealTrustPhone(userId){
     .then(function(res){state.trustPhone={loading:false,value:(res.user&&res.user.phoneNumber)||null,revealed:false,code:(res.user&&res.user.code)||''};render()})
     .catch(function(){state.trustPhone={loading:false,value:null,revealed:false,code:''}});
 }
-function revealTrustPhone(){if(state.trustPhone)state.trustPhone.revealed=true;render()}
+function revealTrustPhone(){if(!getSessionUser()){promptGuestAuth('phone',{resume:function(){go('trustCard');revealTrustPhone()}});return}if(state.trustPhone)state.trustPhone.revealed=true;render()}
 function openTrustCard(id){state.trustPersonId=id;resetTrustPhone();if(id!=='self'&&id!=='ad'&&!PEOPLE_SEED[id])loadRealTrustPhone(id);go('trustCard')}
 function openAdTrustCard(){state.trustPersonId='ad';resetTrustPhone();var ad=currentAdDetail();if(ad&&ad.authorUserId)loadRealTrustPhone(ad.authorUserId);go('trustCard')}
 function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[]}}
@@ -2660,11 +2670,13 @@ function renderPortfolioCards(items){
   }).join('')+'</div>';
 }
 function openTargetedProject(personId,prefillTitle){
+  if(!getSessionUser()){var seed=PEOPLE_SEED[personId];promptGuestAuth('project',{name:seed&&seed.name,resume:function(){openTargetedProject(personId,prefillTitle)}});return}
   state.projectTarget=personId;
   state.projectDraft=prefillTitle?{title:prefillTitle}:{};
   go('postProject');
 }
 function openBookingRequestSheet(personId,slotIdx){
+  if(!getSessionUser()){var seed=PEOPLE_SEED[personId];promptGuestAuth('booking',{name:seed&&seed.name,resume:function(){openBookingRequestSheet(personId,slotIdx)}});return}
   var p=PEOPLE_SEED[personId],slot=p.slots[slotIdx];
   state.bookingRequestDraft={note:''};
   var requestLabel=p.requestKind==='service'?'درخواست خدمت':'درخواست رزرو';
@@ -2672,6 +2684,7 @@ function openBookingRequestSheet(personId,slotIdx){
   openSheet(html);
 }
 function confirmBookingRequest(personId,slotIdx){
+  if(!getSessionUser()){promptGuestAuth('booking',{resume:function(){confirmBookingRequest(personId,slotIdx)}});return}
   var p=PEOPLE_SEED[personId],slot=p.slots[slotIdx];
   var requestLabel=p.requestKind==='service'?'درخواست خدمت':'درخواست رزرو';
   var title=requestLabel+' · '+slot,projects=getProjects(state.role);
@@ -2682,12 +2695,14 @@ function confirmBookingRequest(personId,slotIdx){
   closeSheet();render();toast(requestLabel+' برای '+p.name+' ارسال شد');
 }
 function openProductOrderSheet(personId,prodIdx){
+  if(!getSessionUser()){var seed=PEOPLE_SEED[personId];promptGuestAuth('order',{name:seed&&seed.name,resume:function(){openProductOrderSheet(personId,prodIdx)}});return}
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx];
   state.orderDraft={qty:''};
   var html='<h3>سفارش '+esc(prod.name)+'</h3><p>'+esc(prod.price)+' / '+esc(prod.unit)+'</p><div class="field"><label>تعداد یا مقدار</label><input class="input" oninput="state.orderDraft.qty=this.value" placeholder="مثلاً ۲۰ کیسه"></div><button class="btn-primary" onclick="confirmProductOrder(\''+personId+'\','+prodIdx+')">ثبت درخواست سفارش</button>';
   openSheet(html);
 }
 function confirmProductOrder(personId,prodIdx){
+  if(!getSessionUser()){promptGuestAuth('order',{resume:function(){confirmProductOrder(personId,prodIdx)}});return}
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx];
   var q=state.orderDraft.qty;
   var title='سفارش '+prod.name+(q?' · '+q:'');
@@ -2707,6 +2722,7 @@ function deliveryCalendarDays(personId){
   return state.supplierCalendar[personId];
 }
 function openDeliveryRequestSheet(personId,prodIdx){
+  if(!getSessionUser()){var seed=PEOPLE_SEED[personId];promptGuestAuth('delivery',{name:seed&&seed.name,resume:function(){openDeliveryRequestSheet(personId,prodIdx)}});return}
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx];
   state.orderDraft={qty:'',location:'',dayIdx:0,slotIdx:null};
   renderDeliverySheet(personId,prodIdx);
@@ -2730,6 +2746,7 @@ function renderDeliverySheet(personId,prodIdx){
 function selectDeliveryDay(personId,prodIdx,dayIdx){state.orderDraft.dayIdx=dayIdx;state.orderDraft.slotIdx=null;renderDeliverySheet(personId,prodIdx)}
 function selectDeliverySlot(personId,prodIdx,slotIdx){state.orderDraft.slotIdx=slotIdx;renderDeliverySheet(personId,prodIdx)}
 function confirmDeliveryOrder(personId,prodIdx){
+  if(!getSessionUser()){promptGuestAuth('delivery',{resume:function(){confirmDeliveryOrder(personId,prodIdx)}});return}
   var p=PEOPLE_SEED[personId],prod=p.products[prodIdx],draft=state.orderDraft,days=deliveryCalendarDays(personId);
   if(!draft.qty){toast(prod.qtyLabel||'مقدار را وارد کنید');return}
   if(prod.needsLocation&&!draft.location){toast('محل تحویل را وارد کنید','warning');return}
@@ -2774,7 +2791,47 @@ function toggleBlock(id){
 
 
 function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render();syncRealData(page)}
-function back(){state.page=state.stack.pop()||(getSessionUser()?'home':'splash');render()}
+function back(){state.page=state.stack.pop()||(getSessionUser()?'home':'explore');render()}
+
+/* ---------- guest browsing: gate only the "positive"/social actions ---------- */
+function guestGateMessage(kind,extra){
+  var name=extra&&extra.name?String(extra.name).trim():'';
+  var M={
+    phone:{title:'دیدن شمارهٔ تماس',body:'برای دیدن شمارهٔ تماس، یک حساب رایگان در بلوک بسازید — چند ثانیه بیشتر طول نمی‌کشد.'},
+    chat:{title:'شروع گفت‌وگو',body:(name?'برای شروع گفت‌وگو با '+name+'، ابتدا حساب بلوک خود را بسازید.':'برای شروع گفت‌وگو، ابتدا حساب بلوک خود را بسازید.')},
+    interest:{title:'اعلام آمادگی برای این کار',body:'برای ارسال درخواست همکاری، یک حساب رایگان بسازید تا کارفرما بتواند شما را بشناسد و پاسخ دهد.'},
+    agreement:{title:'تأیید همکاری',body:'برای ثبت توافق و شروع رسمی این همکاری، ابتدا حساب بلوک خود را بسازید.'},
+    postAd:{title:'ثبت آگهی',body:'برای انتشار آگهی و دریافت پیام از افراد مرتبط، یک حساب رایگان بسازید.'},
+    project:{title:'ارسال درخواست',body:(name?'برای ارسال درخواست به '+name+'، ابتدا حساب بلوک خود را بسازید.':'برای ارسال این درخواست، ابتدا حساب بلوک خود را بسازید.')},
+    booking:{title:'ثبت درخواست رزرو',body:'برای رزرو نوبت، یک حساب رایگان بسازید تا طرف مقابل بتواند به شما پاسخ دهد.'},
+    order:{title:'ثبت سفارش',body:'برای ثبت سفارش، یک حساب رایگان بسازید تا پیگیری سفارش برای شما ذخیره شود.'},
+    delivery:{title:'رزرو نوبت تحویل',body:'برای رزرو نوبت تحویل، یک حساب رایگان بسازید.'},
+    nav:{title:'به بلوک بپیوندید',body:'با ساختن حساب رایگان می‌توانید آگهی ثبت کنید، با افراد گفت‌وگو کنید و شمارهٔ تماس را ببینید.'}
+  };
+  return M[kind]||{title:'ورود یا ثبت‌نام',body:'برای ادامه، یک حساب رایگان بسازید یا وارد حساب خود شوید.'};
+}
+/* اگر مهمان وسط یک اقدام مشخص (مثلاً شروع گفت‌وگو با یک نفر خاص) به ثبت‌نام/ورود هدایت شود،
+   بعد از تکمیل موفق، به‌جای فرود روی خانهٔ عمومی، همان اقدام از نو اجرا می‌شود تا کاربر مجبور
+   نباشد دوباره آن آگهی/فرد را پیدا کند. اگر «فعلاً نه» را بزند یا یک گیت جدید و بی‌ربط باز شود،
+   این مقدار پاک/بازنویسی می‌شود تا هیچ‌وقت یک اقدام قدیمی و نامرتبط بعداً اجرا نشود.*/
+var pendingGuestAction=null;
+function promptGuestAuth(kind,extra){
+  var m=guestGateMessage(kind,extra);
+  pendingGuestAction=(extra&&typeof extra.resume==='function')?extra.resume:null;
+  openSheet('<h3>'+esc(m.title)+'</h3><p>'+esc(m.body)+'</p><button class="btn-primary" onclick="closeSheet();go(\'roleSelect\')">ساخت حساب رایگان</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet();setTimeout(openLoginSheet,200)">حساب دارم، وارد می‌شوم</button><div style="height:8px"></div><button class="btn-ghost" style="width:100%" onclick="dismissGuestPrompt()">فعلاً نه، فقط مرور می‌کنم</button>');
+}
+function dismissGuestPrompt(){pendingGuestAction=null;closeSheet()}
+function resumePendingGuestAction(){var fn=pendingGuestAction;pendingGuestAction=null;if(fn){try{fn()}catch(e){}}}
+function guestExploreFilters(){
+  if(state.page!=='explore'){state.stack=[];state.page='explore';render()}
+  if(ensureExploreMode()==='jobs')openJobFilters();else openExploreFilters();
+}
+function guestBottomNav(active){
+  var searchBtn='<button class="nav-btn" aria-label="جست‌وجو و فیلترها" onclick="guestExploreFilters()">'+icon('search',20)+'<span>جست‌وجو</span></button>';
+  var homeBtn='<button class="nav-btn nav-btn-raised'+(active==='explore'?' active':'')+'" '+(active==='explore'?'aria-current="page"':'')+' aria-label="مرور آگهی‌ها" onclick="state.stack=[];go(\'explore\')">'+icon('home',24)+'</button>';
+  var joinBtn='<button class="nav-btn" aria-label="ساخت حساب یا ورود" onclick="promptGuestAuth(\'nav\')">'+icon('user',20)+'<span>عضویت</span></button>';
+  return '<div class="bottom-nav bottom-nav-guest">'+searchBtn+homeBtn+joinBtn+'</div>';
+}
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('warning',type==='warning');t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
 function closeSheet(){var s=document.getElementById('sheet');document.getElementById('backdrop').classList.remove('show');s.classList.remove('show');s.setAttribute('aria-hidden','true');s.inert=true}
@@ -2808,14 +2865,18 @@ function toggleSaved(id){
 }
 
 function bottomNav(active){
+  if(!getSessionUser())return guestBottomNav(active);
   var isBusiness=BUSINESS_ROLES.indexOf(state.role)>-1;
   var addItem=isBusiness?['myProducts','plus','افزودن']:['newRequest','plus','ثبت'];
   var secondItem=isBusiness?['orders','truck','سفارش‌ها']:['explore','search','جست‌وجو'];
-  var items=[['home','home','خانه'],secondItem,addItem,['messages','message','پیام‌ها'],['profile','user','من']];
+  // «خانه» عمداً وسط لیست قرار گرفته تا در ردیف پایین، دکمهٔ خانه از بقیه بزرگ‌تر و برجسته‌تر باشد.
+  var items=[secondItem,addItem,['home','home','خانه'],['messages','message','پیام‌ها'],['profile','user','من']];
   return '<div class="bottom-nav">'+items.map(function(i){
+    var raised=i[0]==='home';
     var unread=i[0]==='messages'?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
     var action=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":"state.stack=[];go('"+i[0]+"')";
-    return '<button class="nav-btn '+(active===i[0]?'active':'')+'" '+(active===i[0]?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],21)+'<span>'+i[2]+'</span></button>';
+    var cls='nav-btn'+(raised?' nav-btn-raised':'')+(active===i[0]?' active':'');
+    return '<button class="'+cls+'" '+(active===i[0]?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],raised?24:21)+(raised?'':'<span>'+i[2]+'</span>')+'</button>';
   }).join('')+'</div>'
 }
 function progressDots(total,current){var out='';for(var i=0;i<total;i++)out+='<i class="'+(i<=current?'done':'')+'"></i>';return '<div class="progress">'+out+'</div>'}
@@ -2899,6 +2960,7 @@ function completeLogin(btn){
       saveSession(data.token,data.user);
       hydrateStateFromUser(data.user);
       closeSheet();state.stack=[];state.page=isLegalCurrent()?'home':'legalGate';render();
+      if(state.page==='home')resumePendingGuestAction();
       setTimeout(maybePromptPushPermission,900);
     })
     .catch(function(e){
@@ -2912,7 +2974,7 @@ function completeLogin(btn){
       toast(e.message||'کد نامعتبر یا منقضی‌شده است','warning');
     });
 }
-function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render()}
+function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render();resumePendingGuestAction()}
 function textSizePx(value){return {large:'17.5px',larger:'19px',largest:'21px'}[value]||'16px'}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=textSizePx(value);try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
@@ -2926,7 +2988,7 @@ function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;cl
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
 function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){disablePushNotifications();clearSession();closeSheet();state.stack=[];state.page='splash';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
+function performLogout(){disablePushNotifications();clearSession();closeSheet();state.stack=[];state.page='explore';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
 function deleteAccount(btn){
@@ -2935,7 +2997,7 @@ function deleteAccount(btn){
   var stopLoading=setButtonLoading(btn,'در حال حذف...');
   apiRequest('/api/users/me',{method:'DELETE'})
     .then(function(){
-      clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.loggedInUserId=null;state.stack=[];state.page='splash';state.mode=mode;state.textSize=textSize;render();toast('حساب کاربری با موفقیت حذف شد');
+      clearSession();var mode=state.mode,textSize=state.textSize;state.role=null;state.values={};state.collections={};state.projects={};state.notifications=null;state.notificationPrefs=null;state.conversations=null;state.messagePrefs=null;state.currentConversationId=null;state.portfolio={};state.guarantors={};state.accountPrefs=null;state.blockedUsers=[];state.profileComplete=false;state.dashboardSetupDismissed=false;state.portfolioSetupCompleted=false;state.legalConsent=false;state.legalAcceptedAt=null;state.acceptedLegalVersion=null;state.deleteConfirm=false;state.deleteReason='';state.loggedInUserId=null;state.stack=[];state.page='explore';state.mode=mode;state.textSize=textSize;render();toast('حساب کاربری با موفقیت حذف شد');
     })
     .catch(function(e){stopLoading();toast(e.message||'حذف حساب ناموفق بود','warning')});
 }
@@ -3311,8 +3373,9 @@ function loadRealNotifications(){
     .catch(function(e){console.error('loadRealNotifications failed',e)});
 }
 function syncRealData(page){
-  if(!getSessionUser())return;
+  // آگهی‌های واقعی از مسیر عمومی /api/ads می‌آیند و نیاز به ورود ندارند؛ بقیهٔ داده‌ها خصوصی هستند.
   if(page==='explore')loadRealAds();
+  if(!getSessionUser())return;
   if(page==='requestsCenter')loadRealRequests();
   if(page==='myProjects')loadRealProjects();
   if(page==='notifications'||page==='home')loadRealNotifications();
@@ -3651,6 +3714,7 @@ function submitQuickSetup(btn){
       stopLoading();
       state.step=0;state.collections={};
       state.stack=[];state.page='home';render();
+      resumePendingGuestAction();
       toast('تبریک! به بلوک خوش آمدید 🎉');
       setTimeout(promptProfilePhotoIfNeeded,600);
     })
@@ -4037,6 +4101,7 @@ function finishSetup(btn){
     .then(function(){
       stopLoading();
       state.profileComplete=true;state.stack=[];state.page='home';render();
+      resumePendingGuestAction();
       toast('تبریک! به بلوک خوش آمدید 🎉');
       setTimeout(promptProfilePhotoIfNeeded,600);
     })
@@ -4196,6 +4261,7 @@ function openJobOpportunity(id){state.viewingJobId=id;go('jobDetail')}
 function currentJobOpportunity(){return JOB_OPPORTUNITIES.find(function(job){return job.id===state.viewingJobId})||JOB_OPPORTUNITIES[0]}
 function sendJobInterest(id){
   var job=JOB_OPPORTUNITIES.find(function(item){return item.id===id});if(!job)return;
+  if(!getSessionUser()){promptGuestAuth('interest',{name:job.title,resume:function(){go('jobDetail');sendJobInterest(id)}});return}
   if(state.jobInterestIds.indexOf(id)>-1){toast('درخواست شما قبلاً برای این کار ارسال شده است','warning');return}
   state.jobInterestIds.push(id);
   getProjects(state.role||'worker').push({title:job.title,who:job.employer,personId:job.person||null,stage:'proposed',rating:0,direction:'outgoing'});
@@ -5180,7 +5246,8 @@ function showDebugError(text,file,line,col){
     box.appendChild(closeBtn);
   }
 }
-restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}
+restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}else if(!getSessionUser()&&state.page==='splash'){state.page='explore'}
+syncRealData(state.page);
 apiRequest('/api/analytics/visit',{method:'POST'}).catch(function(){});
 setInterval(function(){if(getSessionUser())apiRequest('/api/analytics/heartbeat',{method:'POST'}).catch(function(){})},60000);
 if(getSessionUser()&&!(state.values&&state.values.firstName))hydrateStateFromUser(getSessionUser());
