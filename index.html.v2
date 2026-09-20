@@ -2488,14 +2488,18 @@ function cycleExploreSort(){
 }
 function setExploreSort(key,fromSheet){state.exploreSort=key;if(fromSheet)openExploreFilters();else render()}
 function myWorkCity(){return (state.values&&state.values.workCity)||''}
+/* به درخواست کاربر: به‌جای فاصلهٔ کیلومتری (که بدون موقعیت مکانی واقعی کاربر معنی نداشت و
+   گمراه‌کننده بود)، همیشه شهر/منطقهٔ واقعی ثبت‌شدهٔ آگهی یا پروفایل نشان داده می‌شود. */
 function exploreLocationLabel(item){
-  if(typeof item.distance==='number')return exploreDistance(item.distance);
   var mine=myWorkCity();
   if(item.city&&mine&&item.city===mine)return 'هم‌شهر شما';
   return item.city||'محدودهٔ نامشخص';
 }
 function availabilityRank(value){return {now:0,today:1,week:2,flexible:3}[value]||4}
-var JOB_MODE_AD_TYPES=['workforce','consult'],WORKERS_MODE_AD_TYPES=['work'];
+/* به درخواست کاربر: تب «پیدا کردن کار» دقیقاً همان آگهی‌های نوع work (کسانی که دنبال کارند) را
+   نشان می‌دهد و تب «پیدا کردن نیرو» آگهی‌های workforce/consult را - یعنی برچسب هر تب با نوع
+   آگهی‌ای که نشان می‌دهد یکی است، نه برعکس. */
+var JOB_MODE_AD_TYPES=['work'],WORKERS_MODE_AD_TYPES=['workforce','consult'];
 function filteredExploreItems(){
   var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters(),modeAdTypes=ensureExploreMode()==='jobs'?JOB_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
   var items=EXPLORE_ITEMS.filter(function(i){
@@ -4255,10 +4259,13 @@ function relevantJobItems(limit){
   var items=JOB_OPPORTUNITIES.filter(function(job){return job.targetRoles.indexOf(role)>-1}).sort(function(a,b){return jobMatchScore(b)-jobMatchScore(a)});
   return typeof limit==='number'?items.slice(0,limit):items;
 }
-/* Two-way explore switch: "پیدا کردن کار" (browse job postings) vs "پیدا کردن نیروی کار" (browse people/businesses).
-   Default follows the role's natural intent but the person can always switch manually. */
+/* Two-way explore switch: تب «پیدا کردن کار» (mode='jobs') آگهی‌های work را نشان می‌دهد و تب
+   «پیدا کردن نیرو» (mode='workers') آگهی‌های workforce/consult را - نگاه کنید به تعریف
+   JOB_MODE_AD_TYPES/WORKERS_MODE_AD_TYPES بالاتر. برای یک کارجو (worker/specialist)، محتوای
+   عملاً مفید پیش‌فرض همان آگهی‌های استخدامی (workforce) است، پس پیش‌فرضشان mode='workers' است؛
+   کاربر همیشه می‌تواند دستی تب را عوض کند. */
 var JOB_SEEKER_DEFAULT_ROLES=["worker","specialist"];
-function defaultExploreMode(){return JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'jobs':'workers'}
+function defaultExploreMode(){return JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'workers':'jobs'}
 function ensureExploreMode(){if(!state.exploreMode)state.exploreMode=defaultExploreMode();return state.exploreMode}
 function setExploreMode(mode){state.exploreMode=mode;state.exploreQuery='';render()}
 function ensureJobQuick(){if(!state.jobQuick)state.jobQuick={near:false,soon:false,projectBased:false};return state.jobQuick}
@@ -4458,7 +4465,6 @@ function respondToOrder(status){
 }
 function setPermissionState(kind,value){state.permissionPrefs[kind]=value;render();toast(value==='granted'?'دسترسی فعال شد':'دسترسی خاموش شد')}
 
-function exploreDistance(value){return String(value).replace('.', '٫')+' کیلومتر'}
 function renderExploreRoleRail(){
   return '<div class="explore-role-rail">'+['all'].concat(mvpVisibleRoles).map(function(key){
     var role=roleSchemas[key],ic=key==='all'?'search':mapIcon(role.icon);
