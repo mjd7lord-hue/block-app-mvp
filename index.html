@@ -2420,15 +2420,37 @@ function initExploreMap(){
   if(pts.length>1)_exploreMap.fitBounds(pts,{padding:[28,28]});
   else if(pts.length===1)_exploreMap.setView(pts[0],11);
 }
+/* نقشهٔ کوچک صفحهٔ جزئیات آگهیِ «پیدا کردن کار»: به‌جای فاصلهٔ کیلومتری (که بدون موقعیت واقعی
+   کاربر بی‌معنی و گمراه‌کننده بود)، شهر/منطقهٔ واقعی ثبت‌شدهٔ آگهی روی نقشه نشان داده می‌شود - با
+   همان مختصات واقعیِ شهرها (CITY_COORDS) که نقشهٔ اکسپلور هم استفاده می‌کند، نه یک نقطهٔ ثابت. */
+var _adDetailMap=null;
+function destroyAdDetailMap(){if(_adDetailMap){_adDetailMap.remove();_adDetailMap=null}}
+function initAdDetailMap(){
+  var el=document.getElementById('adDetailMap');
+  destroyAdDetailMap();
+  if(!el||typeof L==='undefined')return;
+  var ad=currentAdDetail();if(!ad)return;
+  var coords=resolveItemCoords(ad,0);if(!coords)return;
+  var isDark=state.mode==='dark';
+  _adDetailMap=L.map(el,{zoomControl:false,attributionControl:false,dragging:false,scrollWheelZoom:false,doubleClickZoom:false,touchZoom:false,keyboard:false}).setView(coords,12);
+  el.classList[isDark?'add':'remove']('map-dark-tiles');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:'abc',maxZoom:19,attribution:'© OpenStreetMap'}).addTo(_adDetailMap);
+  L.circleMarker(coords,{radius:9,color:'#ffffff',weight:2,fillColor:'#00A3FF',fillOpacity:1}).addTo(_adDetailMap).bindTooltip(esc(ad.city||ad.province||''),{permanent:true,direction:'top',offset:[0,-8]});
+}
 function setExploreQuery(v){state.exploreQuery=v;render()}
 function ensureExploreFilters(){
   if(!state.exploreFilters)state.exploreFilters={skills:[],experience:'all',availability:'all',range:'all',resultType:'all',verified:false,rating:'all'};
   return state.exploreFilters;
 }
 function setExploreFilter(key,value,fromSheet){ensureExploreFilters()[key]=value;if(fromSheet)openExploreFilters();else render()}
+var MAX_EXPLORE_SKILLS=5;
 function toggleExploreSkill(value){
   var filters=ensureExploreFilters(),index=filters.skills.indexOf(value);
-  if(index>-1)filters.skills.splice(index,1);else filters.skills.push(value);
+  if(index>-1){filters.skills.splice(index,1)}
+  else{
+    if(filters.skills.length>=MAX_EXPLORE_SKILLS){toast('حداکثر '+MAX_EXPLORE_SKILLS+' مهارت را می‌توانید انتخاب کنید','warning');return}
+    filters.skills.push(value);
+  }
   openExploreFilters();
 }
 function toggleExploreQuick(key){
@@ -4948,6 +4970,7 @@ adDetail:function(){
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p><div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
     +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
+    +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
     +(ad.description?'<div class="ad-detail-section description-main"><b>'+(isConsult?'شرح کامل پرسش':isWork?'توضیح کارجو':'توضیحات کار و نیازمندی‌ها')+'</b><p>'+esc(ad.description)+'</p>'+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست پرسش">':'')+'</div>':'')
     +'<div class="ad-detail-section profile-context"><b>اطلاعات مرتبط از پروفایل ثبت‌کننده</b><p>حوزه‌ها: '+esc(categories.join('، ')||ad.category)+'</p>'+(profile.experience?'<p>سابقه ثبت‌شده: '+esc(profile.experience)+'</p>':'')+(profile.city?'<p>محل ثبت‌شده: '+esc(profile.city)+'</p>':'')+'</div>'
     +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت امن بلوک</b><p>چت و پیام صوتی فعال است؛ نمایش شماره فقط طبق تنظیم حریم خصوصی صاحب پروفایل انجام می‌شود.</p></div></div>'
@@ -5215,6 +5238,8 @@ function render(){
   }
   if(state.page==='explore'&&state.exploreView==='map')requestAnimationFrame(initExploreMap);
   else destroyExploreMap();
+  if(state.page==='adDetail')requestAnimationFrame(initAdDetailMap);
+  else destroyAdDetailMap();
 }
 window.addEventListener('offline',function(){state.online=false;render()});
 window.addEventListener('online',function(){state.online=true;render();toast('اتصال اینترنت برقرار شد')});
