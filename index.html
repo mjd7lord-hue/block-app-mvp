@@ -3348,11 +3348,17 @@ function mergeReal(list,items){
    می‌ماند بدون هیچ نشانه‌ای برای کاربر که مشکل کجاست. حالا حداکثر ۲ بار خودکار دوباره تلاش
    می‌شود و اگر بازهم شکست خورد، state.realAdsFailed=true می‌شود تا صفحهٔ اکسپلور به‌جای خالیِ
    بی‌دلیل، پیام «ارتباط برقرار نشد» و دکمهٔ «تلاش دوباره» نشان دهد. */
+/* قبلاً وقتی کاربر نقشی داشت (مثلاً «کارفرما و مشتری»/general)، این تابع خودکار
+   ?targetRole=همان‌نقش را به درخواست اضافه می‌کرد و بک‌اند فقط آگهی‌هایی را برمی‌گرداند که
+   دقیقاً همان نقش را در targetRoles داشتند - بدون هیچ فیلتر قابل‌مشاهده‌ای برای کاربر. نتیجه:
+   اگر هیچ آگهی‌ای آن نقش خاص را هدف نگرفته بود (که برای «کارفرما و مشتری» در آگهی‌های
+   «پیدا کردن نیرو» واقعاً همین‌طور بود)، کل تب اکسپلور بدون هیچ توضیحی خالی می‌ماند - همان
+   الگوی «فیلتر نامرئی که چیزی را بی‌دلیل پنهان می‌کند» که قبلاً هم دیده بودیم. اکسپلور باید
+   همهٔ آگهی‌های واقعی را بگیرد؛ فیلتر بر اساس نقش همان چیزی است که کاربر با تراشه‌های قابل‌مشاهدهٔ
+   فیلتر (state.exploreRole) خودش انتخاب می‌کند، نه یک محدودیت پنهان روی خودِ درخواست. */
 function loadRealAds(retryCount){
   retryCount=retryCount||0;
-  var qs='';
-  if(state.role)qs='?targetRole='+encodeURIComponent(toBackendRole(state.role));
-  apiRequest('/api/ads'+qs)
+  apiRequest('/api/ads')
     .then(function(data){state.realAdsFailed=false;mergeReal(EXPLORE_ITEMS,(data.ads||[]).map(mapBackendAdToItem));render()})
     .catch(function(e){
       console.error('loadRealAds failed (attempt '+retryCount+')',e);
