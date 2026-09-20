@@ -206,7 +206,6 @@ p{color:var(--muted);margin:0}
 .nav-btn.nav-btn-raised{position:relative;margin-top:-30px;width:56px;height:56px;min-height:56px;padding:0;border-radius:50%;background:var(--accent);color:var(--on-accent);border:4px solid var(--surface);box-shadow:0 10px 22px rgba(0,0,0,.3);justify-self:center}
 .nav-btn.nav-btn-raised svg{width:24px;height:24px;stroke-width:2.2}
 .nav-btn.nav-btn-raised.active{background:var(--accent);color:var(--on-accent)}
-.bottom-nav-guest{grid-template-columns:repeat(3,1fr)}
 
 .avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(155deg,var(--accent-soft),var(--surface2));border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex:none;position:relative}
 .avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;filter:grayscale(1)}
@@ -2806,7 +2805,8 @@ function guestGateMessage(kind,extra){
     booking:{title:'ثبت درخواست رزرو',body:'برای رزرو نوبت، یک حساب رایگان بسازید تا طرف مقابل بتواند به شما پاسخ دهد.'},
     order:{title:'ثبت سفارش',body:'برای ثبت سفارش، یک حساب رایگان بسازید تا پیگیری سفارش برای شما ذخیره شود.'},
     delivery:{title:'رزرو نوبت تحویل',body:'برای رزرو نوبت تحویل، یک حساب رایگان بسازید.'},
-    nav:{title:'به بلوک بپیوندید',body:'با ساختن حساب رایگان می‌توانید آگهی ثبت کنید، با افراد گفت‌وگو کنید و شمارهٔ تماس را ببینید.'}
+    nav:{title:'به بلوک بپیوندید',body:'با ساختن حساب رایگان می‌توانید آگهی ثبت کنید، با افراد گفت‌وگو کنید و شمارهٔ تماس را ببینید.'},
+    account:{title:'پروفایل و داشبورد شما',body:'برای دیدن پروفایل، پیام‌ها و مدیریت آگهی‌های خودتان، یک حساب رایگان بسازید.'}
   };
   return M[kind]||{title:'ورود یا ثبت‌نام',body:'برای ادامه، یک حساب رایگان بسازید یا وارد حساب خود شوید.'};
 }
@@ -2815,23 +2815,15 @@ function guestGateMessage(kind,extra){
    نباشد دوباره آن آگهی/فرد را پیدا کند. اگر «فعلاً نه» را بزند یا یک گیت جدید و بی‌ربط باز شود،
    این مقدار پاک/بازنویسی می‌شود تا هیچ‌وقت یک اقدام قدیمی و نامرتبط بعداً اجرا نشود.*/
 var pendingGuestAction=null;
+/* به درخواست کاربر: گزینه‌های این شیت (برخلاف بقیهٔ دکمه‌های تمام‌عرض اپ) به‌صورت یک ستون
+   باریک و وسط‌چین نمایش داده می‌شوند، نه کشیده تا لبه‌های شیت. */
 function promptGuestAuth(kind,extra){
   var m=guestGateMessage(kind,extra);
   pendingGuestAction=(extra&&typeof extra.resume==='function')?extra.resume:null;
-  openSheet('<h3>'+esc(m.title)+'</h3><p>'+esc(m.body)+'</p><button class="btn-primary" onclick="closeSheet();go(\'roleSelect\')">ساخت حساب رایگان</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet();setTimeout(openLoginSheet,200)">حساب دارم، وارد می‌شوم</button><div style="height:8px"></div><button class="btn-ghost" style="width:100%" onclick="dismissGuestPrompt()">فعلاً نه، فقط مرور می‌کنم</button>');
+  openSheet('<div style="text-align:center"><h3>'+esc(m.title)+'</h3><p>'+esc(m.body)+'</p><div style="max-width:240px;margin:16px auto 0;display:flex;flex-direction:column;gap:8px"><button class="btn-primary" onclick="closeSheet();go(\'roleSelect\')">ساخت حساب رایگان</button><button class="btn-secondary" onclick="closeSheet();setTimeout(openLoginSheet,200)">حساب دارم، وارد می‌شوم</button><button class="btn-ghost" style="width:100%" onclick="dismissGuestPrompt()">فعلاً نه، فقط مرور می‌کنم</button></div></div>');
 }
 function dismissGuestPrompt(){pendingGuestAction=null;closeSheet()}
 function resumePendingGuestAction(){var fn=pendingGuestAction;pendingGuestAction=null;if(fn){try{fn()}catch(e){}}}
-function guestExploreFilters(){
-  if(state.page!=='explore'){state.stack=[];state.page='explore';render()}
-  if(ensureExploreMode()==='jobs')openJobFilters();else openExploreFilters();
-}
-function guestBottomNav(active){
-  var searchBtn='<button class="nav-btn" aria-label="جست‌وجو و فیلترها" onclick="guestExploreFilters()">'+icon('search',20)+'<span>جست‌وجو</span></button>';
-  var homeBtn='<button class="nav-btn nav-btn-raised'+(active==='explore'?' active':'')+'" '+(active==='explore'?'aria-current="page"':'')+' aria-label="مرور آگهی‌ها" onclick="state.stack=[];go(\'explore\')">'+icon('home',24)+'</button>';
-  var joinBtn='<button class="nav-btn" aria-label="ساخت حساب یا ورود" onclick="promptGuestAuth(\'nav\')">'+icon('user',20)+'<span>عضویت</span></button>';
-  return '<div class="bottom-nav bottom-nav-guest">'+searchBtn+homeBtn+joinBtn+'</div>';
-}
 function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('warning',type==='warning');t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
 function closeSheet(){var s=document.getElementById('sheet');document.getElementById('backdrop').classList.remove('show');s.classList.remove('show');s.setAttribute('aria-hidden','true');s.inert=true}
@@ -2864,19 +2856,26 @@ function toggleSaved(id){
   render();
 }
 
+/* به درخواست کاربر: نوار پایین برای مهمان دقیقاً همان ۵ آیتم کاربر عضو را نشان می‌دهد (نه یک
+   نوار جدا و ساده‌شده)؛ فقط لمس هر آیتمی جز «جست‌وجو» (که مرور آزاد است) با پیام ثبت‌نام مواجه
+   می‌شود. «جست‌وجو» (یا «سفارش‌ها» برای نقش تجاری) عمداً وسط لیست (اندیس ۲) قرار گرفته تا دکمهٔ
+   مرکزی از بقیه بزرگ‌تر و برجسته‌تر باشد؛ برای مهمان همیشه «جست‌وجو» است چون نقشی ندارد. */
+var GUEST_NAV_GATE_KIND={home:'nav',newRequest:'postAd',myProducts:'postAd',messages:'chat',profile:'account'};
 function bottomNav(active){
-  if(!getSessionUser())return guestBottomNav(active);
-  var isBusiness=BUSINESS_ROLES.indexOf(state.role)>-1;
+  var guest=!getSessionUser();
+  var isBusiness=!guest&&BUSINESS_ROLES.indexOf(state.role)>-1;
   var addItem=isBusiness?['myProducts','plus','افزودن']:['newRequest','plus','ثبت'];
   var secondItem=isBusiness?['orders','truck','سفارش‌ها']:['explore','search','جست‌وجو'];
-  // «خانه» عمداً وسط لیست قرار گرفته تا در ردیف پایین، دکمهٔ خانه از بقیه بزرگ‌تر و برجسته‌تر باشد.
-  var items=[secondItem,addItem,['home','home','خانه'],['messages','message','پیام‌ها'],['profile','user','من']];
-  return '<div class="bottom-nav">'+items.map(function(i){
-    var raised=i[0]==='home';
-    var unread=i[0]==='messages'?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
-    var action=(i[0]==='explore'||i[0]==='messages')?"state.stack=[];openDataPage('"+i[0]+"','"+(i[0]==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')":"state.stack=[];go('"+i[0]+"')";
-    var cls='nav-btn'+(raised?' nav-btn-raised':'')+(active===i[0]?' active':'');
-    return '<button class="'+cls+'" '+(active===i[0]?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],raised?24:21)+(raised?'':'<span>'+i[2]+'</span>')+'</button>';
+  var items=[['home','home','خانه'],addItem,secondItem,['messages','message','پیام‌ها'],['profile','user','من']];
+  return '<div class="bottom-nav">'+items.map(function(i,idx){
+    var key=i[0],raised=idx===2;
+    var unread=(!guest&&key==='messages')?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
+    var action;
+    if(guest&&key!=='explore')action="promptGuestAuth('"+(GUEST_NAV_GATE_KIND[key]||'nav')+"')";
+    else if(key==='explore'||key==='messages')action="state.stack=[];openDataPage('"+key+"','"+(key==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')";
+    else action="state.stack=[];go('"+key+"')";
+    var cls='nav-btn'+(raised?' nav-btn-raised':'')+(active===key?' active':'');
+    return '<button class="'+cls+'" '+(active===key?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],raised?24:21)+(raised?'':'<span>'+i[2]+'</span>')+'</button>';
   }).join('')+'</div>'
 }
 function progressDots(total,current){var out='';for(var i=0;i<total;i++)out+='<i class="'+(i<=current?'done':'')+'"></i>';return '<div class="progress">'+out+'</div>'}
