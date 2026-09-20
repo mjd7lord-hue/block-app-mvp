@@ -2812,6 +2812,8 @@ function toggleBlock(id){
 
 function go(page){state.stack.push(state.page);if(typeof PAGES!=='undefined'&&PAGES[page])state.page=page;else{state.unavailableTarget=page;state.page='unavailable'}render();syncRealData(page)}
 function back(){state.page=state.stack.pop()||(getSessionUser()?'home':'explore');render()}
+function hasSeenWelcome(){try{return localStorage.getItem('block_welcome_seen')==='1'}catch(e){return true}}
+function dismissWelcome(){try{localStorage.setItem('block_welcome_seen','1')}catch(e){}state.stack=[];state.page=getSessionUser()?'home':'explore';render();syncRealData(state.page)}
 
 /* ---------- guest browsing: gate only the "positive"/social actions ---------- */
 function guestGateMessage(kind,extra){
@@ -2887,7 +2889,7 @@ function bottomNav(active){
   var isBusiness=!guest&&BUSINESS_ROLES.indexOf(state.role)>-1;
   var addItem=isBusiness?['myProducts','plus','افزودن']:['newRequest','plus','ثبت'];
   var secondItem=isBusiness?['orders','truck','سفارش‌ها']:['explore','search','جست‌وجو'];
-  var items=[['home','home','خانه'],addItem,secondItem,['messages','message','پیام‌ها'],['profile','user','من']];
+  var items=[['home','home','خانه'],addItem,secondItem,['messages','message','پیام‌ها'],['profile','user','بلوک']];
   return '<div class="bottom-nav">'+items.map(function(i,idx){
     var key=i[0],raised=idx===2;
     var unread=(!guest&&key==='messages')?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
@@ -2934,7 +2936,7 @@ function renderProfileSetupNudge(role){
   if(!tasks.length||state.dashboardSetupDismissed)return '';
   return '<section class="profile-setup-card"><div class="profile-setup-head"><i>'+icon('check',16)+'</i><div><b>پروفایل را کم‌کم کامل کنید</b><p>این کارها از ثبت‌نام جدا هستند و اجباری نیستند.</p></div><button onclick="dismissProfileSetup()">بعداً</button></div><div class="profile-setup-list">'+tasks.map(function(task){return '<button class="profile-setup-task" onclick="'+task.action+'"><i>'+icon(task.icon,15)+'</i><span><b>'+esc(task.title)+'</b><small>'+esc(task.sub)+'</small></span><em>‹</em></button>'}).join('')+'</div></section>';
 }
-function dismissProfileSetup(){state.dashboardSetupDismissed=true;render();toast('از بخش «من» هر زمان خواستید ادامه دهید')}
+function dismissProfileSetup(){state.dashboardSetupDismissed=true;render();toast('از بخش «بلوک» هر زمان خواستید ادامه دهید')}
 function saveProfilePhoto(btn){
   var photo=state.values.profilePhoto;
   if(!photo){toast('ابتدا یک عکس انتخاب کنید','warning');return}
@@ -4549,6 +4551,20 @@ function renderDashboardProfileReuse(){
 
 var PAGES={
 
+/* اولین صفحه‌ای که بعد از نصب/اولین بازکردن اپ دیده می‌شود - فقط برای دیده‌شدن لوگو و اسم بلوک،
+   بدون هیچ دعوت به ثبت‌نام. با زدن «ادامه»، کاربر مستقیم وارد مرور اپ می‌شود (یا اگر از قبل
+   عضو بوده، به داشبورد خودش). فقط یک‌بار نشان داده می‌شود؛ دفعات بعد که flag در localStorage
+   ثبت شده باشد، مستقیم رد می‌شود - نگاه کنید به boot logic پایین فایل و dismissWelcome(). */
+welcome:function(){
+  return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:60px 26px 26px">'
+  +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">'
+  +'<div class="hexlogo" style="width:150px;height:150px">'+appLogo()+'</div>'
+  +'<h1 style="font-size:2.1rem">بلوک</h1>'
+  +'</div>'
+  +'<div style="width:100%"><button class="btn-primary" onclick="dismissWelcome()">ادامه</button></div>'
+  +'</div>'
+},
+
 splash:function(){
   return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:50px 26px 26px">'
   +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">'
@@ -4572,7 +4588,7 @@ phoneVerify:function(){
   +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px"><div class="cicon">'+icon('shield',18)+'</div><div><b style="font-size:.66rem">چرا شماره موبایل لازم است؟</b><p style="font-size:.55rem;margin-top:2px">برای امنیت حساب و اعتماد طرف مقابل، هویت هر کاربر یا کسب‌وکار در بلوک با یک شمارهٔ تأییدشده گره می‌خورد.</p></div></div></div>'
   +(stage==='phone'
     ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',sanitizePhoneInput(this))" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
-    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «من» آن را دوباره ببینید.</p></div></div>')
+    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «بلوک» آن را دوباره ببینید.</p></div></div>')
   +'</div>'
   +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage(this)':'confirmSignupOtp(this)')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
 },
@@ -5036,7 +5052,7 @@ profile:function(){
   var communication=settingsRow('check','درخواست‌ها',pendingRequestCount()+' درخواست نیازمند پاسخ',"go('requestsCenter')")+settingsRow('bell','تنظیمات اعلان‌ها',unreadNotifCount()+' اعلان خوانده‌نشده',"go('notificationSettings')")+settingsRow('message','تنظیمات پیام‌ها',unreadMessageCount()+' پیام خوانده‌نشده',"go('messageSettings')")+settingsRow('heart','علاقه‌مندی‌های من',ensureSavedPeople().length+' مورد ذخیره‌شده',"go('savedProfiles')");
   var account=settingsRow('lock','حساب و امنیت',phone,"go('accountSecurity')")+settingsRow('eye','حریم خصوصی','نمایش پروفایل، موقعیت و وضعیت آنلاین',"go('privacySettings')")+settingsRow('alert','کاربران مسدودشده',state.blockedUsers.length+' کاربر',"go('blockedUsers')")+settingsRow('shield','قوانین و حریم خصوصی',legalAcceptanceText(),"go('legalCenter')");
   var support=settingsRow('sun','نمایش و خوانایی',state.mode==='dark'?'حالت تیره':'حالت روشن',"go('settings')")+settingsRow('wrench','وضعیت برنامه و دسترسی‌ها',state.online?'آنلاین و آماده':'اینترنت قطع است',"go('systemStatus')")+settingsRow('help','راهنما و پرسش‌های متداول','پاسخ به سؤال‌های استفاده از بلوک',"go('helpCenter')")+settingsRow('message','پشتیبانی بلوک','گفت‌وگو یا گزارش مشکل',"go('supportCenter')")+settingsRow('info','دربارهٔ بلوک','نسخه، مأموریت و اطلاعات برنامه',"go('aboutApp')");
-  return '<div class="page" style="padding-top:16px"><div class="message-head"><h2>من</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
+  return '<div class="page" style="padding-top:16px"><div class="message-head"><h2>بلوک</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
     +'<div class="profile-hero" role="button" tabindex="0" style="cursor:pointer" onclick="openTrustCard(\'self\')"><div class="profile-identity">'+renderMyAvatar(role)+'<div class="profile-copy"><h2>'+esc(displayName)+'</h2><p>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</p><div class="profile-status-row"><span class="status-pill">'+icon('phone',10)+' موبایل تأییدشده</span><span class="status-pill '+(state.profileComplete?'':'warning')+'">'+icon(state.profileComplete?'check':'alert',10)+' '+(state.profileComplete?'اطلاعات اصلی ثبت‌شده':'نیازمند تکمیل')+'</span></div></div></div><div class="profile-progress"><div class="profile-progress-head"><b>کامل‌بودن پروفایل</b><span>'+completion+'٪</span></div><div class="profile-progress-track"><i style="width:'+completion+'%"></i></div></div></div>'
     +'<div class="profile-actions"><button class="profile-action" onclick="go(\'editProfile\')"><i>'+icon('doc',15)+'</i><b>ویرایش پروفایل</b><span>اطلاعات و تخصص‌ها</span></button><button class="profile-action" onclick="go(\'myPublicProfile\')"><i>'+icon('eye',15)+'</i><b>نمایش عمومی</b><span>پیش‌نمایش برای دیگران</span></button></div>'
     +'<div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div><div class="settings-group">'+settingsRow('logout','خروج و مدیریت حساب','خروج یا درخواست حذف حساب',"go('accountManagement')",true)+'</div><div class="version-row">بلوک · نسخهٔ نمایشی ۱.۲</div></div>'+bottomNav('profile')
@@ -5196,7 +5212,7 @@ var STATE_SNAPSHOT_EXCLUDE=['voiceRecorder','voiceStream','voiceChunks'];
    این مقدار عوض می‌شود. بدون این، یک تب مرورگر که همان state قدیمی را در sessionStorage نگه
    داشته، حتی بعد از رفرش سخت هم رفتار/حالت کهنه را روی نسخهٔ تازهٔ کد بازیابی می‌کند - دقیقاً
    همان چیزی که باعث شد یک تغییر واقعاً اعمال‌شده در کد، در تب باز کاربر هنوز کهنه دیده شود. */
-var APP_BUILD='2026-09-20T2';
+var APP_BUILD='2026-09-20T3';
 function saveStateSnapshot(){
   try{
     var copy={};
@@ -5281,7 +5297,7 @@ function showDebugError(text,file,line,col){
     box.appendChild(closeBtn);
   }
 }
-restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}else if(!getSessionUser()&&state.page==='splash'){state.page='explore'}
+restoreStateSnapshot();if(getSessionUser()&&state.page==='splash'){state.page='home'}else if(!getSessionUser()&&state.page==='splash'){state.page=hasSeenWelcome()?'explore':'welcome'}
 syncRealData(state.page);
 apiRequest('/api/analytics/visit',{method:'POST'}).catch(function(){});
 setInterval(function(){if(getSessionUser())apiRequest('/api/analytics/heartbeat',{method:'POST'}).catch(function(){})},60000);
