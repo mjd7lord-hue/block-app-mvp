@@ -5010,22 +5010,26 @@ createAd:function(){
   return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd(this)':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
 },
 
+/* بازچیدمان طبق درخواست کاربر: توضیحات با تیتر تلفیق شد (بالا)، کارت پروفایل به یک ردیف
+   کوچک و کلیک‌پذیر (ad-owner-card - یک کلاس آماده و بلااستفاده که دقیقاً برای همین منظور در
+   CSS بود) خلاصه شد، نقشه به انتهای صفحه منتقل شد، و کارت‌های صرفاً توضیحی/راهنما (ارتباط
+   اولیه در چت، اطلاعات پروفایل ثبت‌کننده) و کارت ثبت توافق حذف شدند - توافق همچنان از داخل
+   خود چت (renderAgreementCard در chat) و از «درخواست‌ها» (پیگیری/تأیید طرف مقابل) در دسترس
+   است، فقط دیگر در این صفحه تکرار نمی‌شود. */
 adDetail:function(){
   var ad=currentAdDetail();
   if(!ad||!ad.isAd)return topbar('جزئیات آگهی')+'<div class="page"><div class="explore-empty"><b>این آگهی در دسترس نیست</b><p>ممکن است حذف یا ویرایش شده باشد.</p></div></div>';
-  var profile=ad.profile||{},categories=profile.categories||[],target=(ad.targetRoles||[]).map(function(role){return AD_ROLE_LABELS[role]||role}).join('، '),isConsult=ad.adType==='consult',isWork=ad.adType==='work';
+  var target=(ad.targetRoles||[]).map(function(role){return AD_ROLE_LABELS[role]||role}).join('، '),isConsult=ad.adType==='consult',isWork=ad.adType==='work';
   var audienceLabel=isConsult?'پاسخ‌دهندگان':isWork?'مخاطبان آگهی':'نیروی موردنظر';
   var projectDetails=isConsult?'':'<div><span>روش دستمزد</span><b>'+esc(ad.budget||'توافقی')+'</b></div><div><span>'+(isWork?'شروع همکاری':'زمان شروع')+'</span><b>'+esc(ad.startTime||'با هماهنگی')+'</b></div><div><span>'+(isWork?'محل فعالیت':'محل پروژه')+'</span><b>'+esc(ad.city)+(ad.province?'، '+esc(ad.province):'')+'</b></div>';
+  var person=adTrustPerson(ad);
+  var ownerChip='<div class="ad-owner-card" onclick="openAdTrustCard()"><div class="avatar" style="border-radius:50%">'+esc(person.initials||'ب')+'</div><div><b>'+esc(person.name)+(person.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+'</b><p>'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+'</p></div><span>پروفایل ‹</span></div>';
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
-    +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p><div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
+    +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p>'+(ad.description?'<p>'+esc(ad.description)+'</p>':'')+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست">':'')+'<div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
     +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
+    +ownerChip
     +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
-    +(ad.description?'<div class="ad-detail-section description-main"><b>'+(isConsult?'شرح کامل پرسش':isWork?'توضیح کارجو':'توضیحات کار و نیازمندی‌ها')+'</b><p>'+esc(ad.description)+'</p>'+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست پرسش">':'')+'</div>':'')
-    +'<div class="ad-detail-section profile-context"><b>اطلاعات مرتبط از پروفایل ثبت‌کننده</b><p>حوزه‌ها: '+esc(categories.join('، ')||ad.category)+'</p>'+(profile.experience?'<p>سابقه ثبت‌شده: '+esc(profile.experience)+'</p>':'')+(profile.city?'<p>محل ثبت‌شده: '+esc(profile.city)+'</p>':'')+'</div>'
-    +'<div class="chat-only-card"><i>'+icon('message',17)+'</i><div><b>ارتباط اولیه در چت امن بلوک</b><p>چت و پیام صوتی فعال است؛ نمایش شماره فقط طبق تنظیم حریم خصوصی صاحب پروفایل انجام می‌شود.</p></div></div>'
-    +renderAgreementCard(ad)
-    +renderPublicTrustCard(adTrustPerson(ad),'ad')
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
 
