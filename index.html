@@ -3343,12 +3343,22 @@ function mergeReal(list,items){
   for(var i=list.length-1;i>=0;i--){if(list[i].real)list.splice(i,1)}
   items.forEach(function(item){list.unshift(item)});
 }
-function loadRealAds(){
+/* درخواست آگهی‌های واقعی گاهی به‌خاطر کندی/بیدارشدن سرور (مثلاً بعد از بی‌کاری روی هاست رایگان)
+   شکست می‌خورد یا timeout می‌کند؛ قبلاً یک بار تلاش می‌شد و با شکست، اکسپلور برای همیشه خالی
+   می‌ماند بدون هیچ نشانه‌ای برای کاربر که مشکل کجاست. حالا حداکثر ۲ بار خودکار دوباره تلاش
+   می‌شود و اگر بازهم شکست خورد، state.realAdsFailed=true می‌شود تا صفحهٔ اکسپلور به‌جای خالیِ
+   بی‌دلیل، پیام «ارتباط برقرار نشد» و دکمهٔ «تلاش دوباره» نشان دهد. */
+function loadRealAds(retryCount){
+  retryCount=retryCount||0;
   var qs='';
   if(state.role)qs='?targetRole='+encodeURIComponent(toBackendRole(state.role));
   apiRequest('/api/ads'+qs)
-    .then(function(data){mergeReal(EXPLORE_ITEMS,(data.ads||[]).map(mapBackendAdToItem));render()})
-    .catch(function(e){console.error('loadRealAds failed',e)});
+    .then(function(data){state.realAdsFailed=false;mergeReal(EXPLORE_ITEMS,(data.ads||[]).map(mapBackendAdToItem));render()})
+    .catch(function(e){
+      console.error('loadRealAds failed (attempt '+retryCount+')',e);
+      if(retryCount<2){setTimeout(function(){loadRealAds(retryCount+1)},1500);return}
+      state.realAdsFailed=true;render();
+    });
 }
 function loadRealRequests(){
   var role=state.role||'worker';
@@ -3473,10 +3483,14 @@ function mapBackendMessage(m,otherReadAt){
   if(m.type==='VOICE')return{id:m.id,mine:mine,time:time,status:status,audioUrl:m.attachmentUrl,duration:'',createdAt:m.createdAt};
   return{id:m.id,mine:mine,time:time,status:status,text:m.text||'',createdAt:m.createdAt};
 }
-function loadRealConversations(){
+function loadRealConversations(retryCount){
+  retryCount=retryCount||0;
   apiRequest('/api/conversations')
     .then(function(data){mergeReal(getConversations(),(data.conversations||[]).map(mapBackendConversationSummary));render()})
-    .catch(function(e){console.error('loadRealConversations failed',e)});
+    .catch(function(e){
+      console.error('loadRealConversations failed (attempt '+retryCount+')',e);
+      if(retryCount<2)setTimeout(function(){loadRealConversations(retryCount+1)},1500);
+    });
 }
 function loadConversationMessages(c){
   apiRequest('/api/conversations/'+c.backendId+'/messages')
@@ -3500,7 +3514,20 @@ function loadConversationMessages(c){
       updateSendMicButton();
     })
     .catch(function(e){console.error('loadConversationMessages failed',e)});
-  apiRequest('/api/conversations/'+c.backendId+'/read',{method:'PATCH'}).catch(function(){});
+  markConversationReadOnServer(c.backendId);
+}
+/* قبلاً این درخواست فقط یک‌بار امتحان می‌شد و با catch(function(){}) کاملاً بی‌صدا شکست می‌خورد -
+   یعنی اگر همان یک تلاش (مثلاً به‌خاطر کند بودن سرور) ناموفق بود، هیچ‌جای دیگری آن را دوباره
+   امتحان نمی‌کرد و «خوانده‌شدن» گفت‌وگو هیچ‌وقت روی سرور ثبت نمی‌شد؛ همین باعث می‌شد اعلان
+   پیام خوانده‌نشده، دفعهٔ بعد که کاربر وارد اپ می‌شد، دوباره ظاهر شود. حالا حداکثر ۲ بار دیگر
+   با فاصله دوباره تلاش می‌شود. */
+function markConversationReadOnServer(backendId,attempt){
+  attempt=attempt||0;
+  apiRequest('/api/conversations/'+backendId+'/read',{method:'PATCH'})
+    .catch(function(e){
+      if(attempt<2){setTimeout(function(){markConversationReadOnServer(backendId,attempt+1)},1500);return}
+      console.error('markConversationRead failed after retries',e);
+    });
 }
 
 /* ---------- profile setup (quickSetup/regStep) -> real backend sync ---------- */
@@ -4501,6 +4528,9 @@ function renderExploreSearchBar(placeholder){
   return '<div class="explore-search">'+icon('search',18)+'<input id="exploreSearchInput" value="'+esc(state.exploreQuery)+'" oninput="setExploreQuery(this.value)" placeholder="'+esc(placeholder)+'"><button class="explore-filter-icon-btn" aria-label="فیلترها و مرتب‌سازی" onclick="openExploreFilters()">'+icon('gear',16)+(exploreActiveCount()?'<span class="explore-filter-count">'+exploreActiveCount()+'</span>':'')+'</button></div>';
 }
 function renderExploreEmpty(){
+  if(state.realAdsFailed){
+    return '<div class="explore-empty"><i>'+icon('alert',22)+'</i><b>ارتباط با سرور برقرار نشد</b><p>اینترنت یا سرور بلوک موقتاً در دسترس نیست؛ آگهی‌های واقعی بارگذاری نشدند.</p><button class="btn-ghost" onclick="loadRealAds()">تلاش دوباره</button></div>';
+  }
   return '<div class="explore-empty"><i>'+icon('search',22)+'</i><b>نتیجه‌ای با این ترکیب پیدا نشد</b><p>محدوده یا یکی از فیلترها را بازتر کنید تا گزینه‌های بیشتری ببینید.</p><button class="btn-ghost" onclick="clearExploreFilters(true)">پاک کردن جست‌وجو و فیلترها</button></div>';
 }
 
