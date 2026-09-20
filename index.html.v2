@@ -5192,10 +5192,16 @@ function openOtpSheet(seconds){
 
 var STATE_SNAPSHOT_KEY='block-test-session';
 var STATE_SNAPSHOT_EXCLUDE=['voiceRecorder','voiceStream','voiceChunks'];
+/* شمارهٔ نسخهٔ فایل: هربار تغییر رفتاری مهمی داده می‌شود (مثلاً پیش‌فرض یک صفحه یا حالت اکسپلور)
+   این مقدار عوض می‌شود. بدون این، یک تب مرورگر که همان state قدیمی را در sessionStorage نگه
+   داشته، حتی بعد از رفرش سخت هم رفتار/حالت کهنه را روی نسخهٔ تازهٔ کد بازیابی می‌کند - دقیقاً
+   همان چیزی که باعث شد یک تغییر واقعاً اعمال‌شده در کد، در تب باز کاربر هنوز کهنه دیده شود. */
+var APP_BUILD='2026-09-20T2';
 function saveStateSnapshot(){
   try{
     var copy={};
     for(var k in state){if(STATE_SNAPSHOT_EXCLUDE.indexOf(k)===-1)copy[k]=state[k]}
+    copy.__build=APP_BUILD;
     sessionStorage.setItem(STATE_SNAPSHOT_KEY,JSON.stringify(copy));
   }catch(e){}
 }
@@ -5204,6 +5210,7 @@ function restoreStateSnapshot(){
     var raw=sessionStorage.getItem(STATE_SNAPSHOT_KEY);
     if(!raw)return;
     var saved=JSON.parse(raw);
+    if(saved.__build!==APP_BUILD)return;
     for(var k in saved){state[k]=saved[k]}
     if(state.page==='loading'){state.page=state.loadingTarget||'home';state.loadingTarget=null}
   }catch(e){}
