@@ -4260,7 +4260,10 @@ function relevantJobItems(limit){
    عملاً مفید پیش‌فرض همان آگهی‌های استخدامی (workforce) است، پس پیش‌فرضشان mode='workers' است؛
    کاربر همیشه می‌تواند دستی تب را عوض کند. */
 var JOB_SEEKER_DEFAULT_ROLES=["worker","specialist"];
-function defaultExploreMode(){return JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'workers':'jobs'}
+/* مهمان (بدون نقش/بدون حساب) فرض نمی‌شود کارفرماست - آگهی‌های استخدامی (workforce) پیش‌فرض
+   او هم هست، دقیقاً مثل کارجوها؛ وگرنه با محتوایی که این‌روزها فقط از نوع workforce است، اکسپلور
+   مهمان روی تب «پیدا کردن کار» خالی می‌افتد و به نظر می‌رسد اصلاً هیچ آگهی‌ای وجود ندارد. */
+function defaultExploreMode(){return !getSessionUser()||JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'workers':'jobs'}
 function ensureExploreMode(){if(!state.exploreMode)state.exploreMode=defaultExploreMode();return state.exploreMode}
 function setExploreMode(mode){state.exploreMode=mode;state.exploreQuery='';render()}
 function ensureJobQuick(){if(!state.jobQuick)state.jobQuick={near:false,soon:false,projectBased:false};return state.jobQuick}
