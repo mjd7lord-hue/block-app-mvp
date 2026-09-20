@@ -206,6 +206,7 @@ p{color:var(--muted);margin:0}
 .nav-btn.nav-btn-raised{position:relative;margin-top:-30px;width:56px;height:56px;min-height:56px;padding:0;border-radius:50%;background:var(--accent);color:var(--on-accent);border:4px solid var(--surface);box-shadow:0 10px 22px rgba(0,0,0,.3);justify-self:center}
 .nav-btn.nav-btn-raised svg{width:24px;height:24px;stroke-width:2.2}
 .nav-btn.nav-btn-raised.active{background:var(--accent);color:var(--on-accent)}
+.sidebar{display:none}
 
 .avatar{width:44px;height:44px;border-radius:14px;background:linear-gradient(155deg,var(--accent-soft),var(--surface2));border:1px solid var(--accent);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:800;flex:none;position:relative}
 .avatar img{width:100%;height:100%;display:block;object-fit:cover;border-radius:inherit;filter:grayscale(1)}
@@ -611,6 +612,85 @@ p{color:var(--muted);margin:0}
      زوم می‌کنن و باید دستی برگردونی؛ این‌جا برای همهٔ ورودی‌ها 16px رو تضمین می‌کنیم. */
   input,textarea,select{font-size:16px!important}
 }
+
+/* ================= Desktop shell (>=960px) =================
+   جایگزینی کامل قاب/بزل موبایل با یک چیدمان دسکتاپ واقعی: نوار کناری ثابت سمت راست
+   (راست‌چین) به‌جای bottom-nav، محتوای اصلی در باقی‌ماندهٔ عرض صفحه، و عرض/فاصله‌گذاری
+   مناسب صفحهٔ بزرگ به‌جای تناسب‌های ریز یک گوشی ۳۸۰px. همان توابع PAGES/state استفاده
+   می‌شود؛ محتوای سایدبار در render() با sidebarShell() ساخته می‌شود (index.html.v2 را
+   ببینید). مقیاس تایپوگرافی دسکتاپ در تابع textSizePx در جاوااسکریپت انجام شده، نه این‌جا،
+   چون اندازهٔ فونت ریشه با inline-style تنظیم می‌شود و قاعدهٔ CSS آن را override نمی‌کند. */
+@media (min-width:960px){
+  html,body{width:100%;height:100%;background:var(--bg)}
+  body{padding:0;align-items:stretch;justify-content:stretch}
+  .phone{width:100vw;height:100vh;max-height:none;border-radius:0;box-shadow:none}
+  .statusbar{display:none}
+  #view{inset:0 272px 0 0}
+  .bottom-nav{display:none}
+
+  .sidebar{display:flex;flex-direction:column;position:absolute;top:0;right:0;bottom:0;width:272px;background:var(--surface);border-left:1px solid var(--line);padding:26px 20px 20px;overflow-y:auto;z-index:5}
+  .sidebar-brand{display:flex;align-items:center;gap:10px;border:0;background:transparent;padding:2px;cursor:pointer;text-align:right;font-family:inherit;margin-bottom:22px}
+  .sidebar-brand b{font-size:1.15rem;color:var(--ink)}
+  .sidebar-guest-cta{display:flex;align-items:center;gap:8px;width:100%;height:44px;border:1px solid var(--accent);background:var(--accent-soft);color:var(--accent);border-radius:13px;padding:0 13px;font-family:inherit;font-size:.78rem;font-weight:800;cursor:pointer;margin-bottom:18px}
+  .sidebar-user{display:flex;align-items:center;gap:10px;border:1px solid var(--line);background:var(--surface2);border-radius:15px;padding:10px;cursor:pointer;margin-bottom:18px}
+  .sidebar-user-copy{flex:1;min-width:0}
+  .sidebar-user-copy b{display:block;font-size:.78rem;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar-user-copy em{display:block;font-style:normal;font-size:.62rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sidebar-nav{display:flex;flex-direction:column;gap:4px;flex:1}
+  .sidebar-link{display:flex;align-items:center;gap:12px;height:46px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted);font-family:inherit;font-size:.8rem;font-weight:800;cursor:pointer;text-align:right;padding:0 13px;position:relative}
+  .sidebar-link svg{flex:none}
+  .sidebar-link span{flex:1}
+  .sidebar-link.active{color:var(--accent);background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 26%,transparent)}
+  .sidebar-badge{background:var(--danger);color:#fff;font-size:.62rem;font-weight:800;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 5px;flex:none}
+  .sidebar-foot{margin-top:auto;padding-top:14px;border-top:1px solid var(--line)}
+  .sidebar-theme-btn{display:flex;align-items:center;gap:8px;width:100%;height:42px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;padding:0 13px;font-family:inherit;font-size:.72rem;font-weight:800;cursor:pointer}
+
+  /* ظرف صفحه: پیش‌فرض یک ستون خواندنی برای صفحات فرم/تنظیمات، با override عرض بیشتر برای
+     صفحات شبکه‌ای مثل خانه و اکسپلور. عمداً padding-bottom دست‌نخورده می‌ماند چون خیلی از
+     صفحات (مثل ad-detail/create-ad) یک نوار اکشن ثابت (dock/ad-dock) در پایین دارند که به
+     همان فاصلهٔ موبایل برای دیده‌شدن کامل محتوا نیاز دارد. */
+  .page{max-width:640px;width:100%;margin:0 auto;padding-top:36px;padding-left:28px;padding-right:28px}
+  .page.no-nav{max-width:460px}
+  .home-page{max-width:1120px}
+  .explore-page{max-width:1120px}
+  .publish-page{max-width:760px}
+  .messages-page{max-width:760px}
+  .profile-page{max-width:820px}
+  .chat-page{max-width:720px}
+  .topbar{max-width:960px;width:100%;margin:0 auto;padding-top:22px}
+
+  /* .sheet/.toast فرزند مستقیم .phone هستند نه #view، پس باید صریحاً محدودهٔ ناحیهٔ محتوا
+     (کنار سایدبار) را رعایت کنند وگرنه لبه‌به‌لبهٔ کل صفحه (زیر/روی سایدبار) کشیده می‌شوند */
+  .sheet{right:calc(272px + 28px);left:28px;max-width:520px;margin:0 auto;bottom:28px;border-radius:22px;max-height:78vh}
+  .toast{right:calc(272px + 24px);left:24px;max-width:380px;margin:0 auto;bottom:32px}
+
+  /* اکسپلور: از عرض اضافه با چند ستون واقعی استفاده کن، نه یک کارت کشیده روی کل عرض */
+  .discovery-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+  .explore-feature h3,.explore-feature p{max-width:none}
+
+  /* خانه: کارت اصلی و فرصت‌ها با عرض بیشتر نفس بکشند */
+  .home-primary-copy p{max-width:460px}
+  .home-primary-icon{width:110px;min-width:110px}
+  .home-primary-icon svg{width:42px;height:42px}
+  .home-opportunity-card{width:260px;min-width:260px}
+
+  /* پیام‌ها: در عرض دسکتاپ جای کافی برای باز بودن همهٔ تب‌ها هست، نیازی به اسکرول افقی نیست */
+  .message-tabs{flex-wrap:wrap;overflow:visible}
+  .composer{right:24px;left:24px;max-width:720px;margin:0 auto}
+  .chat-menu-btn{left:calc(50% - 460px)}
+
+  /* پروفایل: چهار گروه تنظیمات به‌جای یک ستون طولانی، در دو ستون کنار هم */
+  .settings-columns{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start}
+
+  /* جزئیات آگهی: محتوای اصلی سمت چپ، توپ پروفایل صاحب آگهی (و نقشه در صورت وجود) سمت
+     راست به‌صورت چسبان کنار محتوا - همان عناصر موبایل، فقط بازچیدمان با grid-template-areas
+     (اگر نقشه نباشد، ردیف «map» به‌سادگی خالی می‌ماند و مشکلی ایجاد نمی‌کند) */
+  .ad-detail-page{max-width:980px;display:grid;grid-template-columns:1fr 300px;grid-template-areas:"hero owner" "grid owner" "map owner";gap:20px;align-items:start}
+  .ad-detail-hero{grid-area:hero}
+  .ad-detail-grid{grid-area:grid}
+  .ad-owner-section{grid-area:owner;position:sticky;top:26px;align-self:start}
+  .ad-map-section{grid-area:map}
+}
 </style>
 </head>
 <body>
@@ -619,6 +699,7 @@ p{color:var(--muted);margin:0}
     <span>۹:۴۱</span>
     <button class="modebtn" id="modeBtn" aria-label="تغییر حالت نمایش" onclick="toggleModeQuick()"><svg class="icon" viewBox="0 0 24 24" width="13" height="13"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></button>
   </div>
+  <div class="sidebar" id="sidebar"></div>
   <div id="view"><div class="page home-page"><header class="home-header"><div class="avatar">ح.م</div><div class="home-welcome"><b>سلام حسین</b><span>متخصص اجرای ساختمان · قشم · آماده همکاری</span></div><button class="home-theme" aria-label="تغییر حالت روشن و تیره" onclick="toggleModeQuick()"><svg class="icon" viewBox="0 0 24 24" width="13" height="13"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg><span>روشن</span></button><button class="home-alert" aria-label="اعلان‌ها" onclick="go(&#39;notifications&#39;)"><svg class="icon" viewBox="0 0 24 24" width="16" height="16"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.7 21a2 2 0 01-3.4 0"></path></svg></button></header><section class="home-primary" role="button" tabindex="0" onclick="openRelevantJobs()" onkeydown="if(event.key===&#39;Enter&#39;||event.key===&#39; &#39;){event.preventDefault();openRelevantJobs()}"><div class="home-primary-copy"><span>پیشنهاد برای شما</span><h2>کارهای مناسب من</h2><p>کارهای هماهنگ با مهارت و شهر شما.</p><div class="home-primary-action">دیدن کارها ‹</div></div><div class="home-primary-icon"><svg class="icon" viewBox="0 0 24 24" width="31" height="31"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg></div></section><div class="home-shortcuts"><button class="home-shortcut" onclick="openRelevantJobs()"><i><svg class="icon" viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="7" width="18" height="13" rx="2"></rect><path d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2"></path></svg></i><b>فرصت‌ها</b></button><button class="home-shortcut" onclick="go(&#39;requestsCenter&#39;)"><i><svg class="icon" viewBox="0 0 24 24" width="15" height="15"><path d="M20 6L9 17l-5-5"></path></svg></i><b>درخواست‌ها (1)</b></button><button class="home-shortcut" onclick="go(&#39;calendar&#39;)"><i><svg class="icon" viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></i><b>تقویم</b></button><button class="home-shortcut" onclick="go(&#39;featureHub&#39;)"><i><svg class="icon" viewBox="0 0 24 24" width="15" height="15"><circle cx="5" cy="12" r="1"></circle><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle></svg></i><b>همه امکانات</b></button></div><div class="home-schedule"><div class="home-schedule-head"><i><svg class="icon" viewBox="0 0 24 24" width="15" height="15"><rect x="3" y="4" width="18" height="18" rx="2"></rect><path d="M16 2v4M8 2v4M3 10h18"></path></svg></i><div><b>زمان‌های آزاد من</b><span>برای تغییر، روز را لمس کنید</span></div><button onclick="go(&#39;calendar&#39;)">همه</button></div><div class="home-cal-grid"><button class="home-cal-day booked" onclick="openAvailabilityDaySheet(0)"><span>ش</span><b>۱۷</b></button><button class="home-cal-day available" onclick="openAvailabilityDaySheet(1)"><span>ی</span><b>۱۸</b></button><button class="home-cal-day available" onclick="openAvailabilityDaySheet(2)"><span>د</span><b>۱۹</b></button><button class="home-cal-day off" onclick="openAvailabilityDaySheet(3)"><span>س</span><b>۲۰</b></button><button class="home-cal-day booked" onclick="openAvailabilityDaySheet(4)"><span>چ</span><b>۲۱</b></button><button class="home-cal-day available" onclick="openAvailabilityDaySheet(5)"><span>پ</span><b>۲۲</b></button><button class="home-cal-day off" onclick="openAvailabilityDaySheet(6)"><span>ج</span><b>۲۳</b></button></div></div><div class="home-section-head"><div><b>کارهای مناسب شما</b><span>هماهنگ با پروفایل شما</span></div><button onclick="openRelevantJobs()">دیدن همه</button></div><div class="home-opportunity-rail"><article class="home-opportunity-card orange" onclick="openJobOpportunity(&#39;job-facade-qeshm&#39;)"><div class="home-job-top"><span>مناسب پروفایل شما</span><em>1٫8 کیلومتر</em></div><h3>اجرای نمای خشک ساختمان ۵ طبقه</h3><p>کارگاه ساختمانی احمدی · قشم</p><div class="home-job-meta"><span>روزانه ۳٬۸۰۰٬۰۰۰ تومان</span><span>شروع شنبه</span></div></article><article class="home-opportunity-card blue" onclick="openJobOpportunity(&#39;job-welding-bandar&#39;)"><div class="home-job-top"><span>مناسب پروفایل شما</span><em>6٫4 کیلومتر</em></div><h3>جوشکاری اسکلت فلزی سوله</h3><p>گروه ساختمانی توکلی · بندرعباس</p><div class="home-job-meta"><span>پروژه‌ای · توافقی</span><span>این هفته</span></div></article></div><div class="home-section-head"><div><b>کار در حال پیگیری</b><span>1 مورد فعال</span></div><button onclick="go(&#39;myProjects&#39;)">همه</button></div><div class="home-active-card" onclick="openProjectDetail(0)"><i><svg class="icon" viewBox="0 0 24 24" width="17" height="17"><path d="M3 21h18"></path><path d="M5 21V7l7-4 7 4v14"></path><path d="M9 21v-6h6v6"></path></svg></i><div><b>جوشکاری اسکلت فلزی</b><p>پیمانکار رضایی</p></div><span>در حال اجرا</span></div></div><div class="bottom-nav"><button class="nav-btn active" aria-current="page" aria-label="خانه" onclick="state.stack=[];go(&#39;home&#39;)"><svg class="icon" viewBox="0 0 24 24" width="21" height="21"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"></path></svg><span>خانه</span></button><button class="nav-btn " aria-label="جست‌وجو" onclick="state.stack=[];openDataPage(&#39;explore&#39;,&#39;در حال آماده‌کردن نتایج مرتبط&#39;)"><svg class="icon" viewBox="0 0 24 24" width="21" height="21"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg><span>جست‌وجو</span></button><button class="nav-btn " aria-label="ثبت" onclick="state.stack=[];go(&#39;newRequest&#39;)"><svg class="icon" viewBox="0 0 24 24" width="21" height="21"><path d="M12 5v14M5 12h14"></path></svg><span>ثبت</span></button><button class="nav-btn " aria-label="پیام‌ها" onclick="state.stack=[];openDataPage(&#39;messages&#39;,&#39;در حال دریافت پیام‌ها&#39;)"><span class="nav-badge">1</span><svg class="icon" viewBox="0 0 24 24" width="21" height="21"><path d="M21 11.5a8.4 8.4 0 01-8.5 8.4 8.4 8.4 0 01-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 01-.9-3.8A8.4 8.4 0 0112.5 3a8.4 8.4 0 018.5 8.5z"></path></svg><span>پیام‌ها</span></button><button class="nav-btn " aria-label="من" onclick="state.stack=[];go(&#39;profile&#39;)"><svg class="icon" viewBox="0 0 24 24" width="21" height="21"><circle cx="12" cy="8" r="4"></circle><path d="M4 21c0-4 4-6 8-6s8 2 8 6"></path></svg><span>من</span></button></div></div>
   <div class="sheet-backdrop" id="backdrop" onclick="closeSheet()"></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-hidden="true" inert=""></div>
@@ -2884,22 +2965,52 @@ function toggleSaved(id){
    می‌شود. «جست‌وجو» (یا «سفارش‌ها» برای نقش تجاری) عمداً وسط لیست (اندیس ۲) قرار گرفته تا دکمهٔ
    مرکزی از بقیه بزرگ‌تر و برجسته‌تر باشد؛ برای مهمان همیشه «جست‌وجو» است چون نقشی ندارد. */
 var GUEST_NAV_GATE_KIND={home:'nav',newRequest:'postAd',myProducts:'postAd',messages:'chat',profile:'account'};
-function bottomNav(active){
+/* لیست آیتم‌های ناوبری اصلی و منطق نمایش/محدودیت مهمان - هم برای bottom-nav موبایل و هم
+   برای sidebar دسکتاپ استفاده می‌شود تا هر دو دقیقاً یک رفتار داشته باشند. */
+function navItems(){
   var guest=!getSessionUser();
   var isBusiness=!guest&&BUSINESS_ROLES.indexOf(state.role)>-1;
   var addItem=isBusiness?['myProducts','plus','افزودن']:['newRequest','plus','ثبت'];
   var secondItem=isBusiness?['orders','truck','سفارش‌ها']:['explore','search','جست‌وجو'];
-  var items=[['home','home','خانه'],addItem,secondItem,['messages','message','پیام‌ها'],['profile','user','بلوک']];
+  return {guest:guest,items:[['home','home','خانه'],addItem,secondItem,['messages','message','پیام‌ها'],['profile','user','بلوک']]};
+}
+function navItemAction(key,guest){
+  if(guest&&key!=='explore')return "promptGuestAuth('"+(GUEST_NAV_GATE_KIND[key]||'nav')+"')";
+  if(key==='explore'||key==='messages')return "state.stack=[];openDataPage('"+key+"','"+(key==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')";
+  return "state.stack=[];go('"+key+"')";
+}
+function bottomNav(active){
+  var nav=navItems(),guest=nav.guest,items=nav.items;
   return '<div class="bottom-nav">'+items.map(function(i,idx){
     var key=i[0],raised=idx===2;
     var unread=(!guest&&key==='messages')?unreadMessageCount():0,badge=unread?'<span class="nav-badge">'+unread+'</span>':'';
-    var action;
-    if(guest&&key!=='explore')action="promptGuestAuth('"+(GUEST_NAV_GATE_KIND[key]||'nav')+"')";
-    else if(key==='explore'||key==='messages')action="state.stack=[];openDataPage('"+key+"','"+(key==='explore'?'در حال آماده‌کردن نتایج مرتبط':'در حال دریافت پیام‌ها')+"')";
-    else action="state.stack=[];go('"+key+"')";
+    var action=navItemAction(key,guest);
     var cls='nav-btn'+(raised?' nav-btn-raised':'')+(active===key?' active':'');
     return '<button class="'+cls+'" '+(active===key?'aria-current="page"':'')+' aria-label="'+i[2]+'" onclick="'+action+'">'+badge+icon(i[1],raised?24:21)+(raised?'':'<span>'+i[2]+'</span>')+'</button>';
   }).join('')+'</div>'
+}
+/* دسکتاپ: نوار کناری راست به‌جای bottom-nav - از همان navItems/navItemAction استفاده
+   می‌کند تا رفتار مهمان و کسب‌وکار دقیقاً یکسان با موبایل بماند؛ فقط چیدمان عمودی و
+   برچسب‌دار است. active همیشه از state.page گرفته می‌شود چون دقیقاً با نام صفحه‌های
+   سطح‌بالا (home/explore/newRequest/myProducts/orders/messages/profile) یکی است. */
+function sidebarNav(){
+  var nav=navItems(),guest=nav.guest,items=nav.items,active=state.page;
+  return items.map(function(i){
+    var key=i[0];
+    var unread=(!guest&&key==='messages')?unreadMessageCount():0,badge=unread?'<span class="sidebar-badge">'+unread+'</span>':'';
+    var action=navItemAction(key,guest);
+    return '<button class="sidebar-link'+(active===key?' active':'')+'" '+(active===key?'aria-current="page"':'')+' onclick="'+action+'">'+icon(i[1],19)+'<span>'+i[2]+'</span>'+badge+'</button>';
+  }).join('');
+}
+function sidebarShell(){
+  var guest=!getSessionUser(),role=state.role||'worker';
+  var brandTarget=guest?'explore':'home';
+  var brand='<div class="sidebar-brand" role="button" tabindex="0" onclick="state.stack=[];go(\''+brandTarget+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();state.stack=[];go(\''+brandTarget+'\')}"><div class="hexlogo" style="width:34px;height:34px">'+appLogo()+'</div><b>بلوک</b></div>';
+  var userCard=guest
+    ?'<button class="sidebar-guest-cta" onclick="promptGuestAuth(\'nav\')">'+icon('user',15)+'<span>ورود یا ساخت حساب</span></button>'
+    :'<div class="sidebar-user" role="button" tabindex="0" onclick="state.stack=[];go(\'profile\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();state.stack=[];go(\'profile\')}">'+renderMyAvatar(role)+'<span class="sidebar-user-copy"><b>'+esc(displayNameFor(role)||'کاربر بلوک')+'</b><em>'+esc(displayCityFor(role)||'')+'</em></span></div>';
+  var themeBtn='<button class="sidebar-theme-btn" onclick="toggleModeQuick()">'+icon(state.mode==='dark'?'moon':'sun',15)+'<span>'+(state.mode==='dark'?'حالت تیره':'حالت روشن')+'</span></button>';
+  return brand+userCard+'<nav class="sidebar-nav" aria-label="ناوبری اصلی">'+sidebarNav()+'</nav><div class="sidebar-foot">'+themeBtn+'</div>';
 }
 function progressDots(total,current){var out='';for(var i=0;i<total;i++)out+='<i class="'+(i<=current?'done':'')+'"></i>';return '<div class="progress">'+out+'</div>'}
 function activeRole(){return roleSchemas[state.role||'worker']}
@@ -2997,7 +3108,15 @@ function completeLogin(btn){
     });
 }
 function acceptLegalAndContinue(){if(!isLegalCurrent()&&!state.legalConsent){state.legalError=true;render();toast('پذیرش قوانین برای ورود لازم است','warning');return}if(!isLegalCurrent()){state.legalAcceptedAt='همین حالا';state.acceptedLegalVersion=LEGAL_VERSION}state.stack=[];state.page='home';render();resumePendingGuestAction()}
-function textSizePx(value){return {large:'17.5px',larger:'19px',largest:'21px'}[value]||'16px'}
+/* اندازهٔ فونت ریشه (html) به‌صورت inline-style روی document.documentElement تنظیم می‌شود
+   (تنظیمات دسترس‌پذیری کاربر)، پس هیچ قاعدهٔ CSS مثل html{font-size:...} نمی‌تواند آن را
+   override کند. برای این‌که مقیاس دسکتاپ («این‌جا واقعاً desktop-only» طبق دستورالعمل) هم
+   جواب بدهد، همین‌جا در جاوااسکریپت اضافه می‌شود؛ روی موبایل/تبلت هیچ تغییری ندارد. */
+function textSizePx(value){
+  var px={large:17.5,larger:19,largest:21}[value]||16;
+  if(typeof window!=='undefined'&&window.innerWidth>=960)px+=2.5;
+  return px+'px';
+}
 function setTextSize(value){state.textSize=value;document.documentElement.style.fontSize=textSizePx(value);try{localStorage.setItem('block-text-size',value)}catch(e){}render()}
 function toggleHighContrast(){state.highContrast=!state.highContrast;document.getElementById('phone').setAttribute('data-contrast',state.highContrast?'high':'normal');try{localStorage.setItem('block-high-contrast',state.highContrast?'true':'false')}catch(e){}render()}
 function toggleReduceMotion(){state.reduceMotion=!state.reduceMotion;document.getElementById('phone').setAttribute('data-reduce-motion',state.reduceMotion?'true':'false');render()}
@@ -5032,13 +5151,13 @@ adDetail:function(){
   /* به درخواست کاربر: به‌جای ردیف افقی، یک «توپ» گرد و برجسته - حروف اول اسم وسط توپ، امتیاز
      به‌صورت یک برچسب کوچک روی لبهٔ پایین توپ، و در صورت تأیید بودن، نشان تیک روی لبهٔ بالا؛
      نام و نقش/شهر زیر توپ. با کلیک، به کارت کامل پروفایل می‌رود. */
-  var ownerChip='<div class="ad-detail-section" style="text-align:center"><div class="ad-owner-ball-wrap" onclick="openAdTrustCard()"><div class="ad-owner-ball">'+esc(person.initials||'ب')+(person.verified?'<i class="ball-badge ball-verified">'+icon('check',10)+'</i>':'')+'<span class="ball-badge ball-rating">★'+esc(person.rating||4.5)+'</span></div><b>'+esc(person.name)+'</b><span class="ad-owner-ball-role">'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+'</span><em>پروفایل کامل ‹</em></div></div>';
+  var ownerChip='<div class="ad-detail-section ad-owner-section" style="text-align:center"><div class="ad-owner-ball-wrap" onclick="openAdTrustCard()"><div class="ad-owner-ball">'+esc(person.initials||'ب')+(person.verified?'<i class="ball-badge ball-verified">'+icon('check',10)+'</i>':'')+'<span class="ball-badge ball-rating">★'+esc(person.rating||4.5)+'</span></div><b>'+esc(person.name)+'</b><span class="ad-owner-ball-role">'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+'</span><em>پروفایل کامل ‹</em></div></div>';
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p>'+(ad.description?'<p>'+esc(ad.description)+'</p>':'')+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست">':'')+'<div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
     +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
     +ownerChip
-    +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
+    +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section ad-map-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
 
@@ -5053,7 +5172,7 @@ adPublished:function(){
 messages:function(){
   var conversations=filteredConversations(),unread=unreadMessageCount(),tabs=[['all','همه'],['unread','خوانده‌نشده'],['project','پروژه‌ها'],['service','خدمات و سفارش'],['archived','بایگانی']];
   var rows=conversations.map(renderConversationCard).join('');
-  return '<div class="page" style="padding-top:16px"><div class="message-head"><h2>پیام‌ها</h2><div class="head-actions"><button class="icon-btn" aria-label="تنظیمات پیام" onclick="go(\'messageSettings\')">'+icon('gear',16)+'</button></div></div>'
+  return '<div class="page messages-page" style="padding-top:16px"><div class="message-head"><h2>پیام‌ها</h2><div class="head-actions"><button class="icon-btn" aria-label="تنظیمات پیام" onclick="go(\'messageSettings\')">'+icon('gear',16)+'</button></div></div>'
     +'<div class="inbox-search">'+icon('search',16)+'<input id="messageSearch" aria-label="جست‌وجوی پیام‌ها" value="'+esc(state.messageQuery||'')+'" oninput="setMessageQuery(this.value)" placeholder="جست‌وجوی نام، پروژه یا متن پیام"></div>'
     +'<div class="inbox-summary"><span>'+unread+' پیام خوانده‌نشده</span><button onclick="markAllMessagesRead()">خواندن همه</button></div>'
     +'<div class="message-tabs">'+tabs.map(function(tab){return '<button class="message-tab'+((state.messageFilter||'all')===tab[0]?' active':'')+'" onclick="setMessageFilter(\''+tab[0]+'\')">'+tab[1]+'</button>'}).join('')+'</div>'
@@ -5078,7 +5197,7 @@ chat:function(){
   if(c.personId)header=header.replace('<div class="topbar-title">','<div class="topbar-title" style="cursor:pointer" onclick="openPersonProfile(\''+c.personId+'\')">');
   var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
   return header+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
-  +'<div class="page no-nav" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
+  +'<div class="page no-nav chat-page" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
   +(state.voiceRecording
     ? '<div class="composer"><button id="sendMicBtn" class="sendbtn recording" data-mode="recording" aria-label="پایان و ارسال پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('send',16)+'</button><div class="voice-recording-bar"><span class="voice-rec-dot"></span><div class="voice-wave" id="chatVoiceWave">'+[4,4,4,4,4,4,4,4,4].map(function(){return '<span style="height:4px"></span>'}).join('')+'</div><span id="voiceRecTimer" class="mono">0:00</span></div><button class="composer-action" aria-label="لغو ضبط پیام صوتی" onclick="cancelVoiceRecording()">'+icon('x',16)+'</button></div>'
     : '<div class="composer"><button id="sendMicBtn" class="sendbtn" data-mode="mic" aria-label="ارسال پیام یا شروع پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('mic',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" oninput="updateSendMicButton()" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label></div>')
@@ -5095,10 +5214,16 @@ profile:function(){
   var communication=settingsRow('check','درخواست‌ها',pendingRequestCount()+' درخواست نیازمند پاسخ',"go('requestsCenter')")+settingsRow('bell','تنظیمات اعلان‌ها',unreadNotifCount()+' اعلان خوانده‌نشده',"go('notificationSettings')")+settingsRow('message','تنظیمات پیام‌ها',unreadMessageCount()+' پیام خوانده‌نشده',"go('messageSettings')")+settingsRow('heart','علاقه‌مندی‌های من',ensureSavedPeople().length+' مورد ذخیره‌شده',"go('savedProfiles')");
   var account=settingsRow('lock','حساب و امنیت',phone,"go('accountSecurity')")+settingsRow('eye','حریم خصوصی','نمایش پروفایل، موقعیت و وضعیت آنلاین',"go('privacySettings')")+settingsRow('alert','کاربران مسدودشده',state.blockedUsers.length+' کاربر',"go('blockedUsers')")+settingsRow('shield','قوانین و حریم خصوصی',legalAcceptanceText(),"go('legalCenter')");
   var support=settingsRow('sun','نمایش و خوانایی',state.mode==='dark'?'حالت تیره':'حالت روشن',"go('settings')")+settingsRow('wrench','وضعیت برنامه و دسترسی‌ها',state.online?'آنلاین و آماده':'اینترنت قطع است',"go('systemStatus')")+settingsRow('help','راهنما و پرسش‌های متداول','پاسخ به سؤال‌های استفاده از بلوک',"go('helpCenter')")+settingsRow('message','پشتیبانی بلوک','گفت‌وگو یا گزارش مشکل',"go('supportCenter')")+settingsRow('info','دربارهٔ بلوک','نسخه، مأموریت و اطلاعات برنامه',"go('aboutApp')");
-  return '<div class="page" style="padding-top:16px"><div class="message-head"><h2>بلوک</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
+  return '<div class="page profile-page" style="padding-top:16px"><div class="message-head"><h2>بلوک</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
     +'<div class="profile-hero" role="button" tabindex="0" style="cursor:pointer" onclick="openTrustCard(\'self\')"><div class="profile-identity">'+renderMyAvatar(role)+'<div class="profile-copy"><h2>'+esc(displayName)+'</h2><p>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</p><div class="profile-status-row"><span class="status-pill">'+icon('phone',10)+' موبایل تأییدشده</span><span class="status-pill '+(state.profileComplete?'':'warning')+'">'+icon(state.profileComplete?'check':'alert',10)+' '+(state.profileComplete?'اطلاعات اصلی ثبت‌شده':'نیازمند تکمیل')+'</span></div></div></div><div class="profile-progress"><div class="profile-progress-head"><b>کامل‌بودن پروفایل</b><span>'+completion+'٪</span></div><div class="profile-progress-track"><i style="width:'+completion+'%"></i></div></div></div>'
     +'<div class="profile-actions"><button class="profile-action" onclick="go(\'editProfile\')"><i>'+icon('doc',15)+'</i><b>ویرایش پروفایل</b><span>اطلاعات و تخصص‌ها</span></button><button class="profile-action" onclick="go(\'myPublicProfile\')"><i>'+icon('eye',15)+'</i><b>نمایش عمومی</b><span>پیش‌نمایش برای دیگران</span></button></div>'
-    +'<div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div><div class="settings-group">'+settingsRow('logout','خروج و مدیریت حساب','خروج یا درخواست حذف حساب',"go('accountManagement')",true)+'</div><div class="version-row">بلوک · نسخهٔ نمایشی ۱.۲</div></div>'+bottomNav('profile')
+    +'<div class="settings-columns">'
+      +'<div class="settings-col-item"><div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div></div>'
+      +'<div class="settings-col-item"><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div></div>'
+      +'<div class="settings-col-item"><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div></div>'
+      +'<div class="settings-col-item"><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div></div>'
+    +'</div>'
+    +'<div class="settings-group">'+settingsRow('logout','خروج و مدیریت حساب','خروج یا درخواست حذف حساب',"go('accountManagement')",true)+'</div><div class="version-row">بلوک · نسخهٔ نمایشی ۱.۲</div></div>'+bottomNav('profile')
 },
 
 savedProfiles:function(){
@@ -5290,6 +5415,8 @@ function render(){
   var prevScrollTop=prevScroller?prevScroller.scrollTop:0;
   var page=PAGES[state.page]||PAGES.unavailable;
   view.innerHTML=page()+renderNetworkBanner();
+  var sidebarEl=document.getElementById('sidebar');
+  if(sidebarEl)sidebarEl.innerHTML=sidebarShell();
   saveStateSnapshot();
   var scroller=view.querySelector('.page');
   var phone=document.getElementById('phone');
@@ -5311,6 +5438,7 @@ function render(){
   if(state.page==='adDetail')requestAnimationFrame(initAdDetailMap);
   else destroyAdDetailMap();
 }
+window.addEventListener('resize',function(){document.documentElement.style.fontSize=textSizePx(state.textSize)});
 window.addEventListener('offline',function(){state.online=false;render()});
 window.addEventListener('online',function(){state.online=true;render();toast('اتصال اینترنت برقرار شد')});
 window.addEventListener('error',function(e){showDebugError((e.error&&e.error.stack)||e.message||'خطای ناشناخته',e.filename,e.lineno,e.colno)});
