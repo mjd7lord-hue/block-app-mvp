@@ -502,6 +502,11 @@ p{color:var(--muted);margin:0}
 .explore-mode-switch button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:.58rem;font-weight:800;padding:10px 6px;border-radius:11px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:color .2s}
 .explore-mode-switch button svg{width:14px;height:14px}
 .explore-mode-switch button.active{color:var(--on-accent)}
+/* گزینهٔ دایره‌ای بنفش «پرسش تخصصی و مشاوره»، دقیقاً وسط دو تب دیگر شناور - همان رنگ tone-violet
+   که در سراسر اپ برای مشاوره استفاده می‌شود، نه یک تب سوم هم‌عرض داخل گرید. */
+.explore-mode-switch button.consult-orb{position:absolute;top:50%;right:50%;transform:translate(50%,-50%);z-index:2;width:38px;height:38px;padding:0;border-radius:50%;background:linear-gradient(145deg,#a855f7,#7c3aed);color:#fff;border:3px solid var(--bg);box-shadow:0 6px 16px rgba(124,58,237,.45)}
+.explore-mode-switch button.consult-orb svg{width:16px;height:16px}
+.explore-mode-switch button.consult-orb.active{color:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.4),0 6px 16px rgba(124,58,237,.45)}
 .home-dashboard{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0;cursor:pointer;animation:dashCardIn .4s cubic-bezier(.22,1,.36,1)}
 @keyframes dashCardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 .dash-top{display:flex;align-items:center;gap:12px}
@@ -2586,12 +2591,15 @@ function exploreLocationLabel(item){
   return item.city||'محدودهٔ نامشخص';
 }
 function availabilityRank(value){return {now:0,today:1,week:2,flexible:3}[value]||4}
-/* به درخواست کاربر: تب «پیدا کردن کار» دقیقاً همان آگهی‌های نوع work (کسانی که دنبال کارند) را
-   نشان می‌دهد و تب «پیدا کردن نیرو» آگهی‌های workforce/consult را - یعنی برچسب هر تب با نوع
-   آگهی‌ای که نشان می‌دهد یکی است، نه برعکس. */
-var JOB_MODE_AD_TYPES=['work'],WORKERS_MODE_AD_TYPES=['workforce','consult'];
+/* اصلاح دوباره به‌درخواست صریح کاربر: تب «پیدا کردن کار» یعنی «کسی که نیرو می‌خواهد» را پیدا
+   کن - آگهی‌های workforce (کارفرما/پیمانکار/شرکت که دنبال نیرو هستند)؛ تب «پیدا کردن نیرو»
+   یعنی «نیرویی که دنبال کار است» را پیدا کن - آگهی‌های work (متخصص/کارگر/مهندس که خودشان را
+   برای کار عرضه می‌کنند). «پرسش تخصصی» دیگر داخل هیچ‌کدام از این دو مخلوط نمی‌شود؛ یک مُد
+   سوم و مستقل (consult) با دکمهٔ دایره‌ای بنفش وسط این دو تب دارد. */
+var JOB_MODE_AD_TYPES=['workforce'],WORKERS_MODE_AD_TYPES=['work'],CONSULT_MODE_AD_TYPES=['consult'];
 function filteredExploreItems(){
-  var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters(),modeAdTypes=ensureExploreMode()==='jobs'?JOB_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
+  var mode=ensureExploreMode();
+  var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters(),modeAdTypes=mode==='jobs'?JOB_MODE_AD_TYPES:mode==='consult'?CONSULT_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
   var items=EXPLORE_ITEMS.filter(function(i){
     if(i.status==='matched')return false;
     if(i.isAd&&modeAdTypes.indexOf(i.adType)===-1)return false;
@@ -4422,16 +4430,14 @@ function relevantJobItems(limit){
   var items=JOB_OPPORTUNITIES.filter(function(job){return job.targetRoles.indexOf(role)>-1}).sort(function(a,b){return jobMatchScore(b)-jobMatchScore(a)});
   return typeof limit==='number'?items.slice(0,limit):items;
 }
-/* Two-way explore switch: تب «پیدا کردن کار» (mode='jobs') آگهی‌های work را نشان می‌دهد و تب
-   «پیدا کردن نیرو» (mode='workers') آگهی‌های workforce/consult را - نگاه کنید به تعریف
-   JOB_MODE_AD_TYPES/WORKERS_MODE_AD_TYPES بالاتر. برای یک کارجو (worker/specialist)، محتوای
-   عملاً مفید پیش‌فرض همان آگهی‌های استخدامی (workforce) است، پس پیش‌فرضشان mode='workers' است؛
-   کاربر همیشه می‌تواند دستی تب را عوض کند. */
+/* تب «پیدا کردن کار» (mode='jobs') آگهی‌های workforce را نشان می‌دهد (کارفرما/پیمانکار/شرکت
+   دنبال نیرو هستند) و تب «پیدا کردن نیرو» (mode='workers') آگهی‌های work را (متخصص/کارگر/مهندس
+   خودشان را برای کار عرضه می‌کنند) - نگاه کنید به JOB_MODE_AD_TYPES/WORKERS_MODE_AD_TYPES
+   بالاتر. یک کارجو (worker/specialist) یا مهمان (که نقشی ندارد و نباید کارفرما فرض شود) دنبال
+   فرصت کاری می‌گردد، پس پیش‌فرضشان mode='jobs' (آگهی‌های استخدامی) است؛ کاربر همیشه می‌تواند
+   دستی تب را عوض کند. */
 var JOB_SEEKER_DEFAULT_ROLES=["worker","specialist"];
-/* مهمان (بدون نقش/بدون حساب) فرض نمی‌شود کارفرماست - آگهی‌های استخدامی (workforce) پیش‌فرض
-   او هم هست، دقیقاً مثل کارجوها؛ وگرنه با محتوایی که این‌روزها فقط از نوع workforce است، اکسپلور
-   مهمان روی تب «پیدا کردن کار» خالی می‌افتد و به نظر می‌رسد اصلاً هیچ آگهی‌ای وجود ندارد. */
-function defaultExploreMode(){return !getSessionUser()||JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'workers':'jobs'}
+function defaultExploreMode(){return !getSessionUser()||JOB_SEEKER_DEFAULT_ROLES.indexOf(state.role)>-1?'jobs':'workers'}
 function ensureExploreMode(){if(!state.exploreMode)state.exploreMode=defaultExploreMode();return state.exploreMode}
 function setExploreMode(mode){state.exploreMode=mode;state.exploreQuery='';render()}
 function ensureJobQuick(){if(!state.jobQuick)state.jobQuick={near:false,soon:false,projectBased:false};return state.jobQuick}
@@ -5049,7 +5055,10 @@ projectDone:function(){
 
 explore:function(){
   var mode=ensureExploreMode();
-  var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='jobs'?'0':'1')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button></div>';
+  /* دکمهٔ سوم، دایره‌ای و بنفش (هم‌رنگ tone-violet که همه‌جای اپ برای «مشاوره» استفاده می‌شود)،
+     دقیقاً وسط دو تب دیگر می‌نشیند - نه یک تب سوم هم‌عرض، یک گزینهٔ مجزا و برجسته برای
+     «پرسش تخصصی و مشاوره». */
+  var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='workers'?'1':'0')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button><button class="consult-orb'+(mode==='consult'?' active':'')+'" aria-label="پرسش تخصصی و مشاوره" onclick="setExploreMode(\'consult\')">'+icon('drafting',16)+'</button></div>';
   var items=filteredExploreItems(),active=exploreActiveCount()>0||Boolean((state.exploreQuery||'').trim());
   var toggleBtn='<button class="explore-view-btn" onclick="setExploreView(\''+(state.exploreView==='cards'?'map':'cards')+'\')">'+icon(state.exploreView==='cards'?'eye':'building',14)+(state.exploreView==='cards'?'نقشه':'کارت‌ها')+'</button>';
   var body;
@@ -5066,9 +5075,9 @@ explore:function(){
     body='<div class="explore-section-head"><b>نتایج جست‌وجو</b><span>'+items.length+' گزینه پیدا شد</span></div><div class="discovery-grid">'+items.map(renderExploreCard).join('')+'</div>';
   }
   return '<div class="page explore-page">'
-  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>'
+  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':mode==='consult'?'چه سؤالی دارید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>'
   +modeSwitch
-  +renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':'مثلاً جوشکار، پروژه یا شهر')
+  +renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':mode==='consult'?'مثلاً ترک دیوار، نم یا نشست ساختمان':'مثلاً جوشکار، پروژه یا شهر')
   +renderExploreActiveFilters()+body
   +'</div>'
   +bottomNav('explore')
