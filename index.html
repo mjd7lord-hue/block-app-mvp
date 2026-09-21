@@ -664,9 +664,23 @@ p{color:var(--muted);margin:0}
   .sheet{right:calc(272px + 28px);left:28px;max-width:520px;margin:0 auto;bottom:28px;border-radius:22px;max-height:78vh}
   .toast{right:calc(272px + 24px);left:24px;max-width:380px;margin:0 auto;bottom:32px}
 
+  /* .dock/.ad-dock هم مثل .sheet/.toast فرزند #view هستند و absolute با right/left:0 چیده
+     می‌شوند، پس در دسکتاپ به‌جای دکمهٔ کشیده روی کل عرض کنار سایدبار (که زیر ستون باریک و
+     وسط‌چین .page بی‌ربط به نظر می‌رسید - یک باگ واقعی و قابل مشاهده در همهٔ صفحات فرم/ویزارد
+     مثل تأیید شماره، ثبت‌نام مرحله‌ای، ثبت پروژه و جزئیات سفارش)، هم‌عرض ستون پیش‌فرض .page
+     شوند و درست زیر همان محتوا بنشینند */
+  .dock,.ad-dock{right:20px;left:20px;max-width:640px;margin:0 auto}
+  .ad-detail-page+.dock{max-width:980px}
+
   /* اکسپلور: از عرض اضافه با چند ستون واقعی استفاده کن، نه یک کارت کشیده روی کل عرض */
   .discovery-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
   .explore-feature h3,.explore-feature p{max-width:none}
+
+  /* همهٔ امکانات و کارهای مناسب من: مثل اکسپلور، به‌جای فهرست دو ستونی طولانی روی عرض کم،
+     از عرض اضافهٔ دسکتاپ با چند ستون واقعی استفاده کن */
+  .feature-hub-page,.relevant-jobs-page{max-width:880px}
+  .feature-hub-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  .jobs-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 
   /* خانه: کارت اصلی و فرصت‌ها با عرض بیشتر نفس بکشند */
   .home-primary-copy p{max-width:460px}
@@ -4865,12 +4879,12 @@ featureHub:function(){
   else items.push(['plus','ثبت آگهی عمومی','پیدا کردن کار، نیرو یا مشاور',"go('newRequest')"]);
   if(calendarType(role))items.push(['calendar',calendarType(role)==='availability'?'تقویم دسترسی':'تقویم و رزروها','ثبت روز آزاد و برنامه‌های هماهنگ‌شده',"go('calendar')"]);
   items=items.concat([['check','درخواست‌ها','تأیید، رد و پیگیری درخواست‌های ارسالی و دریافتی',"go('requestsCenter')"],['shield','کارت اعتبار من','سن، سابقه، پروژه‌ها، نظرها و امتیاز بلوک',"openTrustCard('self')"],['building','کارهای من','همکاری‌ها و پروژه‌های در حال پیگیری',"go('myProjects')"],['search','جست‌وجو و اکسپلور','پیدا کردن افراد و خدمات نزدیک',"openDataPage('explore','در حال آماده‌کردن نتایج مرتبط')"],['message','پیام‌ها','گفتگوها و هماهنگی‌های امن',"openDataPage('messages','در حال دریافت پیام‌ها')"],['bell','اعلان‌ها','پاسخ‌ها و تغییر وضعیت‌ها',"go('notifications')"],['portfolio','نمونه‌کارها','مدیریت عکس‌ها و سابقهٔ اجرا',"go('portfolio')"],['wrench','وضعیت برنامه','اینترنت، همگام‌سازی و دسترسی‌ها',"go('systemStatus')"],['user','پروفایل من','اطلاعات، تنظیمات و حساب',"go('profile')"]]);
-  return topbar('همه امکانات','هر کاری را از یک جای ساده شروع کنید')+'<div class="page"><div class="feature-hub-grid">'+items.map(function(item){return '<button class="feature-tile" onclick="'+item[3]+'"><i>'+icon(item[0],17)+'</i><b>'+esc(item[1])+'</b><span>'+esc(item[2])+'</span></button>'}).join('')+'</div></div>';
+  return topbar('همه امکانات','هر کاری را از یک جای ساده شروع کنید')+'<div class="page feature-hub-page"><div class="feature-hub-grid">'+items.map(function(item){return '<button class="feature-tile" onclick="'+item[3]+'"><i>'+icon(item[0],17)+'</i><b>'+esc(item[1])+'</b><span>'+esc(item[2])+'</span></button>'}).join('')+'</div></div>';
 },
 
 relevantJobs:function(){
   var jobs=relevantJobItems(),role=state.role||'worker',categories=profileAdCategories();
-  return topbar('کارهای مناسب من','پیشنهادشده برای '+activeRole().label)+'<div class="page"><div class="privacy-preview"><b>چرا این کارها را می‌بینید؟</b><p>بلوک نقش، مهارت‌ها، شهر و محدودهٔ فعالیت شما را با نیاز کارفرما مقایسه می‌کند. آگهی نامرتبط در این صفحه نمایش داده نمی‌شود.</p>'+(categories.length?'<div class="chip-row" style="margin-top:8px">'+categories.slice(0,4).map(function(value){return '<span class="chip chip-compact">'+esc(value)+'</span>'}).join('')+'</div>':'<button class="btn-ghost" onclick="startFullProfile()">تکمیل مهارت‌های پروفایل</button>')+'</div>'+(jobs.length?'<div class="jobs-grid">'+jobs.map(renderHomeJobCard).join('')+'</div>':'<div class="explore-empty"><i>'+icon('briefcase',22)+'</i><b>فعلاً کار هماهنگی پیدا نشد</b><p>با تکمیل مهارت‌ها و شهر فعالیت، پیشنهادهای دقیق‌تری دریافت می‌کنید.</p><button class="btn-ghost" onclick="startFullProfile()">تکمیل پروفایل</button></div>')+'</div>';
+  return topbar('کارهای مناسب من','پیشنهادشده برای '+activeRole().label)+'<div class="page relevant-jobs-page"><div class="privacy-preview"><b>چرا این کارها را می‌بینید؟</b><p>بلوک نقش، مهارت‌ها، شهر و محدودهٔ فعالیت شما را با نیاز کارفرما مقایسه می‌کند. آگهی نامرتبط در این صفحه نمایش داده نمی‌شود.</p>'+(categories.length?'<div class="chip-row" style="margin-top:8px">'+categories.slice(0,4).map(function(value){return '<span class="chip chip-compact">'+esc(value)+'</span>'}).join('')+'</div>':'<button class="btn-ghost" onclick="startFullProfile()">تکمیل مهارت‌های پروفایل</button>')+'</div>'+(jobs.length?'<div class="jobs-grid">'+jobs.map(renderHomeJobCard).join('')+'</div>':'<div class="explore-empty"><i>'+icon('briefcase',22)+'</i><b>فعلاً کار هماهنگی پیدا نشد</b><p>با تکمیل مهارت‌ها و شهر فعالیت، پیشنهادهای دقیق‌تری دریافت می‌کنید.</p><button class="btn-ghost" onclick="startFullProfile()">تکمیل پروفایل</button></div>')+'</div>';
 },
 
 jobDetail:function(){
