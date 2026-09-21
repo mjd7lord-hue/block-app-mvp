@@ -4963,17 +4963,24 @@ function renderDashboardProfileReuse(){
 
 var PAGES={
 
-/* اولین صفحه‌ای که بعد از نصب/اولین بازکردن اپ دیده می‌شود - فقط برای دیده‌شدن لوگو و اسم بلوک،
-   بدون هیچ دعوت به ثبت‌نام. با زدن «ادامه»، کاربر مستقیم وارد مرور اپ می‌شود (یا اگر از قبل
-   عضو بوده، به داشبورد خودش). فقط یک‌بار نشان داده می‌شود؛ دفعات بعد که flag در localStorage
-   ثبت شده باشد، مستقیم رد می‌شود - نگاه کنید به boot logic پایین فایل و dismissWelcome(). */
+/* اولین صفحه‌ای که بعد از نصب/اولین بازکردن اپ دیده می‌شود. یک تست UI/UX خارجی روی همین صفحه
+   امتیاز افتضاح داد: «فقط لوگو و یک دکمه، بدون تیتر، بدون توضیح ارزش، بدون این‌که معلوم باشد
+   دکمه به کجا می‌رود» - دقیقاً بزرگ‌ترین ریسک گزارش («غیاب کامل پیام‌رسانی») و اولین آیتم فیکس‌لیست
+   (ابهام متن دکمه) همین صفحه بود. حالا یک تیتر، یک جملهٔ ارزش‌پیشنهادی (چیست/برای کی/بدون
+   ثبت‌نام)، یک ردیف اعتماد، و متن دکمه‌ای که دقیقاً مقصد واقعی (مرور آگهی‌ها، نه ثبت‌نام) را
+   می‌گوید دارد - چون بر خلاف اکثر لندینگ‌ها، مقصد ما ثبت‌نام نیست، مرور آزاد است. با زدن دکمه،
+   کاربر مستقیم وارد مرور اپ می‌شود (یا اگر از قبل عضو بوده، به داشبورد خودش). فقط یک‌بار نشان
+   داده می‌شود؛ دفعات بعد که flag در localStorage ثبت شده باشد، مستقیم رد می‌شود - نگاه کنید به
+   boot logic پایین فایل و dismissWelcome(). */
 welcome:function(){
-  return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:60px 26px 26px">'
-  +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px">'
-  +'<div class="hexlogo" style="width:150px;height:150px">'+appLogo()+'</div>'
-  +'<h1 style="font-size:2.1rem">بلوک</h1>'
+  return '<div class="page no-nav" style="display:flex;flex-direction:column;align-items:center;justify-content:space-between;text-align:center;padding:50px 26px 26px">'
+  +'<div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px">'
+  +'<div class="hexlogo" style="width:104px;height:104px">'+appLogo()+'</div>'
+  +'<h1 style="font-size:1.7rem">بلوک</h1>'
+  +'<p style="font-size:.66rem;line-height:1.95;max-width:280px;color:var(--muted)">بازار آنلاین کار و نیروی ساختمانی؛ کارگر، متخصص، مهندس، پیمانکار و کارفرما همه در یک‌جا. آگهی‌ها و قیمت‌های واقعی را همین حالا و بدون نیاز به ثبت‌نام ببینید.</p>'
+  +'<div class="trust-row" style="margin-top:2px"><span>هویت واقعی</span><span>بدون هزینه</span><span>بدون ثبت‌نام اجباری</span></div>'
   +'</div>'
-  +'<div style="width:100%"><button class="btn-primary" onclick="dismissWelcome()">ادامه</button></div>'
+  +'<div style="width:100%"><button class="btn-primary" onclick="dismissWelcome()">مشاهدهٔ آگهی‌ها</button><p style="font-size:.5rem;color:var(--muted);margin-top:10px">هروقت خواستید، رایگان ثبت‌نام کنید</p></div>'
   +'</div>'
 },
 
