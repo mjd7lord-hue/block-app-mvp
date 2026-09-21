@@ -32,6 +32,8 @@ body{display:flex;align-items:center;justify-content:center;padding:26px 10px}
   --tone-mint:#0F9C88;--tone-mint-soft:#132924;
   --tone-blue:#5EA8FF;--tone-blue-soft:rgba(94,168,255,.16);
   --tone-violet:#A98CFF;--tone-violet-soft:rgba(169,140,255,.16);
+  --tone-cyan:#22D3EE;--tone-cyan-soft:rgba(34,211,238,.16);
+  --tone-rose:#FB7185;--tone-rose-soft:rgba(251,113,133,.16);
   --danger:#FF6B6B;--danger-soft:rgba(255,107,107,.13);
   --line:#1E2E2B;--line-strong:#2B3E3A;
   --bezel:#000;--shadow:0 24px 60px rgba(0,0,0,.5);
@@ -44,6 +46,8 @@ body{display:flex;align-items:center;justify-content:center;padding:26px 10px}
   --tone-mint:#0F766E;--tone-mint-soft:#E4F3F1;
   --tone-blue:#255E97;--tone-blue-soft:#E9F0F7;
   --tone-violet:#6845A5;--tone-violet-soft:#EFEAF7;
+  --tone-cyan:#0E7490;--tone-cyan-soft:#E3F6FA;
+  --tone-rose:#BE123C;--tone-rose-soft:#FDE8EC;
   --danger:#C0392B;--danger-soft:#FBEAE8;
   --line:#E2D7BE;--line-strong:#CFBF9E;
   --bezel:#122622;--shadow:0 24px 60px rgba(18,38,34,.2);
@@ -394,6 +398,8 @@ p{color:var(--muted);margin:0}
 .tone-orange{--card-tone:var(--accent2);--card-soft:var(--accent2-soft)}
 .tone-blue{--card-tone:var(--tone-blue);--card-soft:var(--tone-blue-soft)}
 .tone-violet{--card-tone:var(--tone-violet);--card-soft:var(--tone-violet-soft)}
+.tone-cyan{--card-tone:var(--tone-cyan);--card-soft:var(--tone-cyan-soft)}
+.tone-rose{--card-tone:var(--tone-rose);--card-soft:var(--tone-rose-soft)}
 .explore-feature{min-height:174px;border:1px solid color-mix(in srgb,var(--card-tone) 42%,var(--line));border-radius:21px;background:linear-gradient(145deg,var(--card-soft),var(--surface) 62%);padding:17px;position:relative;overflow:hidden;cursor:pointer;display:flex;align-items:stretch;gap:8px;box-shadow:0 16px 36px rgba(0,0,0,.14)}
 .explore-feature:after{content:"";position:absolute;width:135px;height:135px;border:1px solid var(--card-tone);border-radius:50%;left:-60px;bottom:-75px;opacity:.16}
 .explore-feature-copy{flex:1;min-width:0;position:relative;z-index:1}
@@ -1633,6 +1639,11 @@ var AD_CONFIG={
   consult:{label:'پرسش تخصصی و مشاوره',shortLabel:'پرسش تخصصی',icon:'drafting',tone:'violet',desc:'برای دریافت پاسخ، راهنمایی یا بررسی مسئله از افراد مرتبط.',exploreSub:'پرسش تخصصی منتظر پاسخ است',roles:['engineer','specialist','contractor','general']}
 };
 var AD_ROLE_LABELS={general:'کارفرما و مشتری',engineer:'مهندس',contractor:'پیمانکار',company:'شرکت ساختمانی',specialist:'متخصص',worker:'کارگر',machinery:'خدمات ماشین‌آلات'};
+/* رنگ هر آگهی بر اساس «دسته» به معنای نقش ثبت‌کنندهٔ آن تعیین می‌شود (کارگر/متخصص/مهندس/
+   کارفرما/پیمانکار/شرکت...)، نه نوع آگهی (کار/نیرو/مشاوره) - طبق تصحیح صریح کاربر. هر نقش یک
+   رنگ ثابت دارد که در کارت‌های اکسپلور، صفحهٔ جزئیات آگهی و صفحهٔ «آگهی منتشر شد» یکسان است. */
+var ROLE_TONE={worker:'mint',specialist:'blue',engineer:'violet',general:'orange',contractor:'cyan',company:'rose'};
+function roleTone(role){return ROLE_TONE[role]||'mint'}
 var AD_ROLE_COUNTS={general:24,engineer:14,contractor:9,company:6,specialist:28,worker:46,machinery:8};
 
 function calendarType(role){return CALENDAR_TYPE[role]||null}
@@ -1884,7 +1895,7 @@ function publishAd(btn){
       var item=mapBackendAdToItem(data.ad);
       EXPLORE_ITEMS.unshift(item);
       getNotifications().unshift({title:'آگهی منتشر شد',sub:'برای '+audience+' کاربر مرتبط در محدودهٔ '+d.range+' اعلان ارسال شد',time:'همین حالا',day:'امروز',read:false,icon:'bell',type:'project',target:'adPublished',action:'مشاهدهٔ نتیجه'});
-      state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type};
+      state.lastPublishedAd={id:item.id,title:title,city:city,audience:audience,roles:adRoleNames(),categories:skills,type:d.type,authorRole:state.role};
       state.page='adPublished';render();
     })
     .catch(function(e){stopLoading();toast(e.message||'انتشار آگهی ناموفق بود','warning')});
@@ -3601,7 +3612,7 @@ function mapBackendAdToItem(ad){
     contact:'چت بلوک',
     experienceYears:1,experienceLabel:'',availability:'flexible',availabilityLabel:ad.startTime||'با هماهنگی',
     distance:null,resultType:'opportunity',resultLabel:config.shortLabel,
-    verified:!!snapshot.verified,rating:null,tone:config.tone,
+    verified:!!snapshot.verified,rating:null,tone:roleTone(role),
     featured:false,isFresh:(Date.now()-new Date(ad.createdAt).getTime())<24*3600*1000,
     adType:type,status:ad.status==='ACTIVE'?'active':'matched',agreement:null
   };
@@ -5435,7 +5446,7 @@ adDetail:function(){
 
 adPublished:function(){
   var ad=state.lastPublishedAd||{title:'آگهی شما',audience:0,roles:[],city:'',skills:[]};
-  var tone=(AD_CONFIG[ad.type]&&AD_CONFIG[ad.type].tone)||'mint';
+  var tone=roleTone(ad.authorRole||state.role);
   return '<div class="page no-nav tone-'+tone+'"><div class="state"><div class="state-symbol tone-'+tone+'">'+icon('check',30)+'</div><h2>آگهی منتشر شد</h2><p>«'+esc(ad.title)+'» اکنون در اکسپلور دیده می‌شود.</p></div>'
     +'<div class="ad-success-flow"><span>ثبت آگهی</span><i></i><span>نمایش در اکسپلور</span><i></i><span>ارسال اعلان</span></div>'
     +'<div class="ad-success-audience"><b>'+esc(ad.audience)+' اعلان هدفمند ارسال شد</b><p>مخاطبان: '+esc(ad.roles.join('، '))+' · محدوده: '+esc(ad.city||'انتخاب‌شده')+'</p></div>'
