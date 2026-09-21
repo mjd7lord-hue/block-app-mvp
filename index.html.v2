@@ -2763,7 +2763,7 @@ function availabilityRank(value){return {now:0,today:1,week:2,flexible:3}[value]
 var JOB_MODE_AD_TYPES=['workforce'],WORKERS_MODE_AD_TYPES=['work'],CONSULT_MODE_AD_TYPES=['consult'];
 function filteredExploreItems(){
   var mode=ensureExploreMode();
-  var q=(state.exploreQuery||'').trim(),f=ensureExploreFilters(),modeAdTypes=mode==='jobs'?JOB_MODE_AD_TYPES:mode==='consult'?CONSULT_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
+  var q=(state.exploreQuery||'').trim().toLowerCase(),f=ensureExploreFilters(),modeAdTypes=mode==='jobs'?JOB_MODE_AD_TYPES:mode==='consult'?CONSULT_MODE_AD_TYPES:WORKERS_MODE_AD_TYPES;
   var items=EXPLORE_ITEMS.filter(function(i){
     if(i.status==='matched')return false;
     if(i.isAd&&modeAdTypes.indexOf(i.adType)===-1)return false;
@@ -2776,7 +2776,10 @@ function filteredExploreItems(){
     var matchesAvailability=f.availability==='all'||i.availability===f.availability||(f.availability==='today'&&i.availability==='now');
     var matchesType=f.resultType==='all'||i.resultType===f.resultType;
     var matchesTrust=(!f.verified||i.verified)&&(f.rating==='all'||i.rating>=4.5);
-    var haystack=i.title+' '+i.sub+' '+i.city+' '+i.skills.join(' ')+' '+(roleSchemas[i.role]?roleSchemas[i.role].label:'');
+    /* کد کاربری ثبت‌کنندهٔ آگهی (مثل B-4X92) هم به متن قابل‌جست‌وجو اضافه شده، و کل تطبیق
+       بدون‌حساسیت به بزرگی/کوچکی حروف انجام می‌شود تا کد را با هر حروفی که تایپ شود پیدا کند -
+       این تغییر روی متن فارسی اثری ندارد، فقط حروف لاتین کد را نرمال می‌کند. */
+    var haystack=(i.title+' '+i.sub+' '+i.city+' '+i.skills.join(' ')+' '+(roleSchemas[i.role]?roleSchemas[i.role].label:'')+' '+(i.code||'')).toLowerCase();
     return matchesCity&&matchesRole&&matchesRange&&matchesSkill&&matchesExperience&&matchesAvailability&&matchesType&&matchesTrust&&(!q||haystack.indexOf(q)>-1);
   });
   return items.sort(function(a,b){
@@ -2960,7 +2963,7 @@ function loadRealTrustPhone(userId){
 function revealTrustPhone(){if(!getSessionUser()){promptGuestAuth('phone',{resume:function(){go('trustCard');revealTrustPhone()}});return}if(state.trustPhone)state.trustPhone.revealed=true;render()}
 function openTrustCard(id){state.trustPersonId=id;resetTrustPhone();if(id!=='self'&&id!=='ad'&&!PEOPLE_SEED[id])loadRealTrustPhone(id);go('trustCard')}
 function openAdTrustCard(){state.trustPersonId='ad';resetTrustPhone();var ad=currentAdDetail();if(ad&&ad.authorUserId)loadRealTrustPhone(ad.authorUserId);go('trustCard')}
-function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[]}}
+function adTrustPerson(ad){var profile=ad&&ad.profile||{};return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:profile.rating||4.5,completed:profile.completed||0,verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:profile.reviews||[],code:profile.code||ad.code||''}}
 function currentTrustPerson(){if(state.trustPersonId==='self')return myTrustPerson(state.role||'worker');if(state.trustPersonId==='ad')return adTrustPerson(currentAdDetail());var seeded=PEOPLE_SEED[state.trustPersonId];if(seeded)return seeded;var real=myTrustPerson(state.role||'worker');real.phone=(state.trustPhone&&state.trustPhone.value)||'';real.code=(state.trustPhone&&state.trustPhone.code)||'';return real}
 function openPersonProfile(id){state.viewingPerson=id;go('viewProfile')}
 function renderPortfolioCards(items){
@@ -3642,9 +3645,9 @@ function mapBackendAdToItem(ad){
     id:ad.id,real:true,backendId:ad.id,authorUserId:ad.authorUserId,isAd:true,
     title:ad.title,sub:ad.description||config.exploreSub,icon:config.icon,
     city:ad.city||'',province:ad.province||'',travelReady:!!snapshot.travelReady,
-    role:role,ownerRole:role,
+    role:role,ownerRole:role,code:ad.authorCode||'',
     targetRoles:(ad.targetRoles||[]).map(function(r){return String(r).toLowerCase()}),
-    profile:{name:personName(snapshot),role:role,roleLabel:AD_ROLE_LABELS[role]||'',province:snapshot.workProvince||'',city:snapshot.workCity||'',verified:!!snapshot.verified},
+    profile:{name:personName(snapshot),role:role,roleLabel:AD_ROLE_LABELS[role]||'',province:snapshot.workProvince||'',city:snapshot.workCity||'',verified:!!snapshot.verified,code:ad.authorCode||''},
     x:34,y:42,
     skills:ad.categories||[],categories:ad.categories||[],category:(ad.categories||[]).join('، '),
     description:ad.description||'',attachment:ad.attachmentUrl||null,
@@ -5368,7 +5371,7 @@ explore:function(){
     body='<div class="explore-section-head"><b>نتایج جست‌وجو</b><span>'+items.length+' گزینه پیدا شد</span></div><div class="discovery-grid">'+items.map(renderExploreCard).join('')+'</div>';
   }
   var head='<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':mode==='consult'?'چه سؤالی دارید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>';
-  var searchArea=renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':mode==='consult'?'مثلاً ترک دیوار، نم یا نشست ساختمان':'مثلاً جوشکار، پروژه یا شهر')+renderExploreActiveFilters();
+  var searchArea=renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، شهر یا کد کاربری':mode==='consult'?'مثلاً ترک دیوار، نم یا نشست ساختمان':'مثلاً جوشکار، شهر یا کد کاربری')+renderExploreActiveFilters();
   // دسکتاپ: پنل فیلتر همیشه‌نمایان کنار نتایج، به‌جای دکمهٔ چرخ‌دنده‌ای که فقط bottom-sheet
   // موبایل را باز می‌کند (آن مسیر دقیقاً همان‌طور برای <960px دست‌نخورده می‌ماند).
   if(isDesktopView()){
