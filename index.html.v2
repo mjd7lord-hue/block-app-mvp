@@ -638,7 +638,9 @@ p{color:var(--muted);margin:0}
    می‌شود؛ محتوای سایدبار در render() با sidebarShell() ساخته می‌شود (index.html.v2 را
    ببینید). مقیاس تایپوگرافی دسکتاپ در تابع textSizePx در جاوااسکریپت انجام شده، نه این‌جا،
    چون اندازهٔ فونت ریشه با inline-style تنظیم می‌شود و قاعدهٔ CSS آن را override نمی‌کند. */
-@media (min-width:960px){
+/* غیرفعال‌سازی موقت حالت دسکتاپ برای تست (به‌درخواست کاربر) - برای فعال‌سازی دوباره،
+   99999px را به 960px برگردانید؛ هیچ‌کدام از قوانین/کد پایین حذف نشده است. */
+@media (min-width:99999px){
   html,body{width:100%;height:100%;background:var(--bg)}
   body{padding:0;align-items:stretch;justify-content:stretch}
   .phone{width:100vw;height:100vh;max-height:none;border-radius:0;box-shadow:none}
@@ -879,7 +881,9 @@ function cloneData(value){return JSON.parse(JSON.stringify(value))}
    بخش «Desktop shell». صفحات پرترافیک (اکسپلور/خانه/پیام‌ها) از این تابع برای انتخاب یک
    ساختار HTML واقعاً متفاوت (نه فقط عریض‌تر) استفاده می‌کنند - نگاه کنید به توضیح بالای
    همان بخش CSS. */
-function isDesktopView(){return window.innerWidth>=960}
+/* غیرفعال‌سازی موقت حالت دسکتاپ برای تست (به‌درخواست کاربر) - برای فعال‌سازی دوباره،
+   99999 را به 960 برگردانید (هم‌زمان با @media (min-width:99999px) در بخش Desktop shell). */
+function isDesktopView(){return window.innerWidth>=99999}
 
 /* ---- Original Block role/registration data, ported as-is ---- */
 var PROVINCES=["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"];
