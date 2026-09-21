@@ -661,7 +661,10 @@ p{color:var(--muted);margin:0}
      پنل فیلتر همیشه‌نمایان و شبکهٔ نتایج چندستونی - قوانین کامل پایین همین بلوک، کنار
      discovery-grid دسکتاپ */
   .explore-page{max-width:min(1600px,94vw)}
-  .publish-page{max-width:760px}
+  /* newRequest حالا یک ردیف افقی از کارت‌های بزرگ است (نه فهرست عمودی)؛ ۷۶۰px برای فهرست
+     عمودی موبایل-مانند کافی بود، اما برای این‌که هر سه گزینه (کار/نیروی کار/مشاوره) واقعاً
+     در یک ردیف کنار هم جا شوند به‌جای شکستن به سطر بعد، عرض بیشتری لازم است. */
+  .publish-page{max-width:1040px}
   .messages-page{max-width:760px}
   .profile-page{max-width:820px}
   .chat-page{max-width:720px}
@@ -733,8 +736,56 @@ p{color:var(--muted);margin:0}
   .conversation-card.md-active{border-color:var(--accent);background:var(--accent-soft)}
   .message-tabs{flex-wrap:wrap;overflow:visible}
 
-  /* پروفایل: چهار گروه تنظیمات به‌جای یک ستون طولانی، در دو ستون کنار هم */
-  .settings-columns{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start}
+  /* بلوک (پروفایل): به‌جای دو ستون تنظیمات کنار هم (که همچنان فقط «عریض‌تر» بود)، یک صفحهٔ
+     واقعی تنظیمات حساب - نوار دسته‌بندی همیشه‌نمایان سمت راست (رفتار مثل صفحهٔ تنظیمات یک
+     سرویس واقعی) و پنل محتوای همان دسته کنارش؛ کلیک روی هر دسته state.profileSettingsCategory
+     را عوض می‌کند و فقط پنل کنارش را عوض می‌کند - نه ناوبری صفحه. کارت هویت/امتیاز و دو دکمهٔ
+     میان‌بر بالای همین چیدمان به‌عنوان هدر می‌مانند؛ خروج/حذف حساب و نسخهٔ برنامه هم بیرون از
+     پنل‌های دسته‌بندی و همیشه‌نمایان می‌مانند (نباید داخل یک تب گم شوند). جزئیات ساختار در
+     renderProfileSettingsDesktop(). */
+  .profile-desktop-layout{display:flex;gap:22px;align-items:flex-start;margin-top:6px}
+  .settings-rail{width:230px;min-width:210px;flex:none;position:sticky;top:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:10px;display:flex;flex-direction:column;gap:3px}
+  .settings-rail-btn{display:flex;align-items:center;gap:10px;height:44px;border:1px solid transparent;border-radius:12px;background:transparent;color:var(--muted);font-family:inherit;font-size:.66rem;font-weight:800;cursor:pointer;text-align:right;padding:0 12px;width:100%}
+  .settings-rail-btn i{display:flex;flex:none}
+  .settings-rail-btn span{flex:1;min-width:0}
+  .settings-rail-btn.active{color:var(--accent);background:var(--accent-soft);border-color:color-mix(in srgb,var(--accent) 26%,transparent)}
+  .settings-panel{flex:1;min-width:0}
+  .settings-panel .settings-group-title{margin-top:0}
+
+  /* ثبت آگهی، انتخاب نوع (newRequest): به‌جای فهرست عمودی، یک ردیف افقی از کارت‌های بزرگ
+     مساوی - مثل یک صفحهٔ انتخاب واقعی، نه همان فهرست موبایل که فقط عریض‌تر شده باشد. */
+  .publish-option-row{display:flex;gap:16px;flex-wrap:wrap;margin-top:2px}
+  .publish-tile{flex:1;min-width:230px;max-width:360px;border:1px solid var(--line);border-radius:22px;background:var(--surface);padding:22px;display:flex;flex-direction:column;gap:14px;cursor:pointer;position:relative;overflow:hidden;text-align:right}
+  .publish-tile:after{content:"";position:absolute;right:0;left:0;top:0;height:3px;background:var(--option-tone)}
+  .publish-tile.mint{--option-tone:var(--tone-mint);--option-soft:var(--tone-mint-soft)}
+  .publish-tile.orange{--option-tone:var(--accent2);--option-soft:var(--accent2-soft)}
+  .publish-tile.violet{--option-tone:var(--tone-violet);--option-soft:var(--tone-violet-soft)}
+  .publish-tile>i{width:50px;height:50px;border-radius:15px;background:var(--option-soft);color:var(--option-tone);display:flex;align-items:center;justify-content:center;flex:none}
+  .publish-tile-copy b{display:block;color:var(--ink);font-size:.78rem}
+  .publish-tile-copy p{font-size:.56rem;line-height:1.75;margin-top:6px}
+  .publish-tile-cta{color:var(--option-tone);font-size:.56rem;font-weight:900}
+
+  /* ثبت آگهی، ویزارد (createAd): نوار وضعیت مراحل همیشه‌نمایان کنار فرم (به‌جای نقطه‌های
+     پیشرفت موبایل که فقط برای موبایل می‌ماند) و - فقط در مرحلهٔ اول - یک پیش‌نمایش زندهٔ آگهی
+     با استفاده از همان کارت renderAdReview موبایل. عنوان/توضیحات با هر ضربه کلید مستقیم در
+     DOM پیش‌نمایش به‌روزرسانی می‌شوند (syncAdPreviewLive) بدون render() کامل تا فوکوس ورودی از
+     بین نرود؛ بقیهٔ فیلدها (مخاطب، چیپ‌ها، استان/شهر) از قبل با هر کلیک render() صدا می‌زنند و
+     پیش‌نمایش خودکار به‌روز می‌شود. */
+  .ad-page.ad-wizard-desktop{display:flex;gap:26px;align-items:flex-start;max-width:1300px}
+  .ad-page.ad-wizard-desktop.ad-wizard-narrow{max-width:920px}
+  .ad-dock.ad-wizard-desktop{max-width:1300px}
+  .ad-dock.ad-wizard-desktop.ad-wizard-narrow{max-width:920px}
+  .ad-step-sidebar{width:210px;min-width:190px;flex:none;position:sticky;top:20px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:4px}
+  .ad-step-item{display:flex;align-items:center;gap:10px;padding:10px 8px;border-radius:12px;color:var(--muted);font-size:.62rem;font-weight:800}
+  .ad-step-item i{width:26px;height:26px;border-radius:50%;background:var(--surface2);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:.56rem;font-weight:900;flex:none}
+  .ad-step-item.active{color:var(--ink);background:var(--accent-soft)}
+  .ad-step-item.active i,.ad-step-item.done i{background:var(--accent);color:var(--on-accent)}
+  .ad-step-item.done{color:var(--ink)}
+  .ad-wizard-main{flex:1;min-width:0;max-width:640px}
+  .ad-wizard-preview{width:360px;min-width:320px;flex:none;position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;padding-left:2px}
+  .ad-wizard-preview-head{margin-bottom:10px}
+  .ad-wizard-preview-head b{display:block;font-size:.66rem;color:var(--ink)}
+  .ad-wizard-preview-head span{display:block;font-size:.46rem;color:var(--muted);margin-top:2px}
 
   /* جزئیات آگهی: محتوای اصلی سمت چپ، توپ پروفایل صاحب آگهی (و نقشه در صورت وجود) سمت
      راست به‌صورت چسبان کنار محتوا - همان عناصر موبایل، فقط بازچیدمان با grid-template-areas
@@ -1482,7 +1533,7 @@ var ICON_SVG_LIGHT='<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPAA
 function appLogo(){return state.mode==="dark"?ICON_SVG_DARK:ICON_SVG_LIGHT}
 var state={mode:'dark',page:'splash',stack:[],role:null,step:0,values:{},collections:{},draft:{},draftCollection:null,draftIndex:-1,draftWarningsShown:false,stepWarnings:{},calendar:{},draftBooking:{},draftBookingIndex:-1,availabilityDraft:{},viewingJobId:null,jobInterestIds:[],projectDraft:{},adDraft:{},adStep:0,adWarnings:{},lastPublishedAd:null,viewingAdId:null,adChatId:null,
   projects:{},notifications:null,notificationFilter:'all',notificationPrefs:null,conversations:null,currentConversationId:null,messageFilter:'all',messageQuery:'',messagePrefs:null,portfolio:{},guarantors:{},ratingDraft:{},ratingIndex:-1,exploreCity:'all',exploreRole:'all',exploreView:'cards',exploreQuery:'',exploreSort:'recommended',exploreFilters:{skills:[],experience:'all',availability:'all',range:'all',resultType:'all',verified:false,rating:'all'},guarantorDraft:{},portfolioDraft:{},viewingPerson:null,projectTarget:null,bookingRequestDraft:{},orderDraft:{},profileComplete:false,
-  editMode:false,blockedUsers:[],reportDraft:{},otpStage:'phone',legalConsent:false,legalError:false,legalAcceptedAt:null,acceptedLegalVersion:null,accountPrefs:null,textSize:'large',highContrast:true,reduceMotion:false,helpOpen:-1,deleteConfirm:false,deleteReason:'',appIssueDraft:'',trustPersonId:null,requestTab:'incoming',incomingRequests:null,outgoingRequests:[],viewingOrderIndex:0,online:typeof navigator==='undefined'?true:navigator.onLine!==false,loadingTarget:null,loadingLabel:'',unavailableTarget:null,accessState:{title:'',message:'',backTarget:'home'},permissionPrefs:{location:'prompt',camera:'prompt',microphone:'prompt',files:'granted'},voiceRecorder:null,voiceStream:null,voiceChunks:[],voiceStartedAt:0,voiceRecording:false,phoneShareDraft:{hours:'فقط با هماهنگی قبلی در چت'},dashboardSetupDismissed:false,portfolioSetupCompleted:false,lastRenderedPage:null};
+  editMode:false,blockedUsers:[],reportDraft:{},otpStage:'phone',legalConsent:false,legalError:false,legalAcceptedAt:null,acceptedLegalVersion:null,accountPrefs:null,textSize:'large',highContrast:true,reduceMotion:false,helpOpen:-1,deleteConfirm:false,deleteReason:'',appIssueDraft:'',trustPersonId:null,requestTab:'incoming',incomingRequests:null,outgoingRequests:[],viewingOrderIndex:0,online:typeof navigator==='undefined'?true:navigator.onLine!==false,loadingTarget:null,loadingLabel:'',unavailableTarget:null,accessState:{title:'',message:'',backTarget:'home'},permissionPrefs:{location:'prompt',camera:'prompt',microphone:'prompt',files:'granted'},voiceRecorder:null,voiceStream:null,voiceChunks:[],voiceStartedAt:0,voiceRecording:false,phoneShareDraft:{hours:'فقط با هماهنگی قبلی در چت'},dashboardSetupDismissed:false,portfolioSetupCompleted:false,lastRenderedPage:null,profileSettingsCategory:'professional'};
 
 var LEGAL_VERSION='۱.۰';
 var LEGAL_UPDATED='مرداد ۱۴۰۵';
@@ -1702,7 +1753,19 @@ function changeAdType(type){
   var categories=profileAdCategories(),profile=adProfileSnapshot();
   state.adDraft.type=type;state.adDraft.targetRole='';state.adDraft.targetRoles=[];state.adDraft.categories=categories.slice();state.adDraft.title=adFixedTitle(type);state.adDraft.province=profile.province||'';state.adDraft.city=profile.city||'';state.adDraft.range=type==='consult'?'تمام استان‌ها':profile.city?'داخل شهر':'تمام استان‌ها';state.adDraft.attachment=null;state.adWarnings={};render();
 }
-function setAdField(key,value){state.adDraft[key]=value}
+function setAdField(key,value){state.adDraft[key]=value;syncAdPreviewLive(key)}
+/* در دسکتاپ، مرحلهٔ اول ثبت آگهی یک پیش‌نمایش زندهٔ کنار فرم دارد (renderAdPreviewPanel). عنوان
+   و توضیحات با oninput مستقیم روی state می‌نشینند و render() کامل صدا نمی‌زنند تا فوکوس/محل
+   کرسر ورودی از بین نرود؛ برای این‌که پیش‌نمایش هنوز «زنده» به‌نظر برسد، همین‌جا فقط متن همان
+   دو گره‌ی مشخص (adPreviewTitle/adPreviewDescription) داخل renderAdReview مستقیماً به‌روز
+   می‌شود، بدون لمس بقیهٔ صفحه. اگر آن گره‌ها موجود نباشند (موبایل، یا پیش‌نمایش هنوز آن بخش را
+   نساخته چون توضیحات خالی بوده) بی‌خطر رد می‌شود؛ به‌روزرسانی کامل با اولین render() طبیعی بعدی
+   (کلیک چیپ، تغییر مرحله) انجام می‌شود. */
+function syncAdPreviewLive(key){
+  if(!isDesktopView())return;
+  if(key==='title'){var t=document.getElementById('adPreviewTitle');if(t)t.textContent=state.adDraft.title||''}
+  else if(key==='description'){var d=document.getElementById('adPreviewDescription');if(d)d.textContent=state.adDraft.description||''}
+}
 function chooseAdField(key,value){state.adDraft[key]=value;if(state.adWarnings)state.adWarnings[key]=false;render()}
 function setAdProvince(value){state.adDraft.province=value;state.adDraft.city='';state.adWarnings.province=false;render()}
 function chooseAdRole(role){
@@ -3149,6 +3212,17 @@ function saveProfilePhoto(btn){
 }
 
 /* ---------- account, settings & legal ---------- */
+/* دسکتاپ صفحهٔ «بلوک»: نوار دسته‌بندی همیشه‌نمایان + پنل دستهٔ فعال، به‌جای دو ستون CSS ساده
+   (که فقط عریض‌تر بود). کلیک روی هر دسته state.profileSettingsCategory را عوض می‌کند و
+   render() صدا می‌زند - همان رفتار دکمه‌های موجود در برنامه، نه ناوبری صفحه. هر ردیف داخل پنل
+   دقیقاً همان settingsRow قبلی است و همان‌طور با go(...) کار می‌کند. */
+function setProfileSettingsCategory(key){state.profileSettingsCategory=key;render()}
+function renderProfileSettingsDesktop(groups){
+  var active=groups.some(function(g){return g.key===state.profileSettingsCategory})?state.profileSettingsCategory:groups[0].key;
+  var rail=groups.map(function(g){return '<button class="settings-rail-btn'+(g.key===active?' active':'')+'" onclick="setProfileSettingsCategory(\''+g.key+'\')"><i>'+icon(g.icon,15)+'</i><span>'+esc(g.title)+'</span></button>'}).join('');
+  var current=groups.filter(function(g){return g.key===active})[0];
+  return '<div class="profile-desktop-layout"><aside class="settings-rail">'+rail+'</aside><div class="settings-panel"><div class="settings-group-title">'+esc(current.title)+'</div><div class="settings-group">'+current.rows+'</div></div></div>';
+}
 function settingsRow(ic,title,sub,action,danger){return '<button class="settings-row'+(danger?' danger':'')+'" onclick="'+action+'"><i class="settings-row-icon">'+icon(ic,16)+'</i><span class="settings-row-copy"><b>'+esc(title)+'</b><span>'+esc(sub||'')+'</span></span><span class="settings-row-arrow">‹</span></button>'}
 function getAccountPrefs(){if(!state.accountPrefs)state.accountPrefs={publicProfile:true,onlineStatus:true,preciseLocation:false,activitySuggestions:true,publicAge:true,publicBirthPlace:true,publicPhone:!!state.values.showPhone};return state.accountPrefs}
 function toggleAccountPref(key){
@@ -4807,6 +4881,20 @@ function renderExploreEmpty(){
 }
 
 function renderAdProgress(){return '<div class="ad-progress">'+[0,1].map(function(index){return '<i class="'+(state.adStep>=index?'done':'')+'"></i>'}).join('')+'</div>'}
+/* نوار وضعیت مراحل در دسکتاپ (جایگزین renderAdProgress که فقط برای موبایل می‌ماند) - هر دو
+   مرحله همیشه دیده می‌شوند، نه فقط نقطه‌های پیشرفت. */
+function renderAdStepSidebar(){
+  var step=state.adStep,labels=[['۱','جزئیات آگهی'],['۲','بررسی و انتشار']];
+  return '<aside class="ad-step-sidebar">'+labels.map(function(item,index){
+    var active=step===index,done=step>index;
+    return '<div class="ad-step-item'+(active?' active':'')+(done?' done':'')+'"><i>'+(done?icon('check',12):item[0])+'</i><span>'+item[1]+'</span></div>';
+  }).join('')+'</aside>';
+}
+/* پیش‌نمایش زندهٔ آگهی کنار فرم، فقط در مرحلهٔ اول دسکتاپ - همان کارت renderAdReview که در
+   مرحلهٔ مرور موبایل/دسکتاپ هم استفاده می‌شود، این‌جا به‌عنوان راهنمای بصری حین تکمیل فرم. */
+function renderAdPreviewPanel(){
+  return '<aside class="ad-wizard-preview"><div class="ad-wizard-preview-head"><b>پیش‌نمایش آگهی</b><span>همان چیزی که در اکسپلور دیده می‌شود</span></div>'+renderAdReview()+'</aside>';
+}
 function renderAdAudienceChoices(){
   var config=activeAdConfig(),selected=state.adDraft.targetRoles||[];
   var availableRoles=config.roles.filter(function(role){return!MVP_HIDE_BUSINESS_ROLES||BUSINESS_ROLES.indexOf(role)===-1});
@@ -4840,7 +4928,7 @@ function renderAdReview(){
   var d=state.adDraft,config=activeAdConfig(),roles=adRoleNames(),profile=adProfileSnapshot();
   var location=d.type==='consult'?d.range:d.type==='work'?(profile.city+(profile.province?'، '+profile.province:'')||d.range):(d.city+'، '+d.province),categoryTags=(d.categories||[]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('');
   var projectFacts=d.type==='consult'?'':'<div><span>دستمزد</span><b>'+esc(d.budget||'توافقی')+'</b></div><div><span>'+(d.type==='work'?'شروع همکاری':'زمان شروع')+'</span><b>'+esc(d.startTime||'با هماهنگی')+'</b></div>';
-  return '<div class="ad-preview-card"><span>پیش‌نمایش در اکسپلور</span><h3>'+esc(d.title)+'</h3><p>'+esc(location)+' · '+esc(config.exploreSub)+'</p><div class="ad-preview-tags"><span>'+esc(config.shortLabel)+'</span>'+categoryTags+roles.map(function(role){return '<span>'+esc(role)+'</span>'}).join('')+(d.type!=='consult'&&d.startTime?'<span>'+esc(d.startTime)+'</span>':'')+'</div>'+(d.description?'<div class="ad-preview-description">'+esc(d.description)+'</div>':'')+(d.attachment?'<img class="ad-review-image" src="'+esc(d.attachment)+'" alt="تصویر آگهی">':'')+'</div>'
+  return '<div class="ad-preview-card"><span>پیش‌نمایش در اکسپلور</span><h3 id="adPreviewTitle">'+esc(d.title)+'</h3><p>'+esc(location)+' · '+esc(config.exploreSub)+'</p><div class="ad-preview-tags"><span>'+esc(config.shortLabel)+'</span>'+categoryTags+roles.map(function(role){return '<span>'+esc(role)+'</span>'}).join('')+(d.type!=='consult'&&d.startTime?'<span>'+esc(d.startTime)+'</span>':'')+'</div>'+(d.description?'<div class="ad-preview-description" id="adPreviewDescription">'+esc(d.description)+'</div>':'')+(d.attachment?'<img class="ad-review-image" src="'+esc(d.attachment)+'" alt="تصویر آگهی">':'')+'</div>'
     +'<div class="ad-review-grid">'+projectFacts+'<div><span>محدوده اعلان</span><b>'+esc(d.range)+'</b></div><div><span>ارتباط</span><b>چت، ویس و تماس با اجازه</b></div><div><span>ثبت‌کننده</span><b>'+esc(profile.name)+'</b></div></div>'
     +'<div class="profile-source-card compact"><i>'+icon('user',17)+'</i><div><b>اطلاعات همراه آگهی از پروفایل</b><p>'+esc(profile.roleLabel)+' · '+esc(profile.profileTitle)+(profile.experience?' · '+esc(profile.experience):'')+'</p></div></div>'
     +'<div class="notify-preview"><i>'+icon('bell',17)+'</i><div><b>اعلان هدفمند برای <strong>'+adAudienceCount()+' کاربر</strong></b><p>پس از انتشار، گروه‌های '+esc(roles.join('، '))+' در محدودهٔ '+esc(d.range)+' اعلان دریافت می‌کنند.</p></div></div>'
@@ -5271,12 +5359,15 @@ newRequest:function(){
     {type:'consult',tone:'violet',icon:'drafting',title:'پرسش تخصصی و مشاوره',desc:'برای مطرح‌کردن سؤال، شرح مسئله و دریافت پاسخ از گروه مرتبط'}
   ];
   var options=allOptions.filter(function(o){return (AD_CONFIG[o.type].roles||[]).indexOf(role)>-1});
+  /* دسکتاپ: به‌جای فهرست عمودی موبایل، یک ردیف افقی از کارت‌های بزرگ - مثل یک صفحهٔ انتخاب
+     واقعی؛ همان گزینه‌ها و همان startAd، فقط ساختار متفاوت. */
+  var optionsHtml=isDesktopView()
+    ?'<div class="publish-option-row">'+options.map(function(o){return '<div class="publish-tile '+o.tone+'" onclick="startAd(\''+o.type+'\')"><i>'+icon(o.icon,22)+'</i><div class="publish-tile-copy"><b>'+esc(o.title)+'</b><p>'+esc(o.desc)+'</p></div><span class="publish-tile-cta">شروع ‹</span></div>'}).join('')+'</div>'
+    :'<div class="publish-option-list">'+options.map(function(o){return '<div class="publish-option '+o.tone+'" onclick="startAd(\''+o.type+'\')"><i>'+icon(o.icon,18)+'</i><div class="publish-option-copy"><b>'+esc(o.title)+'</b><p>'+esc(o.desc)+'</p></div><span>‹</span></div>'}).join('')+'</div>';
   return '<div class="page publish-page">'
   +'<div class="publish-head"><span>ثبت آگهی عمومی</span><h2>چه کاری می‌خواهید انجام دهید؟</h2><p>فقط یکی از گزینه‌ها را انتخاب کنید. اطلاعات ثبت‌شدهٔ '+esc(roleLabel)+' به‌صورت خودکار استفاده می‌شود.</p></div>'
   +'<div class="publish-section-title"><b>یک گزینه را انتخاب کنید</b><span>ساده و سریع</span></div>'
-  +'<div class="publish-option-list">'
-  +options.map(function(o){return '<div class="publish-option '+o.tone+'" onclick="startAd(\''+o.type+'\')"><i>'+icon(o.icon,18)+'</i><div class="publish-option-copy"><b>'+esc(o.title)+'</b><p>'+esc(o.desc)+'</p></div><span>‹</span></div>'}).join('')
-  +'</div>'
+  +optionsHtml
   +'<div class="publish-route-note"><i>'+icon('check',15)+'</i><div><b>نیازی به واردکردن دوبارهٔ مشخصات نیست</b><p>بلوک مهارت‌ها، سابقه، محل فعالیت و دستمزد ثبت‌شده را از پروفایل شما به آگهی اضافه می‌کند.</p></div></div>'
   +'</div>'
   +bottomNav('newRequest')
@@ -5299,7 +5390,14 @@ createAd:function(){
   }else{
     content='<div class="ad-step-copy"><span>مرحله ۲ از ۲</span><h2>مرور و انتشار</h2><p>اطلاعات زیر در اکسپلور نمایش داده می‌شود و برای مخاطبان انتخاب‌شده اعلان می‌رود.</p></div>'+renderAdReview();
   }
-  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="page ad-page">'+renderAdProgress()+content+'</div><div class="ad-dock"><button class="btn-primary" onclick="'+(step===1?'publishAd(this)':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
+  var desktop=isDesktopView();
+  /* دسکتاپ: نوار وضعیت مراحل همیشه‌نمایان به‌جای نقطه‌های پیشرفت (که فقط برای موبایل می‌ماند)
+     + در مرحلهٔ اول یک پیش‌نمایش زندهٔ آگهی کنار فرم (renderAdPreviewPanel/syncAdPreviewLive
+     را ببینید). در مرحلهٔ مرور، خودِ محتوا همان پیش‌نمایش کامل است، پس ستون سوم تکراری اضافه
+     نمی‌شود - چیدمان به‌جای آن باریک‌تر می‌شود (ad-wizard-narrow). */
+  var pageInner=desktop?(renderAdStepSidebar()+'<div class="ad-wizard-main">'+content+'</div>'+(step===0?renderAdPreviewPanel():'')):(renderAdProgress()+content);
+  var pageClass='page ad-page'+(desktop?' ad-wizard-desktop'+(step===0?'':' ad-wizard-narrow'):'');
+  return topbar(config.label,'ثبت آگهی عمومی',step?'previousAdStep()':'back()')+'<div class="'+pageClass+'">'+pageInner+'</div><div class="ad-dock'+(desktop?' ad-wizard-desktop'+(step===0?'':' ad-wizard-narrow'):'')+'"><button class="btn-primary" onclick="'+(step===1?'publishAd(this)':'nextAdStep()')+'">'+(step===0?'مرور آگهی':'انتشار آگهی و ارسال اعلان')+'</button></div>';
 },
 
 /* بازچیدمان طبق درخواست کاربر: توضیحات با تیتر تلفیق شد (بالا)، کارت پروفایل به یک ردیف
@@ -5363,12 +5461,19 @@ profile:function(){
   return '<div class="page profile-page" style="padding-top:16px"><div class="message-head"><h2>بلوک</h2><button class="icon-btn" aria-label="مدیریت حساب" onclick="go(\'accountManagement\')">'+icon('gear',16)+'</button></div>'
     +'<div class="profile-hero" role="button" tabindex="0" style="cursor:pointer" onclick="openTrustCard(\'self\')"><div class="profile-identity">'+renderMyAvatar(role)+'<div class="profile-copy"><h2>'+esc(displayName)+'</h2><p>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</p><div class="profile-status-row"><span class="status-pill">'+icon('phone',10)+' موبایل تأییدشده</span><span class="status-pill '+(state.profileComplete?'':'warning')+'">'+icon(state.profileComplete?'check':'alert',10)+' '+(state.profileComplete?'اطلاعات اصلی ثبت‌شده':'نیازمند تکمیل')+'</span></div></div></div><div class="profile-progress"><div class="profile-progress-head"><b>کامل‌بودن پروفایل</b><span>'+completion+'٪</span></div><div class="profile-progress-track"><i style="width:'+completion+'%"></i></div></div></div>'
     +'<div class="profile-actions"><button class="profile-action" onclick="go(\'editProfile\')"><i>'+icon('doc',15)+'</i><b>ویرایش پروفایل</b><span>اطلاعات و تخصص‌ها</span></button><button class="profile-action" onclick="go(\'myPublicProfile\')"><i>'+icon('eye',15)+'</i><b>نمایش عمومی</b><span>پیش‌نمایش برای دیگران</span></button></div>'
-    +'<div class="settings-columns">'
-      +'<div class="settings-col-item"><div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div></div>'
-      +'<div class="settings-col-item"><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div></div>'
-      +'<div class="settings-col-item"><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div></div>'
-      +'<div class="settings-col-item"><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div></div>'
-    +'</div>'
+    +(isDesktopView()
+      ?renderProfileSettingsDesktop([
+        {key:'professional',icon:'shield',title:'پروفایل و فعالیت حرفه‌ای',rows:professional},
+        {key:'communication',icon:'message',title:'ارتباطات',rows:communication},
+        {key:'account',icon:'lock',title:'حساب و حریم خصوصی',rows:account},
+        {key:'support',icon:'help',title:'برنامه و پشتیبانی',rows:support}
+      ])
+      :'<div class="settings-columns">'
+        +'<div class="settings-col-item"><div class="settings-group-title">پروفایل و فعالیت حرفه‌ای</div><div class="settings-group">'+professional+'</div></div>'
+        +'<div class="settings-col-item"><div class="settings-group-title">ارتباطات</div><div class="settings-group">'+communication+'</div></div>'
+        +'<div class="settings-col-item"><div class="settings-group-title">حساب و حریم خصوصی</div><div class="settings-group">'+account+'</div></div>'
+        +'<div class="settings-col-item"><div class="settings-group-title">برنامه و پشتیبانی</div><div class="settings-group">'+support+'</div></div>'
+      +'</div>')
     +'<div class="settings-group">'+settingsRow('logout','خروج و مدیریت حساب','خروج یا درخواست حذف حساب',"go('accountManagement')",true)+'</div><div class="version-row">بلوک · نسخهٔ نمایشی ۱.۲</div></div>'+bottomNav('profile')
 },
 
