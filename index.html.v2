@@ -5485,14 +5485,21 @@ adDetail:function(){
   var audienceLabel=isConsult?'پاسخ‌دهندگان':isWork?'مخاطبان آگهی':'نیروی موردنظر';
   var projectDetails=isConsult?'':'<div><span>روش دستمزد</span><b>'+esc(ad.budget||'توافقی')+'</b></div><div><span>'+(isWork?'شروع همکاری':'زمان شروع')+'</span><b>'+esc(ad.startTime||'با هماهنگی')+'</b></div><div><span>'+(isWork?'محل فعالیت':'محل پروژه')+'</span><b>'+esc(ad.city)+(ad.province?'، '+esc(ad.province):'')+'</b></div>';
   var person=adTrustPerson(ad);
-  /* به درخواست کاربر: به‌جای «توپ» گرد بزرگ (که فضای زیادی خالی می‌گذاشت)، یک ردیف افقی سبک -
-     آواتار کوچک هم‌رنگ دستهٔ آگهی، اسم و تیک تأیید، نقش/شهر/امتیاز، و یک فلش کلیک‌پذیر. */
+  /* برای بقیهٔ انواع آگهی (نیاز به نیرو/مشاوره): به‌جای «توپ» گرد بزرگ (که فضای زیادی خالی
+     می‌گذاشت)، یک ردیف افقی سبک - آواتار کوچک هم‌رنگ دستهٔ آگهی، اسم و تیک تأیید، نقش/شهر/
+     امتیاز، و یک فلش کلیک‌پذیر؛ در جای همیشگی‌اش (بین جزئیات و نقشه) می‌ماند. */
   var ownerChip='<div class="ad-detail-section ad-owner-section"><div class="ad-owner-light tone-'+esc(ad.tone||'mint')+'" onclick="openAdTrustCard()"><div class="ad-owner-light-avatar">'+esc(person.initials||'ب')+'</div><div class="ad-owner-light-copy"><b>'+esc(person.name)+(person.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+'</b><span>'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+(person.rating?' · ★'+esc(person.rating):'')+'</span></div><span class="rarrow">‹</span></div></div>';
+  /* به درخواست کاربر: فقط برای آگهی‌های «جویای کار» (isWork) - چون خودِ فرد محصول این آگهی
+     است - بلافاصله بعد از تیتر/توضیحات، کارت کامل پروفایل (renderPublicTrustCard، همان کارت
+     مهارت‌ها/امتیاز/نظرها با لینک «دیدن کارت کامل») نشان داده می‌شود، نه چیپ سبک؛ بقیهٔ اجزای
+     صفحه (جزئیات، نقشه، دکمهٔ پایین) دقیقاً سرجای قبلی‌شان می‌مانند. آگهی‌های دیگر دست‌نخورده‌اند. */
+  var fullProfileAfterHero=isWork?renderPublicTrustCard(person,'ad'):'';
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p>'+(ad.description?'<p class="ad-detail-desc">'+esc(ad.description)+'</p>':'')+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست">':'')+'<div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
+    +fullProfileAfterHero
     +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
-    +ownerChip
+    +(isWork?'':ownerChip)
     +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section ad-map-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
