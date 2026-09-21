@@ -656,8 +656,11 @@ p{color:var(--muted);margin:0}
      همان فاصلهٔ موبایل برای دیده‌شدن کامل محتوا نیاز دارد. */
   .page{max-width:640px;width:100%;margin:0 auto;padding-top:36px;padding-left:28px;padding-right:28px}
   .page.no-nav{max-width:460px}
-  .home-page{max-width:1120px}
-  .explore-page{max-width:1120px}
+  .home-page{max-width:1300px}
+  /* اکسپلور دیگر فقط یک ستون عریض‌تر نیست؛ عرض واقعی صفحه (نه یک سقف ثابت میانه‌صفحه) با
+     پنل فیلتر همیشه‌نمایان و شبکهٔ نتایج چندستونی - قوانین کامل پایین همین بلوک، کنار
+     discovery-grid دسکتاپ */
+  .explore-page{max-width:min(1600px,94vw)}
   .publish-page{max-width:760px}
   .messages-page{max-width:760px}
   .profile-page{max-width:820px}
@@ -677,7 +680,22 @@ p{color:var(--muted);margin:0}
   .dock,.ad-dock{right:20px;left:20px;max-width:640px;margin:0 auto}
   .ad-detail-page+.dock{max-width:980px}
 
-  /* اکسپلور: از عرض اضافه با چند ستون واقعی استفاده کن، نه یک کارت کشیده روی کل عرض */
+  /* اکسپلور: پنل فیلتر ثابت و همیشه‌نمایان کنار نتایج - به‌جای دکمهٔ چرخ‌دنده‌ای که یک
+     bottom-sheet باز می‌کند (که در موبایل هنوز دقیقاً همان‌طور کار می‌کند). محتوای پنل از
+     همان گروه‌های فیلتر sheet موبایل ساخته می‌شود (exploreFilterGroupsHtml)، فقط این‌جا
+     inline و بدون نیاز به باز/بسته کردن دیده می‌شود. */
+  .explore-desktop-layout{display:flex;gap:22px;align-items:flex-start;margin-top:4px}
+  .explore-filter-panel{width:280px;min-width:260px;flex:none;position:sticky;top:20px;max-height:calc(100vh - 60px);overflow-y:auto;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:15px}
+  .explore-filter-panel-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .explore-filter-panel-head h3{font-size:.74rem;color:var(--ink)}
+  .explore-filter-panel .filter-group{padding:11px 0}
+  .explore-filter-panel .filter-group:first-child{padding-top:2px}
+  .explore-results-panel{flex:1;min-width:0}
+  .explore-page .explore-filter-icon-btn{display:none}
+
+  /* از عرض اضافه با چند ستون واقعی استفاده کن، نه یک کارت کشیده روی کل عرض - auto-fill
+     خودش با عرض واقعی ستون نتایج (نه کل صفحه) هماهنگ می‌شود، چون این grid حالا داخل
+     explore-results-panel کنار پنل فیلتر است، نه مستقیم زیر کل صفحه */
   .discovery-grid{grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
   .explore-feature h3,.explore-feature p{max-width:none}
 
@@ -687,16 +705,33 @@ p{color:var(--muted);margin:0}
   .feature-hub-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
   .jobs-grid{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
 
-  /* خانه: کارت اصلی و فرصت‌ها با عرض بیشتر نفس بکشند */
+  /* خانه: به‌جای یک فید طولانی کشیده‌شده، یک داشبورد واقعی با دو ستون هم‌زمان - ستون اصلی
+     (فرصت‌های کاری، کار در حال پیگیری، تقویم و رخدادها) عریض‌تر و سمت راست (کنار سایدبار)،
+     ستون کناری (کارت اعتبار/امتیاز، میان‌برها، یادآوری تکمیل پروفایل) باریک‌تر و چسبان
+     (sticky) سمت چپ - همان بخش‌های صفحهٔ موبایل، فقط بازچیدمان هم‌زمان به‌جای پشت‌سرهم. */
+  .home-dashboard-grid{display:grid;grid-template-columns:1fr 320px;gap:22px;align-items:start;margin-top:2px}
+  .home-main-col{min-width:0}
+  .home-side-col{min-width:0;display:flex;flex-direction:column;gap:14px;position:sticky;top:20px}
+  .home-side-col .home-shortcuts{grid-template-columns:repeat(2,1fr)}
+  .home-side-col .home-dashboard,.home-side-col .profile-setup-card{margin:0}
   .home-primary-copy p{max-width:460px}
   .home-primary-icon{width:110px;min-width:110px}
   .home-primary-icon svg{width:42px;height:42px}
   .home-opportunity-card{width:260px;min-width:260px}
 
-  /* پیام‌ها: در عرض دسکتاپ جای کافی برای باز بودن همهٔ تب‌ها هست، نیازی به اسکرول افقی نیست */
+  /* پیام‌ها و چت: master-detail واقعی (مثل تلگرام وب) - فهرست گفتگوها و ستون گفتگوی باز
+     هم‌زمان کنار هم، هرکدام با اسکرول مستقل خودشان؛ به‌جای دو صفحهٔ کاملاً جدا مثل موبایل.
+     جزئیات ساختار در تابع‌های renderMessagesDesktopShell/renderChatThreadPane. */
+  .messages-page.md-shell{max-width:none;width:100%;display:flex;padding:0;overflow:hidden}
+  .md-list{width:340px;min-width:300px;flex:none;overflow-y:auto;padding:22px 14px 22px 20px;border-left:1px solid var(--line)}
+  .md-thread-col{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+  .md-thread-col .topbar{padding:20px 24px 10px}
+  .md-thread-col .chat-menu-btn{left:24px;top:18px}
+  .md-thread-scroll{flex:1;overflow-y:auto;padding:4px 24px 16px}
+  .md-thread-col .composer{position:static;margin:0 24px 22px}
+  .md-thread-empty{flex:1;display:flex;align-items:center;justify-content:center;padding:30px}
+  .conversation-card.md-active{border-color:var(--accent);background:var(--accent-soft)}
   .message-tabs{flex-wrap:wrap;overflow:visible}
-  .composer{right:24px;left:24px;max-width:720px;margin:0 auto}
-  .chat-menu-btn{left:calc(50% - 460px)}
 
   /* پروفایل: چهار گروه تنظیمات به‌جای یک ستون طولانی، در دو ستون کنار هم */
   .settings-columns{display:grid;grid-template-columns:1fr 1fr;gap:0 24px;align-items:start}
@@ -776,6 +811,11 @@ var ICON_MAP={calculator:'drafting',loader:'gear',material:'truck',building:'bui
 function mapIcon(n){return ICON_MAP[n]||'doc'}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function cloneData(value){return JSON.parse(JSON.stringify(value))}
+/* آستانهٔ چیدمان دسکتاپ - دقیقاً همان breakpoint رسانه‌ای CSS (@media min-width:960px) در
+   بخش «Desktop shell». صفحات پرترافیک (اکسپلور/خانه/پیام‌ها) از این تابع برای انتخاب یک
+   ساختار HTML واقعاً متفاوت (نه فقط عریض‌تر) استفاده می‌کنند - نگاه کنید به توضیح بالای
+   همان بخش CSS. */
+function isDesktopView(){return window.innerWidth>=960}
 
 /* ---- Original Block role/registration data, ported as-is ---- */
 var PROVINCES=["آذربایجان شرقی","آذربایجان غربی","اردبیل","اصفهان","البرز","ایلام","بوشهر","تهران","چهارمحال و بختیاری","خراسان جنوبی","خراسان رضوی","خراسان شمالی","خوزستان","زنجان","سمنان","سیستان و بلوچستان","فارس","قزوین","قم","کردستان","کرمان","کرمانشاه","کهگیلویه و بویراحمد","گلستان","گیلان","لرستان","مازندران","مرکزی","هرمزگان","همدان","یزد"];
@@ -2254,7 +2294,7 @@ function scrollChatToBottom(){
   // تغییر صفحه با rAF خودش انجام می‌دهد اجرا می‌شود، نه قبلش (وگرنه دوباره رو می‌شود).
   requestAnimationFrame(function(){
     requestAnimationFrame(function(){
-      var el=document.querySelector('#view .page');
+      var el=document.getElementById('mdThreadScroll')||document.querySelector('#view .page');
       if(el)el.scrollTop=el.scrollHeight;
     });
   });
@@ -2539,14 +2579,17 @@ function ensureExploreFilters(){
 }
 function setExploreFilter(key,value,fromSheet){ensureExploreFilters()[key]=value;if(fromSheet)openExploreFilters();else render()}
 var MAX_EXPLORE_SKILLS=5;
-function toggleExploreSkill(value){
+/* inline=true یعنی از پنل فیلتر همیشه‌نمایان دسکتاپ صدا زده شده (فقط باید render() کل صفحه
+   را دوباره بسازد)؛ inline نبودن یعنی از bottom-sheet موبایل صدا زده شده و باید همان شیت با
+   openExploreFilters() دوباره باز شود تا انتخاب تازه در خود شیت هم دیده شود. */
+function toggleExploreSkill(value,inline){
   var filters=ensureExploreFilters(),index=filters.skills.indexOf(value);
   if(index>-1){filters.skills.splice(index,1)}
   else{
     if(filters.skills.length>=MAX_EXPLORE_SKILLS){toast('حداکثر '+MAX_EXPLORE_SKILLS+' مهارت را می‌توانید انتخاب کنید','warning');return}
     filters.skills.push(value);
   }
-  openExploreFilters();
+  if(inline)render();else openExploreFilters();
 }
 function toggleExploreQuick(key){
   var filters=ensureExploreFilters();
@@ -2636,20 +2679,23 @@ function openJobFilters(){
     +'</div><div class="filter-sheet-actions"><button class="filter-clear" onclick="state.jobQuick={near:false,soon:false,projectBased:false};state.exploreCity=\'all\';render();closeSheet();openJobFilters()">پاک کردن</button><button class="filter-apply" onclick="closeSheet();render()">نمایش '+filteredJobOpportunities().length+' نتیجه</button></div>';
   openSheet(html);
 }
-function openExploreFilters(){
-  var f=ensureExploreFilters();
-  var sorts=['recommended','nearest','rating','experience','available'].map(function(key){return exploreOptionChip(EXPLORE_SORT_LABELS[key],state.exploreSort===key,"setExploreSort('"+key+"',true)")}).join('');
-  var roles=['all'].concat(mvpVisibleRoles).map(function(key){return exploreOptionChip(EXPLORE_ROLE_LABELS[key],state.exploreRole===key,"setExploreRole('"+key+"',true)")}).join('');
-  var cities=['all','قشم','بندرعباس'].map(function(key){return exploreOptionChip(key==='all'?'همه شهرها':key,state.exploreCity===key,"setExploreCity('"+key+"',true)")}).join('');
-  var ranges=[['all','همه فاصله‌ها'],['5','تا ۵ کیلومتر'],['15','تا ۱۵ کیلومتر'],['30','تا ۳۰ کیلومتر']].map(function(item){return exploreOptionChip(item[1],f.range===item[0],"setExploreFilter('range','"+item[0]+"',true)")}).join('');
-  var skills=EXPLORE_SKILLS.map(function(skill){return exploreOptionChip(skill,f.skills.indexOf(skill)>-1,"toggleExploreSkill('"+skill+"')")}).join('');
-  var experience=[['all','همه'],['junior','کمتر از ۳ سال'],['mid','۳ تا ۷ سال'],['senior','بیش از ۷ سال']].map(function(item){return exploreOptionChip(item[1],f.experience===item[0],"setExploreFilter('experience','"+item[0]+"',true)")}).join('');
-  var availability=[['all','هر زمان'],['now','همین حالا'],['today','امروز'],['week','این هفته'],['flexible','با هماهنگی']].map(function(item){return exploreOptionChip(item[1],f.availability===item[0],"setExploreFilter('availability','"+item[0]+"',true)")}).join('');
-  var types=[['all','همه نتایج'],['provider','متخصص و مجری'],['opportunity','فرصت پروژه'],['store','فروشگاه']].map(function(item){return exploreOptionChip(item[1],f.resultType===item[0],"setExploreFilter('resultType','"+item[0]+"',true)")}).join('');
-  var trust=exploreOptionChip('فقط تأییدشده‌ها',f.verified,"setExploreFilter('verified',"+(!f.verified)+",true)")+exploreOptionChip('امتیاز ۴٫۵ به بالا',f.rating==='4.5',"setExploreFilter('rating','"+(f.rating==='4.5'?'all':'4.5')+"',true)");
-  var html='<div class="filter-sheet-head"><div><h3>فیلترهای جست‌وجو</h3><p>'+exploreActiveCount()+' فیلتر فعال · انتخاب دقیق‌تر، نتیجهٔ بهتر</p></div><button class="sheet-close" aria-label="بستن" onclick="closeSheet()">×</button></div>'
-    +'<div class="explore-filter-scroll">'
-    +'<div class="filter-group"><b>مرتب‌سازی</b><div class="filter-options">'+sorts+'</div></div>'
+/* گروه‌های فیلتر مشترک بین bottom-sheet موبایل (openExploreFilters) و پنل همیشه‌نمایان
+   دسکتاپ (renderExploreFilterPanel) - دقیقاً همان گزینه‌ها، همان توابع setExplore... و toggleExploreSkill.
+   inSheet=true یعنی هر کلیک باید دوباره خود شیت را با openExploreFilters() باز کند (چون شیت
+   با هر تغییر از نو ساخته می‌شود)؛ inSheet=false (پنل دسکتاپ) یعنی صرفاً render() کافی است
+   چون پنل بخشی از خروجی عادی PAGES.explore() است و با render() به‌روز می‌شود. */
+function exploreFilterGroupsHtml(inSheet){
+  var f=ensureExploreFilters(),suf=inSheet?',true':'';
+  var sorts=['recommended','nearest','rating','experience','available'].map(function(key){return exploreOptionChip(EXPLORE_SORT_LABELS[key],state.exploreSort===key,"setExploreSort('"+key+"'"+suf+")")}).join('');
+  var roles=['all'].concat(mvpVisibleRoles).map(function(key){return exploreOptionChip(EXPLORE_ROLE_LABELS[key],state.exploreRole===key,"setExploreRole('"+key+"'"+suf+")")}).join('');
+  var cities=['all','قشم','بندرعباس'].map(function(key){return exploreOptionChip(key==='all'?'همه شهرها':key,state.exploreCity===key,"setExploreCity('"+key+"'"+suf+")")}).join('');
+  var ranges=[['all','همه فاصله‌ها'],['5','تا ۵ کیلومتر'],['15','تا ۱۵ کیلومتر'],['30','تا ۳۰ کیلومتر']].map(function(item){return exploreOptionChip(item[1],f.range===item[0],"setExploreFilter('range','"+item[0]+"'"+suf+")")}).join('');
+  var skills=EXPLORE_SKILLS.map(function(skill){return exploreOptionChip(skill,f.skills.indexOf(skill)>-1,"toggleExploreSkill('"+skill+"'"+(inSheet?'':',true')+")")}).join('');
+  var experience=[['all','همه'],['junior','کمتر از ۳ سال'],['mid','۳ تا ۷ سال'],['senior','بیش از ۷ سال']].map(function(item){return exploreOptionChip(item[1],f.experience===item[0],"setExploreFilter('experience','"+item[0]+"'"+suf+")")}).join('');
+  var availability=[['all','هر زمان'],['now','همین حالا'],['today','امروز'],['week','این هفته'],['flexible','با هماهنگی']].map(function(item){return exploreOptionChip(item[1],f.availability===item[0],"setExploreFilter('availability','"+item[0]+"'"+suf+")")}).join('');
+  var types=[['all','همه نتایج'],['provider','متخصص و مجری'],['opportunity','فرصت پروژه'],['store','فروشگاه']].map(function(item){return exploreOptionChip(item[1],f.resultType===item[0],"setExploreFilter('resultType','"+item[0]+"'"+suf+")")}).join('');
+  var trust=exploreOptionChip('فقط تأییدشده‌ها',f.verified,"setExploreFilter('verified',"+(!f.verified)+suf+")")+exploreOptionChip('امتیاز ۴٫۵ به بالا',f.rating==='4.5',"setExploreFilter('rating','"+(f.rating==='4.5'?'all':'4.5')+"'"+suf+")");
+  return '<div class="filter-group"><b>مرتب‌سازی</b><div class="filter-options">'+sorts+'</div></div>'
     +'<div class="filter-group"><b>نقش کاربران</b><div class="filter-options">'+roles+'</div></div>'
     +'<div class="filter-group"><b>شهر</b><div class="filter-options">'+cities+'</div></div>'
     +'<div class="filter-group"><b>محدوده</b><div class="filter-options">'+ranges+'</div></div>'
@@ -2657,9 +2703,20 @@ function openExploreFilters(){
     +'<div class="filter-group"><b>سابقه</b><div class="filter-options">'+experience+'</div></div>'
     +'<div class="filter-group"><b>در دسترس بودن</b><div class="filter-options">'+availability+'</div></div>'
     +'<div class="filter-group"><b>نوع نتیجه <span>پیشنهاد بلوک</span></b><div class="filter-options">'+types+'</div></div>'
-    +'<div class="filter-group"><b>اعتبار <span>پیشنهاد بلوک</span></b><div class="filter-options">'+trust+'</div></div>'
-    +'</div><div class="filter-sheet-actions"><button class="filter-clear" onclick="clearExploreFilters()">پاک کردن</button><button class="filter-apply" onclick="closeSheet();render()">نمایش '+filteredExploreItems().length+' نتیجه</button></div>';
+    +'<div class="filter-group"><b>اعتبار <span>پیشنهاد بلوک</span></b><div class="filter-options">'+trust+'</div></div>';
+}
+function openExploreFilters(){
+  var html='<div class="filter-sheet-head"><div><h3>فیلترهای جست‌وجو</h3><p>'+exploreActiveCount()+' فیلتر فعال · انتخاب دقیق‌تر، نتیجهٔ بهتر</p></div><button class="sheet-close" aria-label="بستن" onclick="closeSheet()">×</button></div>'
+    +'<div class="explore-filter-scroll">'+exploreFilterGroupsHtml(true)+'</div>'
+    +'<div class="filter-sheet-actions"><button class="filter-clear" onclick="clearExploreFilters()">پاک کردن</button><button class="filter-apply" onclick="closeSheet();render()">نمایش '+filteredExploreItems().length+' نتیجه</button></div>';
   openSheet(html);
+}
+/* پنل فیلتر همیشه‌نمایان اکسپلور در دسکتاپ (>=960px) - جایگزین دکمهٔ چرخ‌دنده‌ای که در
+   موبایل یک bottom-sheet باز می‌کند؛ همان گروه‌های فیلتر، فقط inline و بدون نیاز به باز
+   کردن چیزی. در explore:function() صدا زده می‌شود، نه در render() عمومی. */
+function renderExploreFilterPanel(){
+  var count=exploreActiveCount();
+  return '<aside class="explore-filter-panel"><div class="explore-filter-panel-head"><h3>فیلترها'+(count?' · '+count+' فعال':'')+'</h3><button class="filter-clear" onclick="clearExploreFilters()">پاک کردن</button></div>'+exploreFilterGroupsHtml(false)+'</aside>';
 }
 
 /* ---------- people directory & counterpart profile ---------- */
@@ -4309,9 +4366,79 @@ function feedRow(ic,title,sub,personId){return '<div class="list-row" onclick="'
 function listRow(ic,title,sub,target,danger){return '<div class="list-row" onclick="'+(target?"go('"+target+"')":"toast('باز شد')")+'"><div class="ricon" style="'+(danger?'color:var(--danger);background:var(--danger-soft)':'')+'">'+icon(ic,18)+'</div><div class="rcopy"><b style="'+(danger?'color:var(--danger)':'')+'">'+esc(title)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div><span class="rarrow">‹</span></div>'}
 function renderConversationCard(c){
   var context=c.context?'<div class="conversation-context">'+icon(c.context.icon||'briefcase',11)+'<span>'+esc(c.context.label+': '+c.context.title)+'</span></div>':'';
-  return '<article class="conversation-card'+(c.unread?' unread':'')+'" onclick="openConversation(\''+c.id+'\')"><div class="conversation-avatar">'+(c.avatarUrl?'<img src="'+esc(c.avatarUrl)+'" alt="عکس پروفایل">':esc(c.initials))+(c.online?'<span class="online-dot"></span>':'')+'</div><div class="conversation-copy"><div class="conversation-title"><b>'+esc(c.name)+'</b>'+(c.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+(c.muted?'<span style="color:var(--muted)">'+icon('mute',11)+'</span>':'')+'</div><p>'+esc(c.lastMessage)+'</p>'+context+'</div><div class="conversation-meta"><time>'+esc(c.time)+'</time>'+(c.unread?'<span class="unread-count">'+c.unread+'</span>':c.pinned?'<span class="pin-mark">'+icon('pin',12)+'</span>':'')+'</div></article>';
+  // «active» فقط در چیدمان دسکتاپ معنی دارد (فهرست و گفتگوی باز هم‌زمان دیده می‌شوند)؛ در
+  // موبایل isDesktopView() همیشه false است، پس خروجی این تابع برای موبایل دقیقاً مثل قبل می‌ماند.
+  var mdActive=isDesktopView()&&c.id===state.currentConversationId;
+  return '<article class="conversation-card'+(c.unread?' unread':'')+(mdActive?' md-active':'')+'" onclick="openConversation(\''+c.id+'\')"><div class="conversation-avatar">'+(c.avatarUrl?'<img src="'+esc(c.avatarUrl)+'" alt="عکس پروفایل">':esc(c.initials))+(c.online?'<span class="online-dot"></span>':'')+'</div><div class="conversation-copy"><div class="conversation-title"><b>'+esc(c.name)+'</b>'+(c.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+(c.muted?'<span style="color:var(--muted)">'+icon('mute',11)+'</span>':'')+'</div><p>'+esc(c.lastMessage)+'</p>'+context+'</div><div class="conversation-meta"><time>'+esc(c.time)+'</time>'+(c.unread?'<span class="unread-count">'+c.unread+'</span>':c.pinned?'<span class="pin-mark">'+icon('pin',12)+'</span>':'')+'</div></article>';
 }
 function choiceStatic(ic,title,sub){return '<div class="choice" role="button" tabindex="0" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toast(\'درخواست شروع شد\')}" onclick="toast(\'درخواست شروع شد\')"><div class="cicon">'+icon(ic,18)+'</div><b>'+esc(title)+'</b><p>'+esc(sub)+'</p></div>'}
+
+/* ---------- پیام‌ها/چت: قطعات مشترک بین صفحهٔ موبایل (messages/chat جدا) و چیدمان
+   master-detail دسکتاپ (فهرست و گفتگوی باز هم‌زمان کنار هم) - همه از این تابع‌ها استفاده
+   می‌کنند تا منطق ارسال/دریافت پیام و ساخت حباب‌ها یک‌جا بماند و دوباره‌نویسی نشود. */
+function conversationListPaneHtml(){
+  var conversations=filteredConversations(),unread=unreadMessageCount(),tabs=[['all','همه'],['unread','خوانده‌نشده'],['project','پروژه‌ها'],['service','خدمات و سفارش'],['archived','بایگانی']];
+  var rows=conversations.map(renderConversationCard).join('');
+  return '<div class="message-head"><h2>پیام‌ها</h2><div class="head-actions"><button class="icon-btn" aria-label="تنظیمات پیام" onclick="go(\'messageSettings\')">'+icon('gear',16)+'</button></div></div>'
+    +'<div class="inbox-search">'+icon('search',16)+'<input id="messageSearch" aria-label="جست‌وجوی پیام‌ها" value="'+esc(state.messageQuery||'')+'" oninput="setMessageQuery(this.value)" placeholder="جست‌وجوی نام، پروژه یا متن پیام"></div>'
+    +'<div class="inbox-summary"><span>'+unread+' پیام خوانده‌نشده</span><button onclick="markAllMessagesRead()">خواندن همه</button></div>'
+    +'<div class="message-tabs">'+tabs.map(function(tab){return '<button class="message-tab'+((state.messageFilter||'all')===tab[0]?' active':'')+'" onclick="setMessageFilter(\''+tab[0]+'\')">'+tab[1]+'</button>'}).join('')+'</div>'
+    +(rows||'<div class="empty-inbox"><i>'+icon('message',24)+'</i><b>گفت‌وگویی پیدا نشد</b><p>عبارت جست‌وجو یا فیلتر را تغییر دهید.</p></div>');
+}
+function renderChatBubbles(c){
+  var prefs=getMessagePrefs();
+  return c.messages.map(function(m){
+    var date=m.date?'<div class="chat-day">'+esc(m.date)+'</div>':'';
+    if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
+    if(m.deleted)return date+'<div class="bubble'+(m.mine?'':' other')+' bubble-deleted">این پیام حذف شد</div>';
+    var actionsBtn=m.id?'<button class="bubble-copy" aria-label="گزینه‌های پیام" onclick="openMessageActions(\''+c.backendId+'\',\''+m.id+'\')">'+icon('copy',12)+'</button>':'';
+    var statusSpan=m.pending?'<span class="bubble-pending">'+icon('clock',9)+'</span>':(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'');
+    var meta='<div class="bubble-meta">'+actionsBtn+'<span>'+esc(m.time||'')+'</span>'+statusSpan+'</div>';
+    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block;cursor:zoom-in" onclick="openImageViewer(\''+esc(m.image).replace(/'/g,"\\'")+'\')">'+meta+'</div>';
+    if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
+    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><button class="voice-play-btn" aria-label="پخش پیام صوتی" onclick="toggleVoicePlayback(this)">'+icon('play',14)+'</button><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio preload="metadata" src="'+esc(m.audioUrl)+'" style="display:none" onplay="updateVoicePlayIcon(this)" onpause="updateVoicePlayIcon(this)" onended="updateVoicePlayIcon(this)" onerror="this.closest(\'.voice-message\').querySelector(\'.voice-play-btn\').disabled=true;this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
+    return date+'<div class="bubble'+(m.mine?'':' other')+'">'+esc(m.text)+meta+'</div>';
+  }).join('');
+}
+function renderChatHeader(c){
+  var header=topbar(c.name,(c.online?'آنلاین':'آخرین فعالیت '+c.time),'back()');
+  if(c.personId)header=header.replace('<div class="topbar-title">','<div class="topbar-title" style="cursor:pointer" onclick="openPersonProfile(\''+c.personId+'\')">');
+  return header;
+}
+function renderChatContextExtras(c){
+  var context=c.context?'<div class="chat-context-card" onclick="openConversationContext()"><i>'+icon(c.context.icon||'briefcase',17)+'</i><div><b>'+esc(c.context.title)+'</b><p>'+esc(c.context.label+(c.context.meta?' · '+c.context.meta:''))+'</p></div><span>‹</span></div>':'';
+  var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
+  return context+(ad?renderAgreementCard(ad):'');
+}
+function renderChatComposer(){
+  return state.voiceRecording
+    ? '<div class="composer"><button id="sendMicBtn" class="sendbtn recording" data-mode="recording" aria-label="پایان و ارسال پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('send',16)+'</button><div class="voice-recording-bar"><span class="voice-rec-dot"></span><div class="voice-wave" id="chatVoiceWave">'+[4,4,4,4,4,4,4,4,4].map(function(){return '<span style="height:4px"></span>'}).join('')+'</div><span id="voiceRecTimer" class="mono">0:00</span></div><button class="composer-action" aria-label="لغو ضبط پیام صوتی" onclick="cancelVoiceRecording()">'+icon('x',16)+'</button></div>'
+    : '<div class="composer"><button id="sendMicBtn" class="sendbtn" data-mode="mic" aria-label="ارسال پیام یا شروع پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('mic',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" oninput="updateSendMicButton()" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label></div>';
+}
+/* ستون گفتگوی باز در چیدمان master-detail دسکتاپ - همان تیتر/حباب‌ها/کامپوزر صفحهٔ چت
+   موبایل، فقط داخل یک ستون کنار فهرست به‌جای یک صفحهٔ کامل جدا. mdThreadScroll تنها ناحیهٔ
+   اسکرول‌شوندهٔ گفتگوست (نه کل صفحه) تا فهرست کنارش ثابت بماند. */
+function renderChatThreadPane(c){
+  return renderChatHeader(c)+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
+    +'<div class="md-thread-scroll" id="mdThreadScroll">'+renderChatContextExtras(c)+'<div class="chat-thread">'+renderChatBubbles(c)+'</div></div>'
+    +renderChatComposer();
+}
+function renderChatEmptyPane(){
+  return '<div class="md-thread-empty"><div class="empty-inbox"><i>'+icon('message',24)+'</i><b>یک گفت‌وگو را انتخاب کنید</b><p>از فهرست کنار، یکی از گفت‌وگوها را باز کنید تا اینجا نمایش داده شود.</p></div></div>';
+}
+/* چیدمان master-detail دسکتاپ پیام‌ها/چت: هم صفحهٔ messages و هم صفحهٔ chat (در حالت
+   دسکتاپ) دقیقاً همین یک تابع را برمی‌گردانند - یعنی از هرکدام وارد شوید، همان فهرست+گفتگو
+   با هم دیده می‌شود، نه دو صفحهٔ جدا. انتخاب/ارسال/دریافت پیام (openConversation،
+   sendChatText، loadConversationMessages، startChatPoll) بدون تغییر همان توابع موبایل‌اند -
+   چون فقط render() و state.currentConversationId را عوض می‌کنند، خروجی این تابع خودکار
+   به‌روز می‌شود، بدون نیاز به «رفتن به صفحهٔ دیگر». */
+function renderMessagesDesktopShell(){
+  var c=state.currentConversationId?findConversation(state.currentConversationId):null;
+  return '<div class="page messages-page md-shell">'
+    +'<div class="md-list" id="mdListScroll">'+conversationListPaneHtml()+'</div>'
+    +'<div class="md-thread-col">'+(c?renderChatThreadPane(c):renderChatEmptyPane())+'</div>'
+    +'</div>';
+}
 
 function renderPublicSkillDetails(person,personId){
   var canRequest=personId&&personId!=='self'&&personId!=='ad'&&!isBlocked(personId);
@@ -4870,8 +4997,17 @@ home:function(){
   var role=state.role||'worker',r=activeRole(),unreadN=unreadNotifCount(),displayName=displayNameFor(role),projects=getProjects(role).filter(function(project){return project.stage!=='done'&&project.stage!=='declined'}),jobs=relevantJobItems(3),firstProject=projects[0];
   var opportunitySection=jobs.length?'<div class="home-section-head"><div><b>کارهای مناسب شما</b><span>هماهنگ با پروفایل شما</span></div><button onclick="openRelevantJobs()">دیدن همه</button></div><div class="home-opportunity-rail">'+jobs.map(renderHomeJobCard).join('')+'</div>':'';
   var activeSection=firstProject?'<div class="home-section-head"><div><b>کار در حال پیگیری</b><span>'+projects.length+' مورد فعال</span></div><button onclick="go(\'myProjects\')">همه</button></div><div class="home-active-card" onclick="openProjectDetail('+getProjects(role).indexOf(firstProject)+')"><i>'+icon('building',17)+'</i><div><b>'+esc(firstProject.title)+'</b><p>'+esc(firstProject.who)+'</p></div><span>'+esc(STAGE_LABELS[firstProject.stage])+'</span></div>':'';
+  var header='<header class="home-header">'+renderMyAvatar(role)+'<div class="home-welcome"><b>سلام '+esc((displayName||'کاربر بلوک').split(' ')[0])+'</b><span>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</span></div><button class="home-theme" aria-label="تغییر حالت روشن و تیره" onclick="toggleModeQuick()">'+icon(state.mode==='dark'?'moon':'sun',13)+'<span>'+(state.mode==='dark'?'تیره':'روشن')+'</span></button><button class="home-alert" aria-label="اعلان‌ها" onclick="go(\'notifications\')">'+(unreadN?'<span class="dot-indicator"></span>':'')+icon('bell',16)+'</button></header>';
+  // دسکتاپ: داشبورد واقعی با دو ستون هم‌زمان - نه یک فید طولانی کشیده‌شده. ستون اصلی
+  // (فرصت‌ها، کار در حال پیگیری، تقویم، رخدادها) و ستون کناری چسبان (اعتبار/امتیاز، میان‌برها،
+  // یادآوری تکمیل پروفایل) - همان بخش‌های صفحهٔ موبایل، فقط هم‌زمان به‌جای پشت‌سرهم.
+  if(isDesktopView()){
+    var mainCol='<div class="home-main-col">'+opportunitySection+activeSection+renderHomeSchedule(role)+renderHomeActivityFeed(role)+'</div>';
+    var sideCol='<aside class="home-side-col">'+renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderProfileSetupNudge(role)+'</aside>';
+    return '<div class="page home-page">'+header+'<div class="home-dashboard-grid">'+mainCol+sideCol+'</div></div>';
+  }
   return '<div class="page home-page">'
-    +'<header class="home-header">'+renderMyAvatar(role)+'<div class="home-welcome"><b>سلام '+esc((displayName||'کاربر بلوک').split(' ')[0])+'</b><span>'+esc(r.profileTitle||r.label)+' · '+esc(displayCityFor(role))+'</span></div><button class="home-theme" aria-label="تغییر حالت روشن و تیره" onclick="toggleModeQuick()">'+icon(state.mode==='dark'?'moon':'sun',13)+'<span>'+(state.mode==='dark'?'تیره':'روشن')+'</span></button><button class="home-alert" aria-label="اعلان‌ها" onclick="go(\'notifications\')">'+(unreadN?'<span class="dot-indicator"></span>':'')+icon('bell',16)+'</button></header>'
+    +header
     +renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderHomeActivityFeed(role)+renderProfileSetupNudge(role)+renderHomeSchedule(role)+opportunitySection+activeSection
     +'</div>'+bottomNav('home')
 },
@@ -5074,11 +5210,19 @@ explore:function(){
   }else{
     body='<div class="explore-section-head"><b>نتایج جست‌وجو</b><span>'+items.length+' گزینه پیدا شد</span></div><div class="discovery-grid">'+items.map(renderExploreCard).join('')+'</div>';
   }
+  var head='<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':mode==='consult'?'چه سؤالی دارید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>';
+  var searchArea=renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':mode==='consult'?'مثلاً ترک دیوار، نم یا نشست ساختمان':'مثلاً جوشکار، پروژه یا شهر')+renderExploreActiveFilters();
+  // دسکتاپ: پنل فیلتر همیشه‌نمایان کنار نتایج، به‌جای دکمهٔ چرخ‌دنده‌ای که فقط bottom-sheet
+  // موبایل را باز می‌کند (آن مسیر دقیقاً همان‌طور برای <960px دست‌نخورده می‌ماند).
+  if(isDesktopView()){
+    return '<div class="page explore-page">'
+    +head+modeSwitch
+    +'<div class="explore-desktop-layout">'+renderExploreFilterPanel()+'<div class="explore-results-panel">'+searchArea+body+'</div></div>'
+    +'</div>';
+  }
   return '<div class="page explore-page">'
-  +'<div class="explore-head"><div><span>جست‌وجوی ساده</span><h2>'+(mode==='jobs'?'دنبال چه کاری هستید؟':mode==='consult'?'چه سؤالی دارید؟':'دنبال چه نیرویی هستید؟')+'</h2></div>'+toggleBtn+'</div>'
-  +modeSwitch
-  +renderExploreSearchBar(mode==='jobs'?'مثلاً جوشکاری، اسکلت فلزی یا شهر':mode==='consult'?'مثلاً ترک دیوار، نم یا نشست ساختمان':'مثلاً جوشکار، پروژه یا شهر')
-  +renderExploreActiveFilters()+body
+  +head+modeSwitch
+  +searchArea+body
   +'</div>'
   +bottomNav('explore')
 },
@@ -5193,37 +5337,16 @@ adPublished:function(){
 },
 
 messages:function(){
-  var conversations=filteredConversations(),unread=unreadMessageCount(),tabs=[['all','همه'],['unread','خوانده‌نشده'],['project','پروژه‌ها'],['service','خدمات و سفارش'],['archived','بایگانی']];
-  var rows=conversations.map(renderConversationCard).join('');
-  return '<div class="page messages-page" style="padding-top:16px"><div class="message-head"><h2>پیام‌ها</h2><div class="head-actions"><button class="icon-btn" aria-label="تنظیمات پیام" onclick="go(\'messageSettings\')">'+icon('gear',16)+'</button></div></div>'
-    +'<div class="inbox-search">'+icon('search',16)+'<input id="messageSearch" aria-label="جست‌وجوی پیام‌ها" value="'+esc(state.messageQuery||'')+'" oninput="setMessageQuery(this.value)" placeholder="جست‌وجوی نام، پروژه یا متن پیام"></div>'
-    +'<div class="inbox-summary"><span>'+unread+' پیام خوانده‌نشده</span><button onclick="markAllMessagesRead()">خواندن همه</button></div>'
-    +'<div class="message-tabs">'+tabs.map(function(tab){return '<button class="message-tab'+((state.messageFilter||'all')===tab[0]?' active':'')+'" onclick="setMessageFilter(\''+tab[0]+'\')">'+tab[1]+'</button>'}).join('')+'</div>'
-    +(rows||'<div class="empty-inbox"><i>'+icon('message',24)+'</i><b>گفت‌وگویی پیدا نشد</b><p>عبارت جست‌وجو یا فیلتر را تغییر دهید.</p></div>')+'</div>'+bottomNav('messages')
+  if(isDesktopView())return renderMessagesDesktopShell();
+  return '<div class="page messages-page" style="padding-top:16px">'+conversationListPaneHtml()+'</div>'+bottomNav('messages')
 },
 
 chat:function(){
-  var c=activeConversation(),prefs=getMessagePrefs(),bubbles=c.messages.map(function(m){
-    var date=m.date?'<div class="chat-day">'+esc(m.date)+'</div>':'';
-    if(m.type==='system')return '<div class="system-message">'+esc(m.text)+'</div>';
-    if(m.deleted)return date+'<div class="bubble'+(m.mine?'':' other')+' bubble-deleted">این پیام حذف شد</div>';
-    var actionsBtn=m.id?'<button class="bubble-copy" aria-label="گزینه‌های پیام" onclick="openMessageActions(\''+c.backendId+'\',\''+m.id+'\')">'+icon('copy',12)+'</button>':'';
-    var statusSpan=m.pending?'<span class="bubble-pending">'+icon('clock',9)+'</span>':(m.mine&&prefs.readReceipts?'<span>'+(m.status==='خوانده شد'?'✓✓':'✓')+' '+esc(m.status||'')+'</span>':'');
-    var meta='<div class="bubble-meta">'+actionsBtn+'<span>'+esc(m.time||'')+'</span>'+statusSpan+'</div>';
-    if(m.image)return date+'<div class="bubble'+(m.mine?'':' other')+'" style="padding:6px"><img src="'+esc(m.image)+'" alt="تصویر ارسال‌شده" style="width:160px;border-radius:11px;display:block;cursor:zoom-in" onclick="openImageViewer(\''+esc(m.image).replace(/'/g,"\\'")+'\')">'+meta+'</div>';
-    if(m.file)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="message-file"><i>'+icon('doc',16)+'</i><div><b>'+esc(m.file)+'</b><span>'+esc(m.fileSize||'فایل پیوست')+'</span></div></div>'+meta+'</div>';
-    if(m.audioUrl)return date+'<div class="bubble'+(m.mine?'':' other')+'"><div class="voice-message"><button class="voice-play-btn" aria-label="پخش پیام صوتی" onclick="toggleVoicePlayback(this)">'+icon('play',14)+'</button><div><div class="voice-wave">'+[5,11,16,8,14,18,9,13,6,15,10,17].map(function(height){return '<span style="height:'+height+'px"></span>'}).join('')+'</div><audio preload="metadata" src="'+esc(m.audioUrl)+'" style="display:none" onplay="updateVoicePlayIcon(this)" onpause="updateVoicePlayIcon(this)" onended="updateVoicePlayIcon(this)" onerror="this.closest(\'.voice-message\').querySelector(\'.voice-play-btn\').disabled=true;this.outerHTML=\'<small style=&quot;color:var(--danger)&quot;>پخش این پیام صوتی روی این دستگاه ممکن نیست</small>\'"></audio><small>پیام صوتی · '+esc(m.duration||'۰:۰۱')+'</small></div></div>'+meta+'</div>';
-    return date+'<div class="bubble'+(m.mine?'':' other')+'">'+esc(m.text)+meta+'</div>';
-  }).join('');
-  var context=c.context?'<div class="chat-context-card" onclick="openConversationContext()"><i>'+icon(c.context.icon||'briefcase',17)+'</i><div><b>'+esc(c.context.title)+'</b><p>'+esc(c.context.label+(c.context.meta?' · '+c.context.meta:''))+'</p></div><span>‹</span></div>':'';
-  var header=topbar(c.name,(c.online?'آنلاین':'آخرین فعالیت '+c.time),'back()');
-  if(c.personId)header=header.replace('<div class="topbar-title">','<div class="topbar-title" style="cursor:pointer" onclick="openPersonProfile(\''+c.personId+'\')">');
-  var ad=c.adId?EXPLORE_ITEMS.find(function(item){return item.id===c.adId}):null;
-  return header+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
-  +'<div class="page no-nav chat-page" style="padding-top:14px;padding-bottom:86px">'+context+(ad?renderAgreementCard(ad):'')+'<div class="chat-thread">'+bubbles+'</div></div>'
-  +(state.voiceRecording
-    ? '<div class="composer"><button id="sendMicBtn" class="sendbtn recording" data-mode="recording" aria-label="پایان و ارسال پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('send',16)+'</button><div class="voice-recording-bar"><span class="voice-rec-dot"></span><div class="voice-wave" id="chatVoiceWave">'+[4,4,4,4,4,4,4,4,4].map(function(){return '<span style="height:4px"></span>'}).join('')+'</div><span id="voiceRecTimer" class="mono">0:00</span></div><button class="composer-action" aria-label="لغو ضبط پیام صوتی" onclick="cancelVoiceRecording()">'+icon('x',16)+'</button></div>'
-    : '<div class="composer"><button id="sendMicBtn" class="sendbtn" data-mode="mic" aria-label="ارسال پیام یا شروع پیام صوتی" tabindex="-1" onpointerdown="event.preventDefault()" onmousedown="event.preventDefault()" onclick="handleSendMicClick(this)">'+icon('mic',16)+'</button><input id="chatInput" aria-label="متن پیام" placeholder="پیام یا ویس بفرستید…" oninput="updateSendMicButton()" onkeydown="if(event.key===\'Enter\')sendChatText()"><label class="composer-action" aria-label="ارسال تصویر">'+icon('image',17)+'<input type="file" accept="image/*" style="display:none" onchange="handleChatPhoto(this)"></label></div>')
+  if(isDesktopView())return renderMessagesDesktopShell();
+  var c=activeConversation();
+  return renderChatHeader(c)+'<button class="icon-btn chat-menu-btn" aria-label="مدیریت گفت‌وگو" onclick="openConversationActions()">'+icon('more',17)+'</button>'
+  +'<div class="page no-nav chat-page" style="padding-top:14px;padding-bottom:86px">'+renderChatContextExtras(c)+'<div class="chat-thread">'+renderChatBubbles(c)+'</div></div>'
+  +renderChatComposer()
 },
 
 messageSettings:function(){
@@ -5436,6 +5559,12 @@ function render(){
   var selEnd=active&&typeof active.selectionEnd==='number'?active.selectionEnd:null;
   var prevScroller=view.querySelector('.page');
   var prevScrollTop=prevScroller?prevScroller.scrollTop:0;
+  // چیدمان master-detail دسکتاپ پیام‌ها/چت دو ناحیهٔ اسکرول مستقل کنار هم دارد (فهرست
+  // گفتگوها و ستون گفتگوی باز) که هیچ‌کدام‌شان .page اصلی (اولین match در view) نیستند؛
+  // موقعیت اسکرول هرکدام را جدا نگه می‌داریم وگرنه با هر render() (هر پیام تازه، هر حرف
+  // تایپ‌شده در جست‌وجو) به بالای فهرست یا گفتگو می‌پرید - همان باگ «پرش صفحه» قبلی.
+  var mdScrollIds=['mdListScroll','mdThreadScroll'],mdScrollTops={};
+  mdScrollIds.forEach(function(id){var el=document.getElementById(id);if(el)mdScrollTops[id]=el.scrollTop});
   var page=PAGES[state.page]||PAGES.unavailable;
   view.innerHTML=page()+renderNetworkBanner();
   var sidebarEl=document.getElementById('sidebar');
@@ -5452,6 +5581,7 @@ function render(){
   }else if(scroller){
     scroller.scrollTop=prevScrollTop;
   }
+  mdScrollIds.forEach(function(id){var el=document.getElementById(id);if(el&&mdScrollTops[id]!=null)el.scrollTop=mdScrollTops[id]});
   if(activeId){
     var el=document.getElementById(activeId);
     if(el){el.focus&&el.focus();if(selStart!=null&&el.setSelectionRange){try{el.setSelectionRange(selStart,selEnd)}catch(e){}}}
@@ -5461,7 +5591,13 @@ function render(){
   if(state.page==='adDetail')requestAnimationFrame(initAdDetailMap);
   else destroyAdDetailMap();
 }
-window.addEventListener('resize',function(){document.documentElement.style.fontSize=textSizePx(state.textSize)});
+window.addEventListener('resize',function(){
+  document.documentElement.style.fontSize=textSizePx(state.textSize);
+  // اکسپلور/خانه/پیام‌ها ساختار HTML متفاوتی برای دسکتاپ می‌سازند (نه فقط CSS)؛ اگر اندازهٔ
+  // پنجره از کنار مرز ۹۶۰px رد شود، باید render() دوباره اجرا شود تا ساختار درست انتخاب شود.
+  var nowDesktop=isDesktopView();
+  if(nowDesktop!==state.wasDesktopView){state.wasDesktopView=nowDesktop;render()}
+});
 window.addEventListener('offline',function(){state.online=false;render()});
 window.addEventListener('online',function(){state.online=true;render();toast('اتصال اینترنت برقرار شد')});
 window.addEventListener('error',function(e){showDebugError((e.error&&e.error.stack)||e.message||'خطای ناشناخته',e.filename,e.lineno,e.colno)});
