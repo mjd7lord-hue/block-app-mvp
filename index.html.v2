@@ -3131,7 +3131,12 @@ function promptGuestAuth(kind,extra){
 }
 function dismissGuestPrompt(){pendingGuestAction=null;closeSheet()}
 function resumePendingGuestAction(){var fn=pendingGuestAction;pendingGuestAction=null;if(fn){try{fn()}catch(e){}}}
-function toast(msg,type){var t=document.getElementById('toast');t.textContent=msg;t.classList.toggle('warning',type==='warning');t.classList.add('show');clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},1800)}
+function toast(msg,type){
+  var t=document.getElementById('toast');t.textContent=msg;var isWarn=type==='warning';t.classList.toggle('warning',isWarn);t.classList.add('show');
+  var len=(msg||'').length,duration=Math.min(5200,Math.max(2200,len>18?2200+(len-18)*55:2200));
+  if(isWarn)duration=Math.max(duration,3200);
+  clearTimeout(window._tt);window._tt=setTimeout(function(){t.classList.remove('show')},duration);
+}
 function openSheet(html){var s=document.getElementById('sheet');s.innerHTML=html;s.setAttribute('aria-hidden','false');s.inert=false;document.getElementById('backdrop').classList.add('show');s.classList.add('show')}
 function closeSheet(){var s=document.getElementById('sheet');document.getElementById('backdrop').classList.remove('show');s.classList.remove('show');s.setAttribute('aria-hidden','true');s.inert=true}
 function openImageViewer(url){var v=document.getElementById('imageViewer');v.innerHTML='<img src="'+esc(url)+'" alt="تصویر بزرگ‌شده" onclick="event.stopPropagation()"><button class="image-viewer-close" aria-label="بستن" onclick="closeImageViewer()">'+icon('back',18)+'</button>';v.classList.add('show');v.setAttribute('aria-hidden','false')}
@@ -3140,8 +3145,8 @@ function setMode(m){state.mode=m;document.getElementById('phone').setAttribute('
 function toggleModeQuick(){setMode(state.mode==='dark'?'light':'dark');toast(state.mode==='dark'?'حالت تیره فعال شد':'حالت روشن فعال شد')}
 function openDataPage(page,label){
   if(!state.online){state.unavailableTarget=page;go('offline');return}
-  if(page==='explore'||page==='messages'){state.stack.push(state.page);state.page=page;state.loadingTarget=null;render();syncRealData(page);return}
-  state.loadingTarget=page;state.loadingLabel=label||'در حال دریافت اطلاعات';state.stack.push(state.page);state.page='loading';render();clearTimeout(window._loadPageTimer);window._loadPageTimer=setTimeout(function(){state.page=page;state.loadingTarget=null;render()},420);
+  state.stack.push(state.page);state.page=page;state.loadingTarget=null;render();
+  if(page==='explore'||page==='messages')syncRealData(page);
 }
 function retryConnection(){state.online=typeof navigator==='undefined'?true:navigator.onLine!==false;if(state.online){var target=state.unavailableTarget&&PAGES[state.unavailableTarget]?state.unavailableTarget:'home';state.unavailableTarget=null;state.stack=[];state.page=target;render();toast('اتصال اینترنت برقرار شد')}else{render();toast('هنوز اتصال اینترنت برقرار نیست')}}
 function openAccessDenied(title,message,backTarget){state.accessState={title:title,message:message,backTarget:backTarget||'home'};go('permissionDenied')}
@@ -3251,6 +3256,16 @@ function renderProfileSetupNudge(role){
   return '<section class="profile-setup-card"><div class="profile-setup-head"><i>'+icon('check',16)+'</i><div><b>پروفایل را کم‌کم کامل کنید</b><p>این کارها از ثبت‌نام جدا هستند و اجباری نیستند.</p></div><button onclick="dismissProfileSetup()">بعداً</button></div><div class="profile-setup-list">'+tasks.map(function(task){return '<button class="profile-setup-task" onclick="'+task.action+'"><i>'+icon(task.icon,15)+'</i><span><b>'+esc(task.title)+'</b><small>'+esc(task.sub)+'</small></span><em>‹</em></button>'}).join('')+'</div></section>';
 }
 function dismissProfileSetup(){state.dashboardSetupDismissed=true;render();toast('از بخش «بلوک» هر زمان خواستید ادامه دهید')}
+function quickProfileMissingStepCount(){
+  if(!state.quickSetupUsed||state.profileComplete)return 0;
+  return activeRole().steps.filter(function(step){return !step.review&&hasStepIssues(step)}).length;
+}
+function renderQuickProfileNudge(){
+  var missing=quickProfileMissingStepCount();
+  if(!missing||state.quickProfileNudgeDismissed)return '';
+  return '<section class="profile-setup-card"><div class="profile-setup-head"><i>'+icon('doc',16)+'</i><div><b>اطلاعات ثبت‌نام شما ناقص است</b><p>با «شروع سریع» وارد شدید؛ '+missing+' بخش از پروفایل هنوز کامل نیست و هنگام ثبت آگهی یا درخواست کار لازم می‌شود.</p></div><button onclick="dismissQuickProfileNudge()">بعداً</button></div><div class="profile-setup-list"><button class="profile-setup-task" onclick="startFullProfile()"><i>'+icon('user',15)+'</i><span><b>تکمیل اطلاعات پروفایل</b><small>همین حالا از همان‌جا که مانده ادامه دهید</small></span><em>‹</em></button></div></section>';
+}
+function dismissQuickProfileNudge(){state.quickProfileNudgeDismissed=true;render();toast('هر زمان خواستید از داشبورد تکمیل کنید')}
 function saveProfilePhoto(btn){
   var photo=state.values.profilePhoto;
   if(!photo){toast('ابتدا یک عکس انتخاب کنید','warning');return}
@@ -3343,7 +3358,7 @@ function confirmPhoneChange(){state.values.signupPhone=state.phoneChangeDraft;cl
 function openIssueSheet(){state.appIssueDraft='';openSheet('<h3>گزارش مشکل در بلوک</h3><p>صفحه یا رفتاری را که مشکل دارد کوتاه توضیح دهید.</p><div class="field"><label>شرح مشکل</label><textarea class="textarea" placeholder="مثلاً در صفحهٔ ثبت آگهی…" oninput="state.appIssueDraft=this.value"></textarea></div><button class="btn-primary" onclick="submitAppIssue()">ارسال برای پشتیبانی</button>')}
 function submitAppIssue(){if(!(state.appIssueDraft||'').trim()){toast('شرح مشکل را بنویسید','warning');return}closeSheet();getNotifications().unshift({title:'گزارش شما ثبت شد',sub:'پشتیبانی بلوک نتیجهٔ بررسی را از همین بخش اطلاع می‌دهد',time:'همین حالا',day:'امروز',read:false,icon:'help',type:'account',target:'supportCenter',action:'پیگیری'});render();toast('گزارش برای پشتیبانی ارسال شد')}
 function openLogoutSheet(){openSheet('<h3>خروج از حساب</h3><p>پس از خروج، برای ورود دوباره باید شمارهٔ موبایل خود را تأیید کنید.</p><button class="btn-primary" onclick="performLogout()">خروج از حساب</button><div style="height:8px"></div><button class="btn-secondary" onclick="closeSheet()">انصراف</button>')}
-function performLogout(){disablePushNotifications();clearSession();closeSheet();state.stack=[];state.page='explore';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;render();toast('از حساب خارج شدید')}
+function performLogout(){disablePushNotifications();clearSession();closeSheet();state.stack=[];state.page='explore';state.values={};state.collections={};state.accountPrefs=null;state.loggedInUserId=null;state.role=null;state.profileComplete=false;state.quickSetupUsed=false;state.quickProfileNudgeDismissed=false;render();toast('از حساب خارج شدید')}
 function setDeleteReason(value){state.deleteReason=value;render()}
 function toggleDeleteConfirm(){state.deleteConfirm=!state.deleteConfirm;render()}
 function deleteAccount(btn){
@@ -3560,6 +3575,10 @@ function readOtpCode(){
   var code='';
   for(var i=0;i<inputs.length;i++)code+=toEnglishDigits((inputs[i].value||'').trim());
   return code;
+}
+function clearOtpInputs(){
+  var inputs=document.querySelectorAll('.otp-row input');
+  for(var i=0;i<inputs.length;i++)inputs[i].value='';
 }
 function otpAdvance(el){
   if(el.value.length>=1){
@@ -4064,6 +4083,7 @@ function submitPhoneStage(btn){
       toast(e.message||'ارسال کد ناموفق بود','warning');
     });
 }
+function editSignupPhone(){state.otpStage='phone';clearOtpInputs();render()}
 function resendSignupOtp(){
   if(state.otpResendAvailableAt&&Date.now()<state.otpResendAvailableAt)return;
   apiRequest('/api/auth/request-otp',{method:'POST',body:{phoneNumber:normalizePhone(state.values.signupPhone)}})
@@ -4100,7 +4120,7 @@ function submitQuickSetup(btn){
   syncProfileToBackend(false)
     .then(function(){
       stopLoading();
-      state.step=0;state.collections={};
+      state.step=0;state.collections={};state.quickSetupUsed=true;state.quickProfileNudgeDismissed=false;
       state.stack=[];state.page='home';render();
       resumePendingGuestAction();
       toast('تبریک! به بلوک خوش آمدید 🎉');
@@ -5039,7 +5059,7 @@ splash:function(){
   +'<button class="btn-primary" onclick="go(\'roleSelect\')">ساخت حساب رایگان</button>'
   +'<div style="height:8px"></div>'
   +'<button class="btn-secondary" onclick="openLoginSheet()">حساب دارم، وارد می‌شوم</button>'
-  +'<p style="font-size:.5rem;line-height:1.8;margin-top:12px">پیش از ساخت حساب، <button class="legal-link" onclick="go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="go(\'privacyPolicy\')">حریم خصوصی</button> را مرور و به‌صورت جداگانه تأیید می‌کنید.</p>'
+  +'<p style="font-size:.5rem;line-height:1.8;margin-top:12px">پیش از ساخت حساب، <button class="legal-link" onclick="go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="go(\'privacyPolicy\')">حریم خصوصی</button> را در مرحلهٔ بعد تأیید می‌کنید.</p>'
   +'</div></div>'
 },
 
@@ -5050,7 +5070,7 @@ phoneVerify:function(){
   +'<div class="card" style="margin-bottom:16px"><div style="display:flex;align-items:center;gap:10px"><div class="cicon">'+icon('shield',18)+'</div><div><b style="font-size:.66rem">چرا شماره موبایل لازم است؟</b><p style="font-size:.55rem;margin-top:2px">برای امنیت حساب و اعتماد طرف مقابل، هویت هر کاربر یا کسب‌وکار در بلوک با یک شمارهٔ تأییدشده گره می‌خورد.</p></div></div></div>'
   +(stage==='phone'
     ?'<div class="field"><label>شماره موبایل</label><input id="signupPhone" class="input" dir="ltr" type="tel" inputmode="numeric" maxlength="11" value="'+esc(state.values.signupPhone||'')+'" oninput="setVal(\'signupPhone\',sanitizePhoneInput(this))" placeholder="09xx xxx xxxx"></div><div class="legal-consent'+(state.legalConsent?' checked':'')+(state.legalError?' error':'')+'" role="checkbox" aria-checked="'+(state.legalConsent?'true':'false')+'" tabindex="0" onclick="toggleLegalConsent()" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();toggleLegalConsent()}"><i class="legal-check">'+(state.legalConsent?icon('check',13):'')+'</i><div class="legal-consent-copy"><b>قوانین را مطالعه کردم و می‌پذیرم.</b><br>با ثبت‌نام، <button class="legal-link" onclick="event.stopPropagation();go(\'terms\')">قوانین استفاده</button> و <button class="legal-link" onclick="event.stopPropagation();go(\'privacyPolicy\')">سیاست حریم خصوصی</button> نسخهٔ '+LEGAL_VERSION+' را تأیید می‌کنم.</div></div>'+(state.legalError?'<p class="legal-error">برای ساخت حساب، این تأیید الزامی است.</p>':'')
-    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «بلوک» آن را دوباره ببینید.</p></div></div>')
+    :'<div class="field"><label>کد تأیید</label><div class="otp-row">'+OTP_INPUT_HTML+'</div><p style="font-size:.55rem">کد ۴ رقمی به شمارهٔ '+esc(state.values.signupPhone||'')+' پیامک شد.</p><button class="legal-link otp-resend" onclick="resendSignupOtp()">ارسال مجدد کد</button><button class="legal-link" onclick="editSignupPhone()">ویرایش شماره</button></div><div class="legal-acceptance-card"><i>'+icon('shield',15)+'</i><div><b>پذیرش قوانین همراه این تأیید ثبت می‌شود</b><p>نسخهٔ '+LEGAL_VERSION+' · می‌توانید همیشه از بخش «بلوک» آن را دوباره ببینید.</p></div></div>')
   +'</div>'
   +'<div class="dock"><button class="btn-primary" onclick="'+(stage==='phone'?'submitPhoneStage(this)':'confirmSignupOtp(this)')+'">'+(stage==='phone'?'دریافت کد':'تأیید و ادامه')+'</button></div>'
 },
@@ -5163,12 +5183,12 @@ home:function(){
   // یادآوری تکمیل پروفایل) - همان بخش‌های صفحهٔ موبایل، فقط هم‌زمان به‌جای پشت‌سرهم.
   if(isDesktopView()){
     var mainCol='<div class="home-main-col">'+opportunitySection+activeSection+renderHomeSchedule(role)+renderHomeActivityFeed(role)+'</div>';
-    var sideCol='<aside class="home-side-col">'+renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderProfileSetupNudge(role)+'</aside>';
+    var sideCol='<aside class="home-side-col">'+renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderQuickProfileNudge()+renderProfileSetupNudge(role)+'</aside>';
     return '<div class="page home-page">'+header+'<div class="home-dashboard-grid">'+mainCol+sideCol+'</div></div>';
   }
   return '<div class="page home-page">'
     +header
-    +renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderHomeActivityFeed(role)+renderProfileSetupNudge(role)+renderHomeSchedule(role)+opportunitySection+activeSection
+    +renderHomeDashboardCard(role)+renderHomeShortcuts(role)+renderHomeActivityFeed(role)+renderQuickProfileNudge()+renderProfileSetupNudge(role)+renderHomeSchedule(role)+opportunitySection+activeSection
     +'</div>'+bottomNav('home')
 },
 

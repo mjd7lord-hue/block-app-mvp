@@ -75,6 +75,8 @@ tbody tr:hover{background:var(--surface2)}
 
 .empty-state{padding:40px 10px;text-align:center;color:var(--muted);font-size:.75rem}
 .loading-row{padding:24px;text-align:center;color:var(--muted);font-size:.72rem}
+.admin-skeleton-cell{height:12px;border-radius:6px;background:linear-gradient(90deg,var(--surface2) 25%,var(--line-strong) 50%,var(--surface2) 75%);background-size:200% 100%;animation:admin-skeleton-shimmer 1.3s ease-in-out infinite}
+@keyframes admin-skeleton-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
 .login-card{width:100%;max-width:340px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:28px 24px;text-align:center}
@@ -326,7 +328,10 @@ function renderTable(key){
   var d=state.data[key];
   var cols=TABLE_COLUMNS[key];
   var body;
-  if(!d)body='<tr><td colspan="'+cols.length+'"><div class="loading-row">در حال بارگذاری...</div></td></tr>';
+  if(!d){
+    var skeletonRow='<tr>'+cols.map(function(){return '<td><div class="admin-skeleton-cell"></div></td>'}).join('')+'</tr>';
+    body=new Array(5).fill(skeletonRow).join('');
+  }
   else if(!d.items.length)body='<tr><td colspan="'+cols.length+'"><div class="empty-state">موردی یافت نشد.</div></td></tr>';
   else body=d.items.map(function(item){return renderRow(key,item)}).join('');
   var html='<div class="table-wrap"><table><thead><tr>'+cols.map(function(c){return '<th>'+c+'</th>'}).join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>';
@@ -424,8 +429,9 @@ function renderUserDetail(u){
   if(u.guarantorsOfMe&&u.guarantorsOfMe.length){
     body+='<div class="section-title">ضامن‌های معرفی‌شده ('+u.guarantorsOfMe.length+')</div><div class="mini-list">'+u.guarantorsOfMe.map(function(g){return '<div class="mini-item">'+esc(g.name)+' — '+statusBadge(g.status)+'</div>'}).join('')+'</div>';
   }
+  state.detailUser=u;
   var actions='<button class="action-btn accent" onclick="toggleVerify(\''+u.id+'\','+(!u.verified)+')">'+(u.verified?'لغو تأیید':'تأیید کاربر')+'</button>'
-    +'<button class="action-btn danger" onclick="confirmDeleteUser(\''+u.id+'\')">حذف کاربر</button>';
+    +'<button class="action-btn danger" onclick="confirmDeleteUser(state.detailUser)">حذف کاربر</button>';
   return modalShell('جزئیات کاربر',body,actions);
 }
 
@@ -466,8 +472,18 @@ function toggleVerify(id,value){
     .then(function(){closeModal();reloadList('users')})
     .catch(function(e){alert(e.message)});
 }
-function confirmDeleteUser(id){
-  if(!confirm('آیا از حذف این کاربر مطمئن هستید؟ این عملیات همه اطلاعات مرتبط را نیز حذف می‌کند و قابل بازگشت نیست.'))return;
+function confirmDeleteUser(u){
+  var activeStages=['PROPOSED','AGREED','INPROGRESS'];
+  var activeProjects=(u.projectsAsA||[]).concat(u.projectsAsB||[]).filter(function(p){return activeStages.indexOf(p.stage)>-1}).length;
+  var adsCount=(u.ads||[]).length;
+  var convCount=u.conversationCount||0;
+  var body='<p>این کاربر '+adsCount+' آگهی، '+convCount+' گفت‌وگو و '+activeProjects+' پروژهٔ درحال‌انجام دارد. حذف این کاربر همهٔ این اطلاعات را برای همیشه حذف می‌کند و قابل بازگشت نیست.</p>';
+  var actions='<button class="action-btn" onclick="cancelDeleteUser()">انصراف</button>'
+    +'<button class="action-btn danger" onclick="doDeleteUser(\''+u.id+'\')">حذف کاربر</button>';
+  openOverlay(modalShell('تأیید حذف کاربر',body,actions));
+}
+function cancelDeleteUser(){openOverlay(renderUserDetail(state.detailUser))}
+function doDeleteUser(id){
   api('/api/admin/users/'+id,{method:'DELETE'}).then(function(){closeModal();reloadList('users')}).catch(function(e){alert(e.message)});
 }
 function confirmDeleteAd(id){
