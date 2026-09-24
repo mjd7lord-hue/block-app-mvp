@@ -4334,13 +4334,12 @@ function hydrateStateFromUser(user){
   }
   state.loggedInUserId=user.id;
   getAccountPrefs().publicPhone=!!user.phoneVisible;
-  state.values.showPhone=!!user.phoneVisible;
-  var roleProfile=(user.roleProfiles||[])[0];
-  if(!roleProfile)return;
-  var role=backendRoleToFrontend(roleProfile.role);
-  state.role=role;
-  state.profileComplete=!!roleProfile.profileComplete;
   var v=state.values;
+  v.showPhone=!!user.phoneVisible;
+  /* این فیلدهای هویتی پایه به roleProfile وابسته نیستند، پس باید همیشه اعمال شوند - حتی وقتی
+     user از پاسخ‌هایی می‌آید که roleProfiles را برنمی‌گردانند (مثل PUT /api/users/me، مثلاً
+     بعد از ذخیرهٔ عکس پروفایل). قبلاً این خطوط بعد از «if(!roleProfile)return» بودند، یعنی
+     برای دقیقاً همین پاسخ‌ها (بدون roleProfiles) عکس/نام/... اصلاً اعمال نمی‌شد. */
   if(user.firstName)v.firstName=user.firstName;
   if(user.lastName)v.lastName=user.lastName;
   var gender=genderToFrontend(user.gender);if(gender)v.gender=gender;
@@ -4349,6 +4348,23 @@ function hydrateStateFromUser(user){
   if(user.birthCountry)v.birthCountry=user.birthCountry;
   if(user.avatarUrl)v.profilePhoto=user.avatarUrl;
   if(user.code)v.userCode=user.code;
+  /* کش دائمی localStorage.block_user فقط یک‌بار، در لحظهٔ ورود، نوشته می‌شد (saveSession) و
+     هیچ‌وقت بعد از آن به‌روز نمی‌شد - پس هر تغییر پروفایل (مثلاً عکس) فقط در حافظهٔ همین نشست
+     می‌ماند. با بستن/بازکردن اپ یا ورود دوباره، بوت اپ دوباره از همان کش کهنه (بدون تغییر تازه)
+     هیدرات می‌شد و انگار تغییر «پاک شده» بود. حالا با merge (نه جایگزینی کامل، چون بعضی پاسخ‌ها
+     مثل همین PUT فیلدهای کمتری از پاسخ ورود دارند) کش را هم‌زمان با state به‌روز نگه می‌داریم. */
+  try{
+    if(localStorage.getItem('block_token')){
+      var cached=getSessionUser()||{};
+      Object.assign(cached,user);
+      localStorage.setItem('block_user',JSON.stringify(cached));
+    }
+  }catch(e){}
+  var roleProfile=(user.roleProfiles||[])[0];
+  if(!roleProfile)return;
+  var role=backendRoleToFrontend(roleProfile.role);
+  state.role=role;
+  state.profileComplete=!!roleProfile.profileComplete;
   if(roleProfile.workProvince)v.workProvince=roleProfile.workProvince;
   if(roleProfile.workCity)v.workCity=roleProfile.workCity;
   if(roleProfile.travelReady!==undefined)v.travelReady=roleProfile.travelReady;
