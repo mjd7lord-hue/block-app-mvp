@@ -367,18 +367,23 @@ p{color:var(--muted);margin:0}
    ثانیه، بدون هیچ تأخیر مصنوعی روی خودِ داده) ظاهر می‌شوند و کارت‌های قابل‌لمس هنگام
    hover/press واکنش نرم نشان می‌دهند - در حد چاشنی، نه مزاحم. */
 .home-feed{display:flex;flex-direction:column}
-.home-feed>*,.home-main-col>*,.home-side-col>*{animation:homeSectionIn .5s cubic-bezier(.22,1,.36,1) both}
+/* این انیمیشن‌های ورود فقط باید یک‌بار، هنگام ناوبری واقعی به خانه پخش شوند - نه هر بار که
+   render() به‌خاطر یک تعامل درجا (رد کردن یک کارت فعالیت، تعویض حالت روشن/تیره و…) صفحهٔ خانه
+   را دوباره می‌سازد. به همین دلیل به .page-anim (کلاسی که render() فقط در ناوبری واقعی صفحه
+   اضافه می‌کند) محدود شده‌اند؛ وگرنه کل هرو و بخش‌های خانه با هر تعامل کوچک محو و دوباره
+   ظاهر می‌شدند - همان حس «پرش صفحه» که کاربر گزارش کرد. */
+.page-anim .home-feed>*,.page-anim .home-main-col>*,.page-anim .home-side-col>*{animation:homeSectionIn .5s cubic-bezier(.22,1,.36,1) both}
 @keyframes homeSectionIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.home-feed>*:nth-child(1),.home-main-col>*:nth-child(1),.home-side-col>*:nth-child(1){animation-delay:.02s}
-.home-feed>*:nth-child(2),.home-main-col>*:nth-child(2),.home-side-col>*:nth-child(2){animation-delay:.07s}
-.home-feed>*:nth-child(3),.home-main-col>*:nth-child(3),.home-side-col>*:nth-child(3){animation-delay:.12s}
-.home-feed>*:nth-child(4),.home-main-col>*:nth-child(4),.home-side-col>*:nth-child(4){animation-delay:.17s}
-.home-feed>*:nth-child(5),.home-main-col>*:nth-child(5){animation-delay:.22s}
-.home-feed>*:nth-child(6),.home-main-col>*:nth-child(6){animation-delay:.27s}
-.home-feed>*:nth-child(7),.home-main-col>*:nth-child(7){animation-delay:.32s}
-.home-feed>*:nth-child(8){animation-delay:.37s}
-.home-feed>*:nth-child(9){animation-delay:.42s}
-.home-feed>*:nth-child(10){animation-delay:.47s}
+.page-anim .home-feed>*:nth-child(1),.page-anim .home-main-col>*:nth-child(1),.page-anim .home-side-col>*:nth-child(1){animation-delay:.02s}
+.page-anim .home-feed>*:nth-child(2),.page-anim .home-main-col>*:nth-child(2),.page-anim .home-side-col>*:nth-child(2){animation-delay:.07s}
+.page-anim .home-feed>*:nth-child(3),.page-anim .home-main-col>*:nth-child(3),.page-anim .home-side-col>*:nth-child(3){animation-delay:.12s}
+.page-anim .home-feed>*:nth-child(4),.page-anim .home-main-col>*:nth-child(4),.page-anim .home-side-col>*:nth-child(4){animation-delay:.17s}
+.page-anim .home-feed>*:nth-child(5),.page-anim .home-main-col>*:nth-child(5){animation-delay:.22s}
+.page-anim .home-feed>*:nth-child(6),.page-anim .home-main-col>*:nth-child(6){animation-delay:.27s}
+.page-anim .home-feed>*:nth-child(7),.page-anim .home-main-col>*:nth-child(7){animation-delay:.32s}
+.page-anim .home-feed>*:nth-child(8){animation-delay:.37s}
+.page-anim .home-feed>*:nth-child(9){animation-delay:.42s}
+.page-anim .home-feed>*:nth-child(10){animation-delay:.47s}
 .home-job-card,.home-active-card,.home-cal-day,.home-boost-item,.home-hero,.home-status-tile,.home-saved-teaser{transition:transform .16s cubic-bezier(.22,1,.36,1),box-shadow .16s ease,border-color .16s ease}
 .home-job-card:active,.home-active-card:active,.home-cal-day:active,.home-boost-item:active,.home-hero:active,.home-status-tile:active,.home-saved-teaser:active{transform:scale(.97)}
 @media (hover:hover){
@@ -580,7 +585,9 @@ p{color:var(--muted);margin:0}
 .audience-choice span{flex:1}.audience-choice em{font-style:normal;font-size:.39rem;color:var(--accent);white-space:nowrap}.ad-block-warning{outline:1px solid color-mix(in srgb,var(--accent2) 42%,transparent);outline-offset:2px;background:var(--surface);animation:warning-breathe 2.8s ease-in-out infinite}
 .ad-chip-wrap{display:flex;gap:6px;flex-wrap:wrap}.ad-chip{min-height:31px;border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:10px;padding:6px 9px;font-family:inherit;font-size:.49rem;font-weight:800;cursor:pointer}.ad-chip.active{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .ad-preview-card{border:1px solid var(--line);border-radius:20px;background:linear-gradient(140deg,var(--accent-soft),var(--surface));padding:16px;margin-bottom:11px}.ad-preview-card>span{display:inline-flex;font-size:.44rem;font-weight:900;color:var(--accent);background:var(--accent-soft);padding:5px 8px;border-radius:8px}.ad-preview-card h3{font-size:.78rem;line-height:1.65;margin-top:10px}.ad-preview-card p{font-size:.52rem;line-height:1.7;margin-top:4px}.ad-preview-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:11px}.ad-preview-tags span{font-size:.44rem;color:var(--ink);background:var(--surface2);border:1px solid var(--line);padding:5px 7px;border-radius:8px}
-.required-mark{color:var(--accent2);font-weight:900;font-size:.72rem;line-height:1;margin-right:2px;vertical-align:middle;cursor:default}.optional{color:var(--muted);font-size:.4rem;font-weight:600}.profile-source-card{display:flex;align-items:flex-start;gap:10px;border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;margin-bottom:10px}.profile-source-card>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.profile-source-card>div{flex:1;min-width:0}.profile-source-card b{display:block;color:var(--ink);font-size:.6rem}.profile-source-card p{font-size:.48rem;line-height:1.7;margin:3px 0 8px}.profile-source-card.missing{border-color:var(--accent2);background:var(--accent2-soft)}.profile-source-card.missing>i{background:var(--accent2);color:#211203}.profile-source-card.compact{margin:0 0 10px}.profile-source-card.compact p{margin-bottom:0}.profile-category-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:11px 12px;margin-bottom:14px}.profile-category-inline span{font-size:.49rem;color:var(--muted)}.profile-category-inline b{font-size:.55rem;color:var(--accent)}
+.required-mark{color:var(--accent2);font-weight:900;font-size:.72rem;line-height:1;margin-right:2px;vertical-align:middle;cursor:default}.optional{color:var(--muted);font-size:.4rem;font-weight:600}
+.info-mark{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;min-width:15px;border-radius:50%;border:1px solid var(--line-strong);background:var(--surface2);color:var(--muted);font-family:inherit;font-size:.42rem;font-weight:900;line-height:1;padding:0;margin-right:4px;cursor:pointer;vertical-align:middle}
+.info-mark:hover,.info-mark:active{color:var(--accent);border-color:var(--accent)}.profile-source-card{display:flex;align-items:flex-start;gap:10px;border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;margin-bottom:10px}.profile-source-card>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.profile-source-card>div{flex:1;min-width:0}.profile-source-card b{display:block;color:var(--ink);font-size:.6rem}.profile-source-card p{font-size:.48rem;line-height:1.7;margin:3px 0 8px}.profile-source-card.missing{border-color:var(--accent2);background:var(--accent2-soft)}.profile-source-card.missing>i{background:var(--accent2);color:#211203}.profile-source-card.compact{margin:0 0 10px}.profile-source-card.compact p{margin-bottom:0}.profile-category-inline{display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:13px;padding:11px 12px;margin-bottom:14px}.profile-category-inline span{font-size:.49rem;color:var(--muted)}.profile-category-inline b{font-size:.55rem;color:var(--accent)}
 .ad-location-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ad-location-grid .field{min-width:0}.ad-attachment{border:1px dashed var(--line-strong);background:var(--surface);border-radius:15px;padding:11px;margin-bottom:14px}.ad-attachment>label:first-child{display:block;font-size:.56rem;font-weight:800;color:var(--ink);margin-bottom:8px}.ad-attachment>label:first-child span{font-size:.42rem;color:var(--muted);font-weight:500}.ad-attachment>img,.ad-review-image,.ad-detail-image{display:block;width:100%;max-height:190px;object-fit:cover;border-radius:12px;margin:0 0 9px}.ad-upload{height:42px;border:1px solid var(--line);border-radius:12px;color:var(--accent);display:flex;align-items:center;justify-content:center;gap:6px;font-size:.52rem;font-weight:900;cursor:pointer;background:var(--surface2)}.ad-upload input{display:none}.ad-review-image{margin-top:11px;margin-bottom:0}.ad-detail-image{margin-top:10px;margin-bottom:0}
 .ad-preview-description{font-size:.5rem;line-height:1.85;color:var(--ink);border-top:1px solid var(--line);margin-top:12px;padding-top:10px}.ad-review-grid,.ad-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:11px}.ad-review-grid>div,.ad-detail-grid>div{border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:10px}.ad-review-grid span,.ad-detail-grid span{display:block;font-size:.42rem;color:var(--muted)}.ad-review-grid b,.ad-detail-grid b{display:block;font-size:.52rem;color:var(--ink);margin-top:3px;line-height:1.55}.dashboard-profile-signal{display:flex;align-items:flex-start;gap:9px;border:1px solid var(--line);background:var(--surface);border-radius:15px;padding:11px;margin-bottom:14px}.dashboard-profile-signal>i{width:31px;height:31px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;flex:none}.dashboard-profile-signal b{display:block;font-size:.55rem;color:var(--ink)}.dashboard-profile-signal p{font-size:.46rem;margin-top:2px;color:var(--accent)}
 .discover-ad-summary{font-size:.44rem!important;line-height:1.6!important;white-space:normal!important;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:7px!important}.ad-detail-page{padding-top:10px}
@@ -604,6 +611,17 @@ p{color:var(--muted);margin:0}
 .ad-owner-light-copy{flex:1;min-width:0}
 .ad-owner-light-copy b{display:flex;align-items:center;gap:4px;font-size:.66rem;color:var(--ink)}
 .ad-owner-light-copy span{display:block;font-size:.5rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ad-detail-section{border:1px solid var(--line);background:var(--surface);border-radius:16px;padding:13px;margin-bottom:10px}.ad-detail-section>b{display:block;font-size:.6rem;color:var(--ink);margin-bottom:6px}.ad-detail-section p{font-size:.5rem;line-height:1.85;color:var(--ink)}.ad-detail-section.profile-context{background:var(--accent-soft);border-color:rgba(52,210,166,.25)}.ad-detail-section.description-main{padding:15px;border-color:color-mix(in srgb,var(--accent) 32%,var(--line))}.ad-detail-section.description-main>b{font-size:.68rem}.ad-detail-section.description-main p{font-size:.56rem;line-height:2;color:var(--ink)}
+/* ریسهٔ عمومی پاسخ/راهنمایی روی آگهی‌های «پرسش تخصصی و مشاوره»: همان زبان بصری حباب‌های
+   trust-comment (کارت کوچک، حاشیهٔ ظریف، متن ریز) برای هر پاسخ، به‌علاوه یک باکس نوشتن ساده. */
+.ad-comment-compose{margin-bottom:10px}
+.ad-comment-compose .textarea{margin-bottom:8px}
+.ad-comment-list{display:flex;flex-direction:column;gap:7px}
+.ad-comment-item{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:9px}
+.ad-comment-item-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.ad-comment-item-head b{font-size:.56rem;color:var(--ink)}
+.ad-comment-code{font-size:.4rem;color:var(--muted);direction:ltr}
+.ad-comment-time{font-size:.4rem;color:var(--muted);margin-inline-start:auto}
+.ad-comment-item p{font-size:.52rem;line-height:1.8;color:var(--ink);margin-top:4px}
 .notify-preview{border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;display:flex;align-items:flex-start;gap:10px}.notify-preview>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.notify-preview b{display:block;color:var(--ink);font-size:.62rem}.notify-preview strong{color:var(--accent);font-size:.76rem}.notify-preview p{font-size:.48rem;line-height:1.7;margin-top:3px}
 .ad-dock{position:absolute;right:0;left:0;bottom:0;padding:12px 16px 20px;background:linear-gradient(0deg,var(--bg) 72%,transparent)}
 .ad-success-flow{display:flex;align-items:center;justify-content:center;margin:18px 0}.ad-success-flow span{font-size:.45rem;color:var(--muted);text-align:center}.ad-success-flow i{width:30px;height:2px;background:var(--accent);margin:0 6px}
@@ -632,20 +650,26 @@ p{color:var(--muted);margin:0}
 .explore-mode-thumb{position:absolute;top:4px;bottom:4px;width:calc(50% - 4px);border-radius:11px;background:var(--accent);transition:transform .28s cubic-bezier(.3,.8,.4,1);z-index:0}
 .explore-mode-switch[data-active="0"] .explore-mode-thumb{transform:translateX(0)}
 .explore-mode-switch[data-active="1"] .explore-mode-thumb{transform:translateX(-100%)}
+/* قبلاً data-active فقط 0/1 بود، یعنی حالت consult هم مقدار "0" می‌گرفت - دقیقاً همان مقدار
+   حالت jobs - و تخته‌رنگی (thumb) پشت دکمهٔ «پیدا کردن کار» می‌ماند، انگار همان تب فعال است
+   درحالی‌که واقعاً مشاوره انتخاب شده. حالا حالت سوم واقعی دارد و thumb کاملاً محو می‌شود. */
+.explore-mode-switch[data-active="consult"] .explore-mode-thumb{opacity:0}
 .explore-mode-switch button{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:.58rem;font-weight:800;padding:10px 6px;border-radius:11px;border:none;background:transparent;color:var(--muted);cursor:pointer;transition:color .2s}
 .explore-mode-switch button svg{width:14px;height:14px}
 .explore-mode-switch button.active{color:var(--on-accent)}
 /* گزینهٔ دایره‌ای بنفش «پرسش تخصصی و مشاوره»، دقیقاً وسط دو تب دیگر شناور - همان رنگ tone-violet
    که در سراسر اپ برای مشاوره استفاده می‌شود، نه یک تب سوم هم‌عرض داخل گرید. */
-.explore-mode-switch button.consult-orb{position:absolute;top:50%;right:50%;transform:translate(50%,-50%);z-index:2;width:38px;height:38px;padding:0;border-radius:50%;background:linear-gradient(145deg,#a855f7,#7c3aed);color:#fff;border:3px solid var(--bg);box-shadow:0 6px 16px rgba(124,58,237,.45)}
+.explore-mode-switch button.consult-orb{position:absolute;top:50%;right:50%;transform:translate(50%,-50%);z-index:2;width:38px;height:38px;padding:0;border-radius:50%;background:linear-gradient(145deg,#a855f7,#7c3aed);color:#fff;border:3px solid var(--bg);box-shadow:0 6px 16px rgba(124,58,237,.45);transition:transform .18s ease,box-shadow .18s ease}
 .explore-mode-switch button.consult-orb svg{width:16px;height:16px}
-.explore-mode-switch button.consult-orb.active{color:#fff;box-shadow:0 0 0 3px rgba(124,58,237,.4),0 6px 16px rgba(124,58,237,.45)}
+.explore-mode-switch button.consult-orb.active{color:#fff;transform:translate(50%,-50%) scale(1.12);box-shadow:0 0 0 3px rgba(124,58,237,.4),0 6px 16px rgba(124,58,237,.45)}
 /* پنل واحد هدر+اعتبار خانه: قبلاً هدر (آواتار/خوش‌آمد/تم/زنگ) یک باکس جدا با margin-bottom
    بود و کارت اعتبار («home-dashboard» قدیمی) باکس دیگری زیرش با border/پس‌زمینهٔ تخت var(--surface)
    مستقل - یعنی دو درز. حالا .home-hero یک کارت واحد است: پس‌زمینهٔ گرادیانی رنگی (بر اساس تن
    نقش کاربر، --card-tone/--card-soft) به‌جای سطح تخت، و بخش‌های داخلی‌اش (نوار بالا، حلقهٔ
    امتیاز، آمار، مهارت‌ها) فقط با یک خط جداکنندهٔ ظریف داخلی از هم جدا می‌شوند، نه با باکس دوم. */
-.home-hero{position:relative;overflow:hidden;border-radius:24px;padding:16px;margin-bottom:14px;cursor:pointer;background:radial-gradient(140% 120% at 100% 0%,var(--card-soft),transparent 62%),linear-gradient(165deg,var(--surface),var(--surface2) 140%);border:1px solid color-mix(in srgb,var(--card-tone) 32%,var(--line));animation:dashCardIn .4s cubic-bezier(.22,1,.36,1)}
+.home-hero{position:relative;overflow:hidden;border-radius:24px;padding:16px;margin-bottom:14px;cursor:pointer;background:radial-gradient(140% 120% at 100% 0%,var(--card-soft),transparent 62%),linear-gradient(165deg,var(--surface),var(--surface2) 140%);border:1px solid color-mix(in srgb,var(--card-tone) 32%,var(--line))}
+/* همین‌طور ورودِ خودِ کارت هرو هم فقط باید در ناوبری واقعی به خانه پخش شود، نه هر re-render. */
+.page-anim .home-hero{animation:dashCardIn .4s cubic-bezier(.22,1,.36,1)}
 .home-hero:before{content:'';position:absolute;width:190px;height:190px;border-radius:50%;background:var(--card-tone);opacity:.1;left:-72px;top:-96px;pointer-events:none}
 @keyframes dashCardIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 .home-hero-trust{display:flex;align-items:center;gap:14px;margin-top:16px;padding-top:16px;border-top:1px solid color-mix(in srgb,var(--card-tone) 24%,var(--line));position:relative;z-index:1}
@@ -660,6 +684,10 @@ p{color:var(--muted);margin:0}
 .home-hero-trust-copy{flex:1;min-width:0}
 .home-hero-trust-copy>b{font-size:.74rem;font-weight:900;color:var(--ink);display:block}
 .home-hero-trust-copy>p{font-size:.5rem;color:var(--card-tone);margin-top:2px;font-weight:700}
+/* این دکمه هیچ قانون CSS تطبیقی نداشت و با ظاهر پیش‌فرض مرورگر (حاشیه/پس‌زمینهٔ دکمه) رندر
+   می‌شد؛ حالا مثل بقیهٔ لینک‌های متنی کوچک اپ (legal-link/trust-card-action) بدون حاشیه و با
+   رنگ لهجه‌ای است. */
+.home-hero-scoreguide{display:block;border:0;background:transparent;color:var(--card-tone,var(--accent));font-family:inherit;font-size:.46rem;font-weight:900;padding:6px 0 0;margin:0;text-align:right;cursor:pointer}
 .dash-badges{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
 .dash-badge{display:flex;align-items:center;gap:3px;font-size:.42rem;font-weight:800;color:var(--ink);background:var(--accent-soft);border-radius:999px;padding:3px 7px;position:relative;overflow:hidden;opacity:0;transform:translateY(4px) scale(.9);animation:dashBadgeIn .45s cubic-bezier(.22,1.4,.36,1) forwards;animation-delay:calc(var(--i,0)*90ms)}
 .dash-badge:nth-child(2){background:var(--accent2-soft)}
@@ -2048,9 +2076,10 @@ function openExploreItem(item){return item.isAd?"openAdDetail('"+item.id+"')":"o
    نه فقط وقتی کاربر جداگانه روی کارت اعتبار می‌زند - وگرنه همان لحظهٔ اول باز شدن صفحه هنوز
    مقدار قدیمیِ نمایشی دیده می‌شود. */
 function openAdDetail(id){
-  state.viewingAdId=id;resetTrustPhone();
+  state.viewingAdId=id;resetTrustPhone();resetAdComments();
   var ad=currentAdDetail();
   if(ad&&ad.authorUserId){loadRealTrustPhone(ad.authorUserId);loadRealTrustScore(ad.authorUserId)}
+  if(ad&&ad.adType==='consult')loadAdComments(ad.backendId||ad.id);
   go('adDetail');
 }
 function currentAdDetail(){return EXPLORE_ITEMS.find(function(item){return item.id===state.viewingAdId})||state.lastPublishedAd}
@@ -3227,6 +3256,53 @@ function renderReviews(reviews){
   return reviews.map(function(r){return '<div class="card" style="margin-bottom:8px"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px"><b style="font-size:.62rem">'+esc(r.from)+'</b>'+reviewStars(r.rating)+'</div><p style="font-size:.58rem;line-height:1.7">'+esc(r.comment)+'</p><span style="font-size:.48rem;color:var(--muted);display:block;margin-top:4px">'+esc(r.date)+'</span></div>'}).join('');
 }
 
+/* ---------- ad comments/answers (public Q&A thread on "پرسش تخصصی و مشاوره" ads) ----------
+   بک‌اند دو مسیر تازه دارد: GET /api/ads/:id/comments (عمومی، بدون نیاز به ورود) و
+   POST /api/ads/:id/comments (نیازمند ورود، فقط برای آگهی‌های consult). چون این دو مسیر ممکن
+   است هنگام نوشتن این کد هنوز روی سرور فعال نباشند، هر خطا (شامل 404) به‌جای کرش، «هنوز نظری
+   ثبت نشده» فرض می‌شود - دقیقاً مثل بقیهٔ catchهای بی‌صدای این فایل (مثلاً loadRealTrustPhone).
+   state.adComments دقیقاً مثل trustScoreData/trustPhone یک اسلات سراسری است که با adId برچسب
+   می‌خورد، پس اگر کاربر به آگهی دیگری برود قبل از تمام‌شدن fetch قبلی، renderAdComments مقایسهٔ
+   adId را می‌بیند و دادهٔ کهنه را نشان نمی‌دهد. */
+function resetAdComments(){state.adComments=null;state.adCommentDraft=''}
+function loadAdComments(adId){
+  if(!adId)return;
+  state.adComments={adId:adId,items:[],loading:true};
+  apiRequest('/api/ads/'+adId+'/comments')
+    .then(function(data){
+      if(!state.adComments||state.adComments.adId!==adId)return;
+      state.adComments={adId:adId,items:data.comments||[],loading:false};
+      render();
+    })
+    .catch(function(e){
+      console.error('loadAdComments failed (endpoint may not be live yet)',e);
+      if(state.adComments&&state.adComments.adId===adId){state.adComments.loading=false;render()}
+    });
+}
+function renderAdComments(ad){
+  var adId=ad.backendId||ad.id,data=(state.adComments&&state.adComments.adId===adId)?state.adComments:null;
+  var items=(data&&data.items)||[],loading=!!(data&&data.loading);
+  var listHtml=loading?'<p style="font-size:.58rem">در حال بارگذاری پاسخ‌ها…</p>':(items.length?items.map(function(c){
+    var author=c.author||{},name=[author.firstName,author.lastName].filter(Boolean).join(' ')||'کاربر بلوک';
+    return '<div class="ad-comment-item"><div class="ad-comment-item-head"><b>'+esc(name)+'</b>'+(author.code?'<span class="ad-comment-code">کد '+esc(author.code)+'</span>':'')+'<span class="ad-comment-time">'+esc(timeAgoFa(c.createdAt))+'</span></div><p>'+esc(c.text)+'</p></div>';
+  }).join(''):'<p style="font-size:.58rem">هنوز پاسخ یا راهنمایی‌ای ثبت نشده است.</p>');
+  var compose='<div class="ad-comment-compose"><textarea id="adCommentInput" class="textarea" placeholder="پاسخ یا راهنمایی خود را بنویسید…" oninput="state.adCommentDraft=this.value">'+esc(state.adCommentDraft||'')+'</textarea><button class="btn-primary" onclick="submitAdComment(\''+esc(adId)+'\')">ثبت نظر یا راهنمایی</button></div>';
+  return '<div class="ad-detail-section ad-comments-section"><b>پاسخ‌ها و راهنمایی‌ها'+(items.length?' ('+items.length+')':'')+'</b>'+compose+'<div class="ad-comment-list">'+listHtml+'</div></div>';
+}
+function submitAdComment(adId){
+  if(!getSessionUser()){promptGuestAuth('comment',{resume:function(){submitAdComment(adId)}});return}
+  var input=document.getElementById('adCommentInput');
+  var text=((input?input.value:state.adCommentDraft)||'').trim();
+  if(!text){toast('متن نظر یا راهنمایی را وارد کنید','warning');return}
+  apiRequest('/api/ads/'+adId+'/comments',{method:'POST',body:{text:text}})
+    .then(function(){
+      state.adCommentDraft='';
+      toast('نظر شما ثبت شد');
+      loadAdComments(adId);
+    })
+    .catch(function(e){toast(e.message||'ثبت نظر ناموفق بود','warning')});
+}
+
 /* ---------- report / block ---------- */
 function isBlocked(id){return state.blockedUsers.indexOf(id)>-1}
 function openReportSheet(personId){
@@ -3271,6 +3347,7 @@ function guestGateMessage(kind,extra){
     booking:{title:'ثبت درخواست رزرو',body:'برای رزرو نوبت، یک حساب رایگان بسازید تا طرف مقابل بتواند به شما پاسخ دهد.'},
     order:{title:'ثبت سفارش',body:'برای ثبت سفارش، یک حساب رایگان بسازید تا پیگیری سفارش برای شما ذخیره شود.'},
     delivery:{title:'رزرو نوبت تحویل',body:'برای رزرو نوبت تحویل، یک حساب رایگان بسازید.'},
+    comment:{title:'ثبت نظر یا راهنمایی',body:'برای ثبت پاسخ یا راهنمایی روی این پرسش، ابتدا حساب بلوک خود را بسازید.'},
     nav:{title:'به بلوک بپیوندید',body:'با ساختن حساب رایگان می‌توانید آگهی ثبت کنید، با افراد گفت‌وگو کنید و شمارهٔ تماس را ببینید.'},
     account:{title:'پروفایل و داشبورد شما',body:'برای دیدن پروفایل، پیام‌ها و مدیریت آگهی‌های خودتان، یک حساب رایگان بسازید.'}
   };
@@ -3430,6 +3507,10 @@ function renderHomeBoostPanel(role){
   return '<section class="home-boost"><div class="home-boost-head"><div><b>تقویت سریع پروفایل</b><span>'+tasks.length+' مورد باقی‌مانده · روی امتیاز و دیده‌شدن شما اثر دارد</span></div><button onclick="dismissProfileSetup()">بعداً</button></div><div class="home-boost-list">'+tasks.map(function(task,i){return '<button class="home-boost-item" style="--i:'+i+'" onclick="'+task.action+'"><i>'+icon(task.icon,15)+'</i><span><b>'+esc(task.title)+'</b><small>'+esc(task.sub)+'</small></span><em>‹</em></button>'}).join('')+'</div></section>';
 }
 function saveProfilePhoto(btn){
+  /* دکمه معمولاً هنگام آپلود غیرفعال است (رندر profilePhoto)، ولی این چک دفاعی جلوگیری
+     می‌کند که اگر به هر دلیل کلیک برسد، بدون هیچ درخواستی به سرور یک toast «ذخیره شد»ی
+     نادرست نشان داده شود - همان باگ واقعی‌ای که با CDP تأیید شد. */
+  if(state.profilePhotoUploading){toast('لطفاً چند لحظه صبر کنید تا آپلود عکس تمام شود','warning');return}
   var photo=state.values.profilePhoto;
   if(!photo){toast('ابتدا یک عکس انتخاب کنید','warning');return}
   if(getSessionUser()&&/^https?:\/\//.test(photo)){
@@ -4423,9 +4504,21 @@ function handlePhotoField(input,key){
   reader.onload=function(e){state.values[key]=e.target.result;render()};
   reader.readAsDataURL(f);
   if(getSessionUser()){
+    /* فقط برای عکس پروفایل: تا وقتی آپلود واقعی روی سرور تمام نشده، state.values.profilePhoto
+       یک data: URL محلی است، نه آدرس https واقعی - و saveProfilePhoto فقط وقتی PUT واقعی
+       می‌فرستد که آدرس https باشد. بدون این پرچم، اگر کاربر قبل از پایان آپلود روی «ذخیره عکس»
+       بزند، هیچ درخواستی به سرور نمی‌رود ولی toast «ذخیره شد» را می‌بیند - یک false-positive
+       واقعی که با CDP تأیید شد. */
+    if(key==='profilePhoto')state.profilePhotoUploading=true;
     uploadFileToBackend(f)
-      .then(function(data){state.values[key]=data.url;render()})
-      .catch(function(e){toast(e.message||'آپلود عکس ناموفق بود','warning')});
+      .then(function(data){
+        if(key==='profilePhoto')state.profilePhotoUploading=false;
+        state.values[key]=data.url;render();
+      })
+      .catch(function(e){
+        if(key==='profilePhoto')state.profilePhotoUploading=false;
+        toast(e.message||'آپلود عکس ناموفق بود','warning');render();
+      });
   }
 }
 
@@ -5076,7 +5169,12 @@ function renderHomeHero(role){
 }
 function renderHomeSchedule(role){
   var type=calendarType(role);if(!type)return '';
-  var data=getCalendar(role),title=type==='availability'?'زمان‌های آزاد من':type==='appointments'?'رزرو بعدی':'برنامه نزدیک من';
+  /* «رزرو بعدی» (calendarType==='appointments'، فقط برای نقش general) صرفاً از APPOINTMENT_SEED
+     ثابت می‌آمد و پشت آن هیچ دادهٔ واقعی نبود - به‌درخواست کاربر همان‌طور که برای نبودِ نوع
+     تقویم مقدار خالی برمی‌گردد، این حالت هم چیزی نشان نمی‌دهد. حالت‌های 'availability' و
+     'bookings' دست‌نخورده‌اند. */
+  if(type==='appointments')return '';
+  var data=getCalendar(role),title=type==='availability'?'زمان‌های آزاد من':'برنامه نزدیک من';
   if(type==='availability'){
     /* قبلاً وضعیت هر روز فقط با رنگ پس‌زمینه فرق می‌کرد (برای کم‌بینایی/رنگ‌کوری قابل تشخیص
        نبود)؛ حالا هر روز یک نشان‌واره (badge) گرد جداگانه هم دارد (✓ برای آزاد، تقویم برای
@@ -5203,6 +5301,17 @@ function renderAdAttachmentField(){
 }
 function adFieldClass(key){return 'field'+(state.adWarnings&&state.adWarnings[key]?' field-warning':'')}
 function requiredMark(){return '<span class="required-mark" title="ضروری" aria-label="ضروری">*</span>'}
+/* الگوی عمومی «نشان اطلاعات»: به‌جای یک پاراگراف توضیحی کامل که همیشه زیر تیتر نشسته و شلوغی
+   بصری اضافه می‌کند، فقط یک نشان کوچک کنار تیتر می‌آید و توضیح را در یک شیت کوچک (همان مکانیزم
+   openSheet موجود، بدون هیچ پلمبینگ تازه‌ای برای popover سفارشی) نشان می‌دهد. هر جای دیگر اپ هم
+   که یک توضیح اختیاری/غیرضروری زیر یک تیتر هست، می‌تواند از همین دو تابع استفاده کند. */
+function infoMark(text){
+  var safe=esc(text).replace(/'/g,"\\'");
+  return '<button type="button" class="info-mark" onclick="event.stopPropagation();openInfoNote(this,\''+safe+'\')" aria-label="توضیح بیشتر">ⓘ</button>';
+}
+function openInfoNote(el,text){
+  openSheet('<h3>توضیح</h3><p>'+text+'</p><button class="btn-secondary" onclick="closeSheet()">متوجه شدم</button>');
+}
 function adAudienceTitle(type){return type==='work'?'چه کسانی آگهی کار شما را ببینند؟':type==='workforce'?'به چه نیرویی نیاز دارید؟':'چه کسانی به پرسش شما پاسخ بدهند؟'}
 function renderAdReview(){
   var d=state.adDraft,config=activeAdConfig(),roles=adRoleNames(),profile=adProfileSnapshot();
@@ -5482,8 +5591,8 @@ notificationSettings:function(){
 },
 
 profilePhoto:function(){
-  var role=state.role||'worker',photo=state.values.profilePhoto;
-  return topbar('عکس پروفایل','این مرحله از ثبت‌نام جداست')+'<div class="page"><div class="profile-photo-card"><div class="profile-photo-preview"><div class="profile-photo-preview-inner">'+(photo?'<img src="'+esc(photo)+'" alt="عکس انتخاب‌شده">':esc(activeRole().initials||'ب'))+'</div></div><h2>یک عکس روشن از خودتان</h2><p>صورت یا نشان مجموعه واضح باشد، نور کافی و پس‌زمینهٔ ساده — چه شخص باشید چه یک برند، این قاب همان حس اعتماد را می‌سازد. هر زمان خواستید می‌توانید عکس را تغییر دهید.</p><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;margin-bottom:8px">'+icon('portfolio',16)+' '+(photo?'انتخاب عکس دیگر از گالری':'انتخاب از گالری')+'<input type="file" accept="image/*" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer">'+icon('portfolio',16)+' گرفتن عکس با دوربین<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><div style="height:9px"></div><button class="btn-primary" '+(photo?'':'disabled')+' onclick="saveProfilePhoto(this)">ذخیره عکس</button></div></div>';
+  var role=state.role||'worker',photo=state.values.profilePhoto,uploading=!!state.profilePhotoUploading;
+  return topbar('عکس پروفایل','این مرحله از ثبت‌نام جداست')+'<div class="page"><div class="profile-photo-card"><div class="profile-photo-preview"><div class="profile-photo-preview-inner">'+(photo?'<img src="'+esc(photo)+'" alt="عکس انتخاب‌شده">':esc(activeRole().initials||'ب'))+'</div></div><h2>یک عکس روشن از خودتان</h2><p>صورت یا نشان مجموعه واضح باشد، نور کافی و پس‌زمینهٔ ساده — چه شخص باشید چه یک برند، این قاب همان حس اعتماد را می‌سازد. هر زمان خواستید می‌توانید عکس را تغییر دهید.</p><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer;margin-bottom:8px">'+icon('portfolio',16)+' '+(photo?'انتخاب عکس دیگر از گالری':'انتخاب از گالری')+'<input type="file" accept="image/*" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><label class="btn-secondary" style="display:flex;align-items:center;justify-content:center;gap:7px;cursor:pointer">'+icon('portfolio',16)+' گرفتن عکس با دوربین<input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhotoField(this,\'profilePhoto\')"></label><div style="height:9px"></div><button class="btn-primary" '+(photo&&!uploading?'':'disabled')+' onclick="saveProfilePhoto(this)">'+(uploading?'در حال آپلود عکس…':'ذخیره عکس')+'</button></div></div>';
 },
 
 portfolio:function(){
@@ -5591,7 +5700,7 @@ explore:function(){
   /* دکمهٔ سوم، دایره‌ای و بنفش (هم‌رنگ tone-violet که همه‌جای اپ برای «مشاوره» استفاده می‌شود)،
      دقیقاً وسط دو تب دیگر می‌نشیند - نه یک تب سوم هم‌عرض، یک گزینهٔ مجزا و برجسته برای
      «پرسش تخصصی و مشاوره». */
-  var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='workers'?'1':'0')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button><button class="consult-orb'+(mode==='consult'?' active':'')+'" aria-label="پرسش تخصصی و مشاوره" onclick="setExploreMode(\'consult\')">'+icon('drafting',16)+'</button></div>';
+  var modeSwitch='<div class="explore-mode-switch" data-active="'+(mode==='consult'?'consult':mode==='workers'?'1':'0')+'"><div class="explore-mode-thumb"></div><button class="'+(mode==='jobs'?'active':'')+'" onclick="setExploreMode(\'jobs\')"><i>'+icon('briefcase',14)+'</i>پیدا کردن کار</button><button class="'+(mode==='workers'?'active':'')+'" onclick="setExploreMode(\'workers\')"><i>'+icon('users',14)+'</i>پیدا کردن نیرو</button><button class="consult-orb'+(mode==='consult'?' active':'')+'" aria-label="پرسش تخصصی و مشاوره" onclick="setExploreMode(\'consult\')">'+icon('drafting',16)+'</button></div>';
   var items=filteredExploreItems(),active=exploreActiveCount()>0||Boolean((state.exploreQuery||'').trim());
   var toggleBtn='<button class="explore-view-btn" onclick="setExploreView(\''+(state.exploreView==='cards'?'map':'cards')+'\')">'+icon(state.exploreView==='cards'?'eye':'building',14)+(state.exploreView==='cards'?'نقشه':'کارت‌ها')+'</button>';
   var body;
@@ -5685,8 +5794,8 @@ newRequest:function(){
 createAd:function(){
   var d=state.adDraft,config=activeAdConfig(),step=state.adStep,content='',isConsult=d.type==='consult',isWork=d.type==='work',profile=adProfileSnapshot();
   if(step===0){
-    content='<div class="ad-step-copy"><span>مرحله ۱ از ۲</span><h2>'+(isConsult?'سؤال خود را بنویسید':isWork?'آگهی کار شما آماده است':'نیروی موردنیاز را مشخص کنید')+'</h2><p>'+(isConsult?'عنوان و توضیح کوتاه، برای شروع کافی است.':isWork?'فقط مخاطبان را انتخاب کنید؛ بقیهٔ اطلاعات از پروفایل شما می‌آید.':'مخاطبان و محل پروژه را مشخص کنید؛ بقیهٔ اطلاعات قبلی استفاده می‌شود.')+'</p></div>'
-      +'<div class="ad-block'+(state.adWarnings.targetRole?' ad-block-warning':'')+'"><div class="ad-block-head"><b>'+adAudienceTitle(d.type)+' '+requiredMark()+'</b><p>'+(isWork?'نقش خودتان دوباره پرسیده نمی‌شود؛ فقط کارفرماهایی را انتخاب کنید که آگهی را ببینند.':'برای ارسال اعلان، یک تا سه گروه مرتبط را انتخاب کنید.')+'</p></div>'+renderAdAudienceChoices()+'</div>'
+    content='<div class="ad-step-copy"><span>مرحله ۱ از ۲</span><h2>'+(isConsult?'سؤال خود را بنویسید':isWork?'آگهی کار شما آماده است':'نیروی موردنیاز را مشخص کنید')+infoMark(isConsult?'عنوان و توضیح کوتاه، برای شروع کافی است.':isWork?'فقط مخاطبان را انتخاب کنید؛ بقیهٔ اطلاعات از پروفایل شما می‌آید.':'مخاطبان و محل پروژه را مشخص کنید؛ بقیهٔ اطلاعات قبلی استفاده می‌شود.')+'</h2></div>'
+      +'<div class="ad-block'+(state.adWarnings.targetRole?' ad-block-warning':'')+'"><div class="ad-block-head"><b>'+adAudienceTitle(d.type)+infoMark(isWork?'نقش خودتان دوباره پرسیده نمی‌شود؛ فقط کارفرماهایی را انتخاب کنید که آگهی را ببینند.':'برای ارسال اعلان، یک تا سه گروه مرتبط را انتخاب کنید.')+' '+requiredMark()+'</b></div>'+renderAdAudienceChoices()+'</div>'
       +renderAdProfileNotice()
       +'<div class="'+adFieldClass('title')+'"><label>عنوان آگهی '+requiredMark()+'</label><input class="input" maxlength="60" value="'+esc(d.title||'')+'" oninput="setAdField(\'title\',this.value);state.adWarnings.title=false" placeholder="'+(isConsult?'مثلاً علت ترک مورب کنار پنجره چیست؟':isWork?'مثلاً جوشکار برای اجرای اسکلت فلزی':'مثلاً نیروی بنایی برای دیوارچینی')+'"></div>'
       +(d.type==='workforce'?renderAdLocationFields():'')
@@ -5724,18 +5833,25 @@ adDetail:function(){
      می‌گذاشت)، یک ردیف افقی سبک - آواتار کوچک هم‌رنگ دستهٔ آگهی، اسم و تیک تأیید، نقش/شهر/
      امتیاز، و یک فلش کلیک‌پذیر؛ در جای همیشگی‌اش (بین جزئیات و نقشه) می‌ماند. */
   var ownerChip='<div class="ad-detail-section ad-owner-section"><div class="ad-owner-light tone-'+esc(ad.tone||'mint')+'" onclick="openAdTrustCard()"><div class="ad-owner-light-avatar">'+esc(person.initials||'ب')+'</div><div class="ad-owner-light-copy"><b>'+esc(person.name)+(person.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+'</b><span>'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+(person.rating?' · ★'+esc(person.rating):'')+'</span></div><span class="rarrow">‹</span></div></div>';
-  /* به درخواست کاربر: فقط برای آگهی‌های «جویای کار» (isWork) - چون خودِ فرد محصول این آگهی
-     است - بلافاصله بعد از تیتر/توضیحات، کارت کامل پروفایل (renderPublicTrustCard، همان کارت
-     مهارت‌ها/امتیاز/نظرها با لینک «دیدن کارت کامل») نشان داده می‌شود، نه چیپ سبک؛ بقیهٔ اجزای
-     صفحه (جزئیات، نقشه، دکمهٔ پایین) دقیقاً سرجای قبلی‌شان می‌مانند. آگهی‌های دیگر دست‌نخورده‌اند. */
-  var fullProfileAfterHero=isWork?renderPublicTrustCard(person,'ad'):'';
+  /* به درخواست کاربر: کارت کامل پروفایل (renderPublicTrustCard، همان کارت مهارت‌ها/امتیاز/
+     نظرها با لینک «دیدن کارت کامل») حالا هم برای آگهی‌های «جویای کار» (isWork) و هم «پرسش
+     تخصصی» (isConsult) بلافاصله بعد از تیتر/توضیحات نشان داده می‌شود - در هر دو مورد خودِ فرد
+     محصول این آگهی است، پس چیپ سبک قبلی برای مشاوره خیلی کوچک و کم‌اطلاعات بود. آگهی‌های
+     workforce دست‌نخورده مانده‌اند (همچنان چیپ سبک ownerChip). */
+  var fullProfileAfterHero=(isWork||isConsult)?renderPublicTrustCard(person,'ad'):'';
+  /* برای آگهی‌های «پرسش تخصصی» تگ‌های مهارت/حوزه همین چند خط بالاتر در ad-preview-tags (هیرو)
+     از قبل نمایش داده شده‌اند؛ اولین کاشیِ این گرید همان مقدار را عیناً تکرار می‌کرد - دقیقاً
+     همان موردی که کاربر گفت «بعد از توضیحات گزینه‌های مهارت کاربر رو داره می‌نویسه که این‌ها
+     نیاز نیستن». برای work/workforce دست‌نخورده مانده. */
+  var skillsTile=isConsult?'':'<div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div>';
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p>'+(ad.description?'<p class="ad-detail-desc">'+esc(ad.description)+'</p>':'')+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست">':'')+'<div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
     +fullProfileAfterHero
-    +'<div class="ad-detail-grid"><div><span>مهارت‌ها و حوزه‌های مرتبط</span><b>'+esc((ad.categories||[ad.category]).join('، '))+'</b></div><div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
-    +(isWork?'':ownerChip)
+    +'<div class="ad-detail-grid">'+skillsTile+'<div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
+    +((isWork||isConsult)?'':ownerChip)
     +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section ad-map-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
+    +(isConsult?renderAdComments(ad):'')
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
 
