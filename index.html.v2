@@ -601,7 +601,7 @@ p{color:var(--muted);margin:0}
    کم‌رنگ var(--muted) و فونت خیلی ریز .52rem را از قاعدهٔ سراسری p به ارث می‌برد - همان اندازهٔ
    متن حاشیه‌ای شهر/زمان) قاطی می‌شد و به‌سختی خوانده می‌شد. حالا رنگ پررنگ‌تر، فونت بزرگ‌تر و
    فاصلهٔ خط بهتری دارد تا واقعاً در دید باشد. */
-.ad-detail-hero p.ad-detail-desc{font-size:.64rem;line-height:1.95;color:var(--ink);margin-top:9px}
+.ad-detail-hero p.ad-detail-desc{font-size:.74rem;font-weight:600;line-height:1.9;color:var(--ink);margin-top:9px}
 .state-symbol.tone-mint,.state-symbol.tone-orange,.state-symbol.tone-violet,.state-symbol.tone-blue{background:var(--card-soft);color:var(--card-tone)}/* کارت پروفایل صاحب آگهی: قبلاً یک «توپ» گرد بزرگ بود که فضای زیادی از کارت را خالی می‌گذاشت؛
    به‌درخواست کاربر به یک ردیف افقی سبک و جمع‌وجور تبدیل شد - همان اطلاعات (آواتار، اسم، تیک
    تأیید، نقش/شهر/امتیاز) در یک ردیف کم‌حجم، بدون فضای مرده اطراف یک دایرهٔ بزرگ. آواتار هم‌رنگ
@@ -618,10 +618,15 @@ p{color:var(--muted);margin:0}
 .ad-comment-list{display:flex;flex-direction:column;gap:7px}
 .ad-comment-item{border:1px solid var(--line);background:var(--surface2);border-radius:12px;padding:9px}
 .ad-comment-item-head{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
-.ad-comment-item-head b{font-size:.56rem;color:var(--ink)}
+.ad-comment-item-head b{font-size:.6rem;font-weight:800;color:var(--ink)}
+.ad-comment-item-head b.ad-comment-author{cursor:pointer;color:var(--accent)}
 .ad-comment-code{font-size:.4rem;color:var(--muted);direction:ltr}
 .ad-comment-time{font-size:.4rem;color:var(--muted);margin-inline-start:auto}
-.ad-comment-item p{font-size:.52rem;line-height:1.8;color:var(--ink);margin-top:4px}
+.ad-comment-item p{font-size:.6rem;line-height:1.85;color:var(--ink);margin-top:4px}
+.ad-comment-like{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--muted);font-family:inherit;font-size:.46rem;font-weight:800;padding:0;margin-top:6px;cursor:pointer}
+.ad-comment-like svg{width:11px;height:11px}
+.ad-comment-like.active{color:var(--danger)}
+.ad-comment-like.active svg{fill:var(--danger)}
 .notify-preview{border:1px solid rgba(52,210,166,.3);background:var(--accent-soft);border-radius:17px;padding:13px;display:flex;align-items:flex-start;gap:10px}.notify-preview>i{width:36px;height:36px;border-radius:12px;background:var(--accent);color:var(--on-accent);display:flex;align-items:center;justify-content:center;flex:none}.notify-preview b{display:block;color:var(--ink);font-size:.62rem}.notify-preview strong{color:var(--accent);font-size:.76rem}.notify-preview p{font-size:.48rem;line-height:1.7;margin-top:3px}
 .ad-dock{position:absolute;right:0;left:0;bottom:0;padding:12px 16px 20px;background:linear-gradient(0deg,var(--bg) 72%,transparent)}
 .ad-success-flow{display:flex;align-items:center;justify-content:center;margin:18px 0}.ad-success-flow span{font-size:.45rem;color:var(--muted);text-align:center}.ad-success-flow i{width:30px;height:2px;background:var(--accent);margin:0 6px}
@@ -3103,12 +3108,31 @@ function renderPublicTrustCard(person,personId){
 /* trustScoreData هم دقیقاً مثل trustPhone یک اسلاتِ سراسری برای «نتیجهٔ واقعیِ اعتبار همان
    شخصی است که همین الان کارت او باز است»، پس هر جا trustPhone ریست می‌شود باید این هم ریست
    شود؛ وگرنه امتیاز/نظرهای شخص قبلی برای لحظه‌ای روی کارت شخص بعدی می‌ماند. */
-function resetTrustPhone(){state.trustPhone={loading:false,value:null,revealed:false,code:''};state.trustScoreData=null}
+function resetTrustPhone(){state.trustPhone={loading:false,value:null,revealed:false,code:''};state.trustScoreData=null;state.trustIdentity=null}
+/* GET /api/users/:id (نگاه کنید به getUserById در بک‌اند) هم شمارهٔ تماس/کد را برمی‌گرداند، هم
+   بقیهٔ فیلدهای هویتی عمومی (نام، عکس، تأییدشده، اولین roleProfile برای نقش/شهر) را در همان
+   یک پاسخ - قبلاً این فیلدهای اضافه دور ریخته می‌شدند و فقط phoneNumber/code نگه داشته می‌شد.
+   حالا در state.trustIdentity (یک اسلات سراسری دیگر، دقیقاً هم‌الگوی trustPhone/trustScoreData)
+   ذخیره می‌شوند تا otherRealTrustPerson بتواند بدون درخواست شبکهٔ اضافه از آن استفاده کند. */
 function loadRealTrustPhone(userId){
   if(!userId)return;
   state.trustPhone={loading:true,value:null,revealed:false,code:''};
   apiRequest('/api/users/'+userId)
-    .then(function(res){state.trustPhone={loading:false,value:(res.user&&res.user.phoneNumber)||null,revealed:false,code:(res.user&&res.user.code)||''};render()})
+    .then(function(res){
+      var u=res.user||{};
+      state.trustPhone={loading:false,value:u.phoneNumber||null,revealed:false,code:u.code||''};
+      var rp=(u.roleProfiles||[])[0]||null;
+      state.trustIdentity={
+        userId:userId,
+        name:[u.firstName,u.lastName].filter(Boolean).join(' ')||'کاربر بلوک',
+        photo:u.avatarUrl||null,
+        verified:!!u.verified,
+        code:u.code||'',
+        roleLabel:(rp&&AD_ROLE_LABELS[String(rp.role||'').toLowerCase()])||'عضو بلوک',
+        location:(rp&&rp.workCity)||''
+      };
+      render();
+    })
     .catch(function(){state.trustPhone={loading:false,value:null,revealed:false,code:''}});
 }
 /* امتیاز اعتماد و نظرهای واقعی؛ هر دو endpoint عمومی‌اند (بدون نیاز به ورود). نتیجه در
@@ -3152,7 +3176,29 @@ function adTrustPerson(ad){
   var real=(state.trustScoreData&&ad&&state.trustScoreData.userId===ad.authorUserId)?state.trustScoreData:null;
   return {name:profile.name||'کاربر بلوک',role:profile.profileTitle||profile.roleLabel||'عضو بلوک',initials:profile.initials||'ب',location:profile.city||ad.city||'',rating:real?(Number(real.avgRating)||0):(profile.rating||4.5),completed:real&&real.completedProjects!=null?real.completedProjects:(profile.completed||0),verified:!!profile.verified,age:profile.age||'ثبت‌نشده',birthPlace:profile.birthPlace||profile.city||'ثبت‌نشده',experience:profile.experience||'ثبت‌نشده',phone:(state.trustPhone&&state.trustPhone.value)||'',skills:profile.categories||ad.categories||[],skillDetails:profile.skillDetails||[],reviews:real?real.reviews:(profile.reviews||[]),code:profile.code||ad.code||'',trustScore:real?real.score:null,trustBreakdown:real?real.breakdown:null}
 }
-function currentTrustPerson(){if(state.trustPersonId==='self')return myTrustPerson(state.role||'worker');if(state.trustPersonId==='ad')return adTrustPerson(currentAdDetail());var seeded=PEOPLE_SEED[state.trustPersonId];if(seeded)return seeded;var real=myTrustPerson(state.role||'worker');real.phone=(state.trustPhone&&state.trustPhone.value)||'';real.code=(state.trustPhone&&state.trustPhone.code)||'';return real}
+/* قبلاً برای یک id واقعیِ «شخص دیگر» (نه 'self'/'ad'/کلید PEOPLE_SEED - دقیقاً همان چیزی که
+   نویسندهٔ یک کامنت آگهی مشاوره حالا برمی‌گرداند)، currentTrustPerson به myTrustPerson(نقش
+   بازدیدکنندهٔ فعلی) سقوط می‌کرد - یعنی پروفایل خودِ کاربر لاگین‌کرده، با برچسب شخص دیگر! این
+   مسیر تا الان هیچ‌جای اپ صدا زده نمی‌شد (هیچ قابلیتی id واقعیِ غیر از خودِ کاربر را به
+   openTrustCard نمی‌داد)، پس باگ واقعی بود ولی بی‌اثر - تا الان که کلیک روی اسم نویسندهٔ کامنت
+   دقیقاً همین مسیر را فعال می‌کند. otherRealTrustPerson از دادهٔ واقعی‌ای که openTrustCard از
+   قبل با loadRealTrustPhone/loadRealTrustScore گرفته (state.trustIdentity/state.trustScoreData)
+   یک شیء هم‌شکل adTrustPerson/myTrustPerson می‌سازد. */
+function otherRealTrustPerson(userId){
+  var identity=(state.trustIdentity&&state.trustIdentity.userId===userId)?state.trustIdentity:null;
+  var real=(state.trustScoreData&&state.trustScoreData.userId===userId)?state.trustScoreData:null;
+  var name=(identity&&identity.name)||'کاربر بلوک';
+  return {
+    name:name,role:(identity&&identity.roleLabel)||'عضو بلوک',initials:name.trim().slice(0,1)||'ب',
+    photo:(identity&&identity.photo)||null,location:(identity&&identity.location)||'',
+    rating:real?(Number(real.avgRating)||0):0,completed:real&&real.completedProjects!=null?real.completedProjects:0,
+    verified:!!(identity&&identity.verified),age:'ثبت‌نشده',birthPlace:'ثبت‌نشده',experience:'ثبت‌نشده',activityRange:'ثبت‌نشده',
+    phone:(state.trustPhone&&state.trustPhone.value)||'',skills:[],skillDetails:[],
+    reviews:real?real.reviews:[],code:(identity&&identity.code)||'',
+    trustScore:real?real.score:null,trustBreakdown:real?real.breakdown:null
+  };
+}
+function currentTrustPerson(){if(state.trustPersonId==='self')return myTrustPerson(state.role||'worker');if(state.trustPersonId==='ad')return adTrustPerson(currentAdDetail());var seeded=PEOPLE_SEED[state.trustPersonId];if(seeded)return seeded;return otherRealTrustPerson(state.trustPersonId)}
 function openPersonProfile(id){state.viewingPerson=id;go('viewProfile')}
 function renderPortfolioCards(items){
   if(!items||!items.length)return '<p style="font-size:.58rem">نمونه‌کاری ثبت نشده است.</p>';
@@ -3284,10 +3330,28 @@ function renderAdComments(ad){
   var items=(data&&data.items)||[],loading=!!(data&&data.loading);
   var listHtml=loading?'<p style="font-size:.58rem">در حال بارگذاری پاسخ‌ها…</p>':(items.length?items.map(function(c){
     var author=c.author||{},name=[author.firstName,author.lastName].filter(Boolean).join(' ')||'کاربر بلوک';
-    return '<div class="ad-comment-item"><div class="ad-comment-item-head"><b>'+esc(name)+'</b>'+(author.code?'<span class="ad-comment-code">کد '+esc(author.code)+'</span>':'')+'<span class="ad-comment-time">'+esc(timeAgoFa(c.createdAt))+'</span></div><p>'+esc(c.text)+'</p></div>';
+    /* اسم نویسنده فقط وقتی کلیک‌پذیر است که author.id واقعاً برگردد (کاربر واقعی، نه یک
+       نظر seed/قدیمی)؛ کلیک openTrustCard واقعی را برای همان شخص بارگذاری می‌کند. */
+    var nameHtml=author.id?'<b class="ad-comment-author" onclick="openTrustCard(\''+esc(author.id)+'\')">'+esc(name)+'</b>':'<b>'+esc(name)+'</b>';
+    var liked=!!c.liked,likeCount=c.likeCount||0;
+    var likeBtn='<button class="ad-comment-like'+(liked?' active':'')+'" onclick="event.stopPropagation();toggleCommentLike(\''+esc(c.id)+'\')" aria-label="مفید بود">'+icon('heart',11)+'<span>'+likeCount+'</span></button>';
+    return '<div class="ad-comment-item"><div class="ad-comment-item-head">'+nameHtml+(author.code?'<span class="ad-comment-code">کد '+esc(author.code)+'</span>':'')+'<span class="ad-comment-time">'+esc(timeAgoFa(c.createdAt))+'</span></div><p>'+esc(c.text)+'</p>'+likeBtn+'</div>';
   }).join(''):'<p style="font-size:.58rem">هنوز پاسخ یا راهنمایی‌ای ثبت نشده است.</p>');
   var compose='<div class="ad-comment-compose"><textarea id="adCommentInput" class="textarea" placeholder="پاسخ یا راهنمایی خود را بنویسید…" oninput="state.adCommentDraft=this.value">'+esc(state.adCommentDraft||'')+'</textarea><button class="btn-primary" onclick="submitAdComment(\''+esc(adId)+'\')">ثبت نظر یا راهنمایی</button></div>';
   return '<div class="ad-detail-section ad-comments-section"><b>پاسخ‌ها و راهنمایی‌ها'+(items.length?' ('+items.length+')':'')+'</b>'+compose+'<div class="ad-comment-list">'+listHtml+'</div></div>';
+}
+/* لایک هر کامنت: toggle واقعی روی سرور. لیست GET نمرهٔ «آیا خودم لایک کرده‌ام» را برنمی‌گرداند
+   (محدودیت شناخته‌شده و پذیرفته‌شدهٔ قرارداد فعلی)، پس ظاهر فعال/غیرفعال دکمه فقط بعد از
+   خودِ toggle در همین نشست به‌روز می‌شود - قبل از آن c.liked تعریف‌نشده/false است که طبیعی است. */
+function toggleCommentLike(commentId){
+  if(!getSessionUser()){promptGuestAuth('comment',{resume:function(){toggleCommentLike(commentId)}});return}
+  apiRequest('/api/ads/comments/'+commentId+'/like',{method:'POST'})
+    .then(function(data){
+      var items=(state.adComments&&state.adComments.items)||[];
+      var item=items.find(function(c){return c.id===commentId});
+      if(item){item.likeCount=data.likeCount;item.liked=data.liked;render()}
+    })
+    .catch(function(e){toast(e.message||'ثبت لایک ناموفق بود','warning')});
 }
 function submitAdComment(adId){
   if(!getSessionUser()){promptGuestAuth('comment',{resume:function(){submitAdComment(adId)}});return}
@@ -5833,12 +5897,12 @@ adDetail:function(){
      می‌گذاشت)، یک ردیف افقی سبک - آواتار کوچک هم‌رنگ دستهٔ آگهی، اسم و تیک تأیید، نقش/شهر/
      امتیاز، و یک فلش کلیک‌پذیر؛ در جای همیشگی‌اش (بین جزئیات و نقشه) می‌ماند. */
   var ownerChip='<div class="ad-detail-section ad-owner-section"><div class="ad-owner-light tone-'+esc(ad.tone||'mint')+'" onclick="openAdTrustCard()"><div class="ad-owner-light-avatar">'+esc(person.initials||'ب')+'</div><div class="ad-owner-light-copy"><b>'+esc(person.name)+(person.verified?'<i class="verified-mini">'+icon('check',9)+'</i>':'')+'</b><span>'+esc(person.role||'')+(person.location?' · '+esc(person.location):'')+(person.rating?' · ★'+esc(person.rating):'')+'</span></div><span class="rarrow">‹</span></div></div>';
-  /* به درخواست کاربر: کارت کامل پروفایل (renderPublicTrustCard، همان کارت مهارت‌ها/امتیاز/
-     نظرها با لینک «دیدن کارت کامل») حالا هم برای آگهی‌های «جویای کار» (isWork) و هم «پرسش
-     تخصصی» (isConsult) بلافاصله بعد از تیتر/توضیحات نشان داده می‌شود - در هر دو مورد خودِ فرد
-     محصول این آگهی است، پس چیپ سبک قبلی برای مشاوره خیلی کوچک و کم‌اطلاعات بود. آگهی‌های
-     workforce دست‌نخورده مانده‌اند (همچنان چیپ سبک ownerChip). */
-  var fullProfileAfterHero=(isWork||isConsult)?renderPublicTrustCard(person,'ad'):'';
+  /* به درخواست کاربر (بازبینی دوم): کارت کامل پروفایل فقط برای «جویای کار» (isWork) بلافاصله
+     بعد از تیتر/توضیحات می‌ماند - چون خودِ فرد محصول آن آگهی است. برای «پرسش تخصصی» (isConsult)
+     این کارت به چیپ سبک ownerChip برگشت اما به انتهای صفحه (بعد از نقشه، درست قبل از دک) منتقل
+     شد چون کوچک‌تر است و اولویت این صفحه دیدن پاسخ‌ها/راهنمایی‌هاست، نه پروفایل صاحب پرسش.
+     workforce دقیقاً همان‌جای قبلی‌اش (گرید → ownerChip) دست‌نخورده مانده. */
+  var fullProfileAfterHero=isWork?renderPublicTrustCard(person,'ad'):'';
   /* برای آگهی‌های «پرسش تخصصی» تگ‌های مهارت/حوزه همین چند خط بالاتر در ad-preview-tags (هیرو)
      از قبل نمایش داده شده‌اند؛ اولین کاشیِ این گرید همان مقدار را عیناً تکرار می‌کرد - دقیقاً
      همان موردی که کاربر گفت «بعد از توضیحات گزینه‌های مهارت کاربر رو داره می‌نویسه که این‌ها
@@ -5847,11 +5911,11 @@ adDetail:function(){
   return topbar('جزئیات آگهی',ad.resultLabel)
     +'<div class="page ad-detail-page">'
     +'<div class="ad-detail-hero tone-'+esc(ad.tone)+'"><span>'+esc(ad.resultLabel)+'</span><h2>'+esc(ad.title)+'</h2><p>'+esc(isConsult?ad.range:(ad.city+(ad.province?'، '+ad.province:'')))+' · '+esc(ad.availabilityLabel)+'</p>'+(ad.description?'<p class="ad-detail-desc">'+esc(ad.description)+'</p>':'')+(ad.attachment?'<img class="ad-detail-image" src="'+esc(ad.attachment)+'" alt="تصویر پیوست">':'')+'<div class="ad-preview-tags">'+(ad.categories||[ad.category]).map(function(value){return '<span>'+esc(value)+'</span>'}).join('')+'<span>'+esc(audienceLabel)+': '+esc(target)+'</span></div></div>'
+    +(isConsult?renderAdComments(ad):'')
     +fullProfileAfterHero
     +'<div class="ad-detail-grid">'+skillsTile+'<div><span>'+esc(audienceLabel)+'</span><b>'+esc(target)+'</b></div>'+projectDetails+'<div><span>محدوده اعلان</span><b>'+esc(ad.range||'داخل شهر')+'</b></div></div>'
-    +((isWork||isConsult)?'':ownerChip)
     +(isWork&&resolveItemCoords(ad,0)?'<div class="ad-detail-section ad-map-section"><b>محل فعالیت روی نقشه</b><div id="adDetailMap" class="mapbox" style="margin-top:8px"></div></div>':'')
-    +(isConsult?renderAdComments(ad):'')
+    +(isWork?'':ownerChip)
     +'</div><div class="dock">'+(isMyAd(ad)?'<button class="btn-secondary" style="color:var(--danger);border-color:var(--danger)" onclick="openDeleteAdSheet()">حذف آگهی</button>':'<button class="btn-primary" onclick="startAdChat(\''+ad.id+'\')">'+(ad.status==='matched'?'رفتن به گفت‌وگوی پروژه':'شروع گفت‌وگو درباره این آگهی')+'</button>')+'</div>';
 },
 
